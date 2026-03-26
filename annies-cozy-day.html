@@ -499,8 +499,16 @@
       particles: [],
       ambient: [],
       starsAmbient: [],
-      visible: true
+      visible: true,
+      shake: 0,
+      shakeX: 0,
+      shakeY: 0
     };
+
+    function screenShake(intensity = 4, duration = 0.2) {
+      game.shake = Math.max(game.shake, duration);
+      game.shakeIntensity = intensity;
+    }
 
     function spawnParticleBurst(x, y, colors = [COLORS.softPink, COLORS.gold], amount = 10, kindMix = ["heart", "star"]) {
       if (game.particles.length > 240) game.particles.splice(0, game.particles.length - 240);
@@ -2244,6 +2252,30 @@
     function drawTitleBg(c) {
       if (!sceneCache.titleBase) buildStaticCaches();
       c.drawImage(sceneCache.titleBase, 0, 0);
+
+      /* layered bokeh lights - slow parallax */
+      c.save();
+      for (let layer = 0; layer < 3; layer++) {
+        const speed = 0.08 + layer * 0.06;
+        const baseSize = 30 + layer * 20;
+        const alpha = 0.05 - layer * 0.012;
+        for (let i = 0; i < 5; i++) {
+          const bx = ((game.time * speed * 40 + i * 170 + layer * 90) % (W + 100)) - 50;
+          const by = 80 + i * 100 + layer * 30 + Math.sin(game.time * 0.4 + i * 1.5 + layer) * 25;
+          const bs = baseSize + Math.sin(game.time * 0.6 + i * 2) * 8;
+          const bg = c.createRadialGradient(bx, by, 0, bx, by, bs);
+          bg.addColorStop(0, `rgba(255,220,160,${alpha + 0.02})`);
+          bg.addColorStop(0.5, `rgba(255,200,140,${alpha})`);
+          bg.addColorStop(1, "rgba(255,200,140,0)");
+          c.fillStyle = bg;
+          c.beginPath();
+          c.arc(bx, by, bs, 0, Math.PI * 2);
+          c.fill();
+        }
+      }
+      c.restore();
+
+      /* floating hearts and stars */
       for (const a of game.ambient) {
         c.save();
         c.globalAlpha = 0.28 + 0.14 * Math.sin(game.time * 1.2 + a.phase);
@@ -2252,14 +2284,109 @@
         else drawStar(c, a.x, a.y, a.size, a.color);
         c.restore();
       }
-      c.fillStyle = "rgba(255,255,255,0.05)";
-      c.fillRect(0, 0, W, H);
+
+      /* warm spotlight behind character area */
+      const spotG = c.createRadialGradient(400, 400, 40, 400, 400, 240);
+      spotG.addColorStop(0, "rgba(255,240,210,0.12)");
+      spotG.addColorStop(0.6, "rgba(255,230,200,0.05)");
+      spotG.addColorStop(1, "rgba(255,230,200,0)");
+      c.fillStyle = spotG;
+      c.fillRect(100, 200, 600, 350);
     }
 
     function drawLivingRoom(c, mode = "hub") {
       if (!sceneCache.livingRoomBase) buildStaticCaches();
       c.drawImage(sceneCache.livingRoomBase, 0, 0);
-      drawGlowCircle(c, 126, 146, 96, "rgba(255,232,160,ALPHA)", 0.08 + 0.02 * Math.sin(game.time * 1.2));
+
+      /* animated window sky + clouds (drawn over static window area) */
+      c.save();
+      c.beginPath();
+      rr(c, 66, 52, 120, 152, 5);
+      c.clip();
+      /* sky gradient that shifts with time */
+      const skyShift = Math.sin(game.time * 0.05) * 0.08;
+      const skyG = c.createLinearGradient(66, 52, 66, 204);
+      skyG.addColorStop(0, `rgba(${135 + skyShift * 40},${206 + skyShift * 20},${235},1)`);
+      skyG.addColorStop(1, `rgba(${200 + skyShift * 30},${230 + skyShift * 10},255,1)`);
+      c.fillStyle = skyG;
+      c.fillRect(66, 52, 120, 152);
+      /* drifting clouds */
+      c.fillStyle = "rgba(255,255,255,0.7)";
+      for (let i = 0; i < 3; i++) {
+        const cx = 66 + ((game.time * (6 + i * 2) + i * 55) % 160) - 20;
+        const cy = 68 + i * 40 + Math.sin(game.time * 0.3 + i * 2) * 4;
+        c.beginPath();
+        c.ellipse(cx, cy, 18 + i * 4, 8 + i * 2, 0, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.ellipse(cx + 12, cy + 2, 12 + i * 2, 6 + i, 0, 0, Math.PI * 2);
+        c.fill();
+      }
+      c.restore();
+
+      /* warm light rays from window */
+      c.save();
+      c.globalAlpha = 0.04 + 0.015 * Math.sin(game.time * 0.8);
+      c.fillStyle = "rgba(255,240,180,1)";
+      c.beginPath();
+      c.moveTo(66, 52);
+      c.lineTo(190, 52);
+      c.lineTo(380, 480);
+      c.lineTo(120, 480);
+      c.closePath();
+      c.fill();
+      /* secondary softer ray */
+      c.globalAlpha = 0.025 + 0.01 * Math.sin(game.time * 0.6 + 1);
+      c.beginPath();
+      c.moveTo(100, 80);
+      c.lineTo(170, 80);
+      c.lineTo(320, 470);
+      c.lineTo(200, 470);
+      c.closePath();
+      c.fill();
+      c.restore();
+
+      /* animated lamp glow - flickers slightly */
+      const lampFlicker = 0.08 + 0.025 * Math.sin(game.time * 1.2) + 0.01 * Math.sin(game.time * 4.7) + 0.005 * Math.sin(game.time * 11.3);
+      drawGlowCircle(c, 126, 146, 96, "rgba(255,232,160,ALPHA)", lampFlicker);
+      drawGlowCircle(c, 126, 160, 50, "rgba(255,220,140,ALPHA)", lampFlicker * 0.6);
+
+      /* steam from mug on side table */
+      c.save();
+      c.globalAlpha = 0.18;
+      for (let i = 0; i < 3; i++) {
+        const st = (game.time * 0.6 + i * 1.2) % 3.6;
+        const sy = 314 - st * 14;
+        const sx = 246 + Math.sin(game.time * 1.5 + i * 2.1) * 4;
+        const sa = clamp(1 - st / 3.6, 0, 1) * (st > 0.2 ? 1 : st / 0.2);
+        c.globalAlpha = sa * 0.15;
+        c.fillStyle = "rgba(255,255,255,0.9)";
+        c.beginPath();
+        c.ellipse(sx, sy, 3 + st * 1.5, 2 + st, 0, 0, Math.PI * 2);
+        c.fill();
+      }
+      c.restore();
+
+      /* dust motes floating in light rays */
+      if (mode === "hub") {
+        c.save();
+        for (let i = 0; i < 8; i++) {
+          const mt = (game.time * 0.15 + i * 1.7) % 6;
+          const mx = 100 + i * 30 + Math.sin(game.time * 0.3 + i * 0.9) * 20;
+          const my = 120 + mt * 60 + Math.sin(game.time * 0.5 + i * 1.3) * 8;
+          if (my > 460) continue;
+          /* only show motes in the light ray area */
+          const inRay = mx > 80 && mx < 340 && my > 80;
+          if (!inRay) continue;
+          const mAlpha = 0.25 + 0.15 * Math.sin(game.time * 2 + i * 0.7);
+          c.globalAlpha = mAlpha * clamp(1 - (my - 380) / 80, 0.2, 1);
+          c.fillStyle = "#FFF8E0";
+          c.beginPath();
+          c.arc(mx, my, 1.5 + Math.sin(game.time + i) * 0.5, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.restore();
+      }
 
       /* dynamic decorations */
       const d = store.decor;
@@ -2587,14 +2714,25 @@
           }
         }
 
-        /* title text with soft shadow */
+        /* title text with glow and layered shadow */
         c.save();
-        c.fillStyle = "rgba(255,248,240,0.5)";
         c.textAlign = "center";
+        /* warm glow behind title */
+        drawGlowCircle(c, W / 2, 88, 200, "rgba(255,240,210,ALPHA)", 0.1);
+        /* deep shadow */
+        c.fillStyle = "rgba(92,58,32,0.2)";
         c.font = '50px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Annie's Cozy Day", W / 2 + 2, 94);
+        c.fillText("Annie's Cozy Day", W / 2 + 3, 96);
+        /* light outline */
+        c.strokeStyle = "rgba(255,248,240,0.5)";
+        c.lineWidth = 6;
+        c.font = '50px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.strokeText("Annie's Cozy Day", W / 2, 92);
+        /* main title */
         c.fillStyle = "#7A4E36";
         c.fillText("Annie's Cozy Day", W / 2, 92);
+        /* subtitle with softer style */
+        c.fillStyle = "rgba(122,78,54,0.7)";
         c.font = '23px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.fillText("A Cozy Minigame Collection", W / 2, 128);
         c.restore();
@@ -2747,21 +2885,36 @@
           else if (this.obi.sleepy) pose = "sleeping";
           else if (this.obi.sniffing) pose = "sniff";
           else if (this.toy && this.toy.pet === "obi") pose = "run";
+          /* idle breathing bob */
+          const obiBreathe = pose === "sit" ? Math.sin(game.time * 2.2) * 0.012 : 0;
+          /* tail wags continuously with varying speed based on mood */
+          const tailSpeed = this.obi.happyTimer > 0.1 ? 10 : (this.obi.joy > 65 ? 7 : this.obi.joy > 40 ? 5 : 3);
+          const tailAmp = this.obi.sleepy ? 0.2 : (this.obi.joy > 65 ? 1.0 : 0.6);
+          /* occasional head tilt fidget */
+          const obiHeadBob = pose === "sit" ? Math.sin(game.time * 0.7) * 0.015 : 0;
           return {
             pose,
             expression: this.obi.sleepy ? "sad" : (this.obi.happyTimer > 0.1 || this.obi.petTimer > 0.08) ? "excited" : "happy",
-            tail: Math.sin(game.time * (this.obi.happyTimer > 0.1 ? 10 : 6)) * 0.9,
-            bounce: this.obi.bounce + (this.obi.petTimer > 0 ? 0.04 : 0),
+            tail: Math.sin(game.time * tailSpeed) * tailAmp,
+            bounce: this.obi.bounce + (this.obi.petTimer > 0 ? 0.04 : 0) + obiBreathe,
             facing: this.obi.facing,
             glow: this.hoverKey === "obi" ? "rgba(255,215,0,0.30)" : null
           };
         }
+        /* Luna idle micro-animations */
+        const lunaPose = this.luna.bellyUp ? "bellyUp" : this.luna.grooming ? "groom" : this.luna.onTower ? "lounge" : "sit";
+        const lunaBreathe = (lunaPose === "sit" || lunaPose === "lounge") ? Math.sin(game.time * 1.8 + 0.5) * 0.01 : 0;
+        /* tail sways with more organic motion (two overlapping sine waves) */
+        const lunaTail = Math.sin(game.time * 1.7 + 1.2) * 0.7 + Math.sin(game.time * 2.9 + 0.4) * 0.3;
+        /* periodic ear flick */
+        const earBase = earSignal(game.time + 0.8);
+        const earMicro = Math.sin(game.time * 0.6) > 0.92 ? 0.3 : 0;
         return {
-          pose: this.luna.bellyUp ? "bellyUp" : this.luna.grooming ? "groom" : this.luna.onTower ? "lounge" : "sit",
-          tail: Math.sin(game.time * 1.7 + 1.2),
-          earTwitch: earSignal(game.time + 0.8),
+          pose: lunaPose,
+          tail: lunaTail,
+          earTwitch: earBase + earMicro,
           blink: blinkSignal(game.time + 1.3, 0.38),
-          wiggle: this.luna.wiggle,
+          wiggle: this.luna.wiggle + lunaBreathe,
           pounceStretch: this.luna.pounce,
           pawBat: this.luna.pawBat,
           facing: this.luna.facing,
@@ -3700,7 +3853,8 @@
             ? ["Obi perks up!", "Obi is wagging hard!", "Obi is thrilled!"]
             : ["Luna is warming up!", "Luna is curious!", "Luna is purring!"];
           this.addFloatingText(msgs[tier - 1], px, py, COLORS.gold);
-          spawnParticleBurst(px, py, [COLORS.gold, COLORS.softPink], 8, ["star", "heart"]);
+          spawnParticleBurst(px, py, [COLORS.gold, COLORS.softPink], tier >= 3 ? 14 : 8, ["star", "heart"]);
+          if (tier >= 3) screenShake(3.5, 0.25);
           audio.tinyChime();
         }
       }
@@ -3724,6 +3878,7 @@
           this.statusText = this.petName(key) + " got exactly what they wanted!";
           this.statusPulse = 1;
           audio.combo();
+          screenShake(3, 0.2);
           this.addFloatingText("Got it!", px, py, COLORS.gold);
           if (key === "obi") this.obiBubble = null;
           else this.lunaBubble = null;
@@ -3946,23 +4101,26 @@
 
         /* warm scene glow */
         drawGlowCircle(c, 400, 380, 200, "rgba(255,240,210,ALPHA)", 0.06);
-        /* Annie shadow */
-        c.save();
-        c.fillStyle = "rgba(121,88,63,0.12)";
-        c.beginPath();
-        c.ellipse(this.annie.x, 456, 44, 14, 0, 0, Math.PI * 2);
-        c.fill();
-        c.restore();
-        /* ground shadows */
-        c.save();
-        c.fillStyle = "rgba(121,88,63,0.18)";
-        c.beginPath();
-        c.ellipse(262, 466, 74, 20, 0, 0, Math.PI * 2);
-        c.fill();
-        c.beginPath();
-        c.ellipse(606, 462, 84, 24, 0, 0, Math.PI * 2);
-        c.fill();
-        c.restore();
+        /* dynamic character shadows - light source from window (~126, 130) */
+        const lightX = 126, lightY = 130;
+        const drawDynShadow = (cx, cy, baseW, baseH) => {
+          const dx = (cx - lightX) * 0.12;
+          const stretch = 1 + Math.abs(cx - lightX) * 0.001;
+          const shadowAlpha = clamp(0.18 - Math.abs(cx - lightX) * 0.0003, 0.06, 0.18);
+          c.save();
+          const sg = c.createRadialGradient(cx + dx, cy, 0, cx + dx, cy, baseW * stretch * 1.2);
+          sg.addColorStop(0, `rgba(80,55,35,${shadowAlpha})`);
+          sg.addColorStop(1, "rgba(80,55,35,0)");
+          c.fillStyle = sg;
+          c.beginPath();
+          c.ellipse(cx + dx, cy, baseW * stretch, baseH, 0, 0, Math.PI * 2);
+          c.fill();
+          c.restore();
+        };
+        drawDynShadow(this.annie.x, 458, 44, 14);
+        drawDynShadow(this.obi.x, 466, 42, 14);
+        const lunaY = this.luna.onTower ? 280 : 462;
+        drawDynShadow(this.luna.x, lunaY + 8, 38, 12);
 
         /* treat mode side indicators */
         if (this.mode === "treat" && !this.menuOpen && !this.decorOpen && !this.dedication) {
@@ -4958,7 +5116,8 @@
               this.goldenFlash = 1.2;
             }
             audio.catch();
-            spawnParticleBurst(this.obiX, 470, [COLORS.softPink, COLORS.gold], 10, ["heart", "star"]);
+            if (this.combo >= 5) screenShake(2, 0.12);
+            spawnParticleBurst(this.obiX, 470, [COLORS.softPink, COLORS.gold], this.combo >= 3 ? 14 : 10, ["heart", "star"]);
             return;
           }
 
@@ -6407,7 +6566,20 @@
         game.scene.update(dt);
       }
 
+      /* screen shake */
+      if (game.shake > 0) {
+        game.shake -= dt;
+        const intensity = game.shakeIntensity * clamp(game.shake / 0.1, 0, 1);
+        game.shakeX = (Math.random() - 0.5) * intensity * 2;
+        game.shakeY = (Math.random() - 0.5) * intensity * 2;
+      } else {
+        game.shakeX = 0;
+        game.shakeY = 0;
+      }
+
       ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.translate(game.shakeX, game.shakeY);
       if (game.transition) {
         const p = clamp(game.transition.t / game.transition.duration, 0, 1);
         if (game.transition.from) {
@@ -6438,6 +6610,8 @@
       ctx.fillStyle = vg;
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
+
+      ctx.restore(); /* end screen shake transform */
 
       if (game.scene || game.transition) {
         const activeScene = game.transition ? game.transition.from : game.scene;
