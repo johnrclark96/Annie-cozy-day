@@ -168,11 +168,24 @@
         maximumCozy: false,
         goodWalker: false,
         napMaster: false
-      })
+      }),
+      decor: loadJSON("decor", {
+        fairyLights: false,
+        plant2: false,
+        petBed: false,
+        rugColor: 0,
+        wallArt: 0
+      }),
+      firstVisit: loadBool("firstVisit", true),
+      pet_obi_joy: loadNumber("pet_obi_joy", 54),
+      pet_luna_joy: loadNumber("pet_luna_joy", 56),
+      lastKnownStars: loadNumber("lastKnownStars", 0),
+      bubbleOnboarded: loadBool("bubbleOnboarded", false)
     };
 
     function saveStats() { saveJSON("stats", store.stats); }
     function saveAchievements() { saveJSON("achievements", store.achievements); }
+    function saveDecor() { saveJSON("decor", store.decor); }
     function setBest(gameId, value) {
       const key = "best_" + gameId;
       if (value > store[key]) {
@@ -182,6 +195,39 @@
       }
       return false;
     }
+    function totalStarsEarned() {
+      const games = [
+        { best: store.best_treat, thresholds: [200, 500, 1000] },
+        { best: store.best_laser, thresholds: [150, 400, 800] },
+        { best: store.best_cuddle, thresholds: [30, 60, 90] },
+        { best: store.best_walk, thresholds: [150, 300, 600] },
+        { best: store.best_nap, thresholds: [200, 450, 800] }
+      ];
+      let total = 0;
+      for (const g of games) {
+        if (g.best >= g.thresholds[0]) total++;
+        if (g.best >= g.thresholds[1]) total++;
+        if (g.best >= g.thresholds[2]) total++;
+      }
+      return total;
+    }
+    const TITLE_SUBTITLES = [
+      "A cozy little gift for Annie, Obi, and Luna",
+      "Obi wants belly rubs",
+      "Luna is judging you lovingly",
+      "Everyone's favorite nap spot",
+      "A game about the important things",
+      "Obi found something interesting to sniff",
+      "Luna claims this is her couch now",
+      "Made with love and way too much JavaScript"
+    ];
+
+    const DECOR_ITEMS = [
+      { key: "fairyLights", name: "Fairy Lights", desc: "Twinkling lights along the wall", stars: 1, type: "toggle" },
+      { key: "plant2", name: "Flower Pot", desc: "A flowering plant on the side table", stars: 3, type: "toggle" },
+      { key: "petBed", name: "Pet Bed", desc: "A cozy pink bed for napping", stars: 5, type: "toggle" },
+      { key: "rugColor", name: "Rug Color", desc: "Change the rug color", stars: 2, type: "cycle", max: 3, labels: ["Default", "Sage", "Lavender", "Rose"] },
+    ];
 
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
     function lerp(a, b, t) { return a + (b - a) * t; }
@@ -260,13 +306,16 @@
       c.save();
       c.translate(x, y);
       c.fillStyle = color;
+      /* central bar */
+      rr(c, -w * 0.45, -h * 0.28, w * 0.9, h * 0.56, h * 0.2);
+      c.fill();
+      /* knobs - drawn after rr so beginPath doesn't erase them */
       c.beginPath();
       c.arc(-w * 0.35, -h * 0.25, h * 0.25, 0, Math.PI * 2);
       c.arc(-w * 0.35, h * 0.25, h * 0.25, 0, Math.PI * 2);
       c.arc(w * 0.35, -h * 0.25, h * 0.25, 0, Math.PI * 2);
       c.arc(w * 0.35, h * 0.25, h * 0.25, 0, Math.PI * 2);
-      rr(c, -w * 0.45, -h * 0.28, w * 0.9, h * 0.56, h * 0.2);
-      c.fill("evenodd");
+      c.fill();
       c.restore();
     }
     function drawGlowCircle(c, x, y, r, color, alpha = 0.3) {
@@ -390,6 +439,50 @@
       }
       achievement() { this.chord([261.63, 329.63, 392], 0.3, 0.11); }
       tinyChime() { this.tone(660, 0.09, 0.08, "sine"); }
+      startAmbient() {
+        if (this.ambientActive) return;
+        if (!this.ensure()) return;
+        if (store.muted) return;
+        this.ambientActive = true;
+        const now = this.ctx.currentTime;
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const lfo = this.ctx.createOscillator();
+        const lfoGain = this.ctx.createGain();
+        const g = this.ctx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.value = 110;
+        osc2.type = "sine";
+        osc2.frequency.value = 165;
+        lfo.type = "sine";
+        lfo.frequency.value = 0.15;
+        lfoGain.gain.value = 0.005;
+        lfo.connect(lfoGain);
+        lfoGain.connect(g.gain);
+        g.gain.value = 0.018;
+        osc1.connect(g);
+        osc2.connect(g);
+        g.connect(this.ctx.destination);
+        osc1.start(now);
+        osc2.start(now);
+        lfo.start(now);
+        this._ambientNodes = { osc1, osc2, lfo, lfoGain, g };
+      }
+      stopAmbient() {
+        if (!this.ambientActive) return;
+        this.ambientActive = false;
+        const n = this._ambientNodes;
+        if (!n) return;
+        this._ambientNodes = null;
+        try {
+          const now = this.ctx.currentTime;
+          n.g.gain.setTargetAtTime(0, now, 0.1);
+          const osc1 = n.osc1, osc2 = n.osc2, lfo = n.lfo;
+          setTimeout(() => {
+            try { osc1.stop(); osc2.stop(); lfo.stop(); } catch(e) {}
+          }, 300);
+        } catch(e) {}
+      }
     }
     const audio = new CozyAudio();
 
@@ -512,19 +605,31 @@
       c.globalAlpha = alpha;
       const w = 220;
       const h = 74;
-      rr(c, x - w / 2, y - h, w, h, 14);
-      c.fillStyle = "rgba(92,68,52,0.92)";
+      /* shadow */
+      c.fillStyle = "rgba(60,40,25,0.15)";
+      rr(c, x - w / 2 + 3, y - h + 3, w, h, 14);
       c.fill();
+      /* main box */
+      rr(c, x - w / 2, y - h, w, h, 14);
+      c.fillStyle = "rgba(82,58,42,0.94)";
+      c.fill();
+      /* top highlight */
+      c.fillStyle = "rgba(255,255,255,0.06)";
+      rr(c, x - w / 2 + 4, y - h + 4, w - 8, h * 0.35, 12);
+      c.fill();
+      /* text */
       c.fillStyle = "#FFF8F0";
       c.textAlign = "center";
       c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
       c.fillText(title, x, y - h + 24);
       c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      c.fillStyle = "rgba(255,248,240,0.85)";
       wrapText(c, body, x, y - h + 44, 190, 16);
+      /* pointer */
+      c.fillStyle = "rgba(82,58,42,0.94)";
       c.beginPath();
-      c.moveTo(x - 10, y);
-      c.lineTo(x + 10, y);
-      c.lineTo(x, y + 10);
+      c.moveTo(x - 8, y);
+      c.quadraticCurveTo(x, y + 12, x + 8, y);
       c.closePath();
       c.fill();
       c.restore();
@@ -2155,6 +2260,111 @@
       if (!sceneCache.livingRoomBase) buildStaticCaches();
       c.drawImage(sceneCache.livingRoomBase, 0, 0);
       drawGlowCircle(c, 126, 146, 96, "rgba(255,232,160,ALPHA)", 0.08 + 0.02 * Math.sin(game.time * 1.2));
+
+      /* dynamic decorations */
+      const d = store.decor;
+      if (d.fairyLights) {
+        c.save();
+        /* string with natural sag */
+        c.strokeStyle = "rgba(180,160,110,0.55)";
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(50, 228);
+        for (let i = 1; i < 16; i++) {
+          const px = 50 + i * 47;
+          const py = 224 + Math.sin(i * 0.8) * 7 + Math.sin(i * 0.3) * 3;
+          c.lineTo(px, py);
+        }
+        c.stroke();
+        /* bulbs with glow */
+        for (let i = 0; i < 16; i++) {
+          const lx = 50 + i * 47;
+          const ly = 224 + Math.sin(i * 0.8) * 7 + Math.sin(i * 0.3) * 3;
+          const bulbColor = ["#FFD700","#FF8FAA","#87CEEB","#A8D870","#FFB347"][i % 5];
+          const pulse = Math.sin(game.time * 2.5 + i * 1.1);
+          /* outer glow */
+          c.globalAlpha = 0.16 + pulse * 0.1;
+          c.fillStyle = bulbColor;
+          c.beginPath(); c.arc(lx, ly + 5, 12, 0, Math.PI * 2); c.fill();
+          /* bulb body */
+          c.globalAlpha = 0.7 + pulse * 0.25;
+          c.beginPath(); c.arc(lx, ly + 5, 4.5, 0, Math.PI * 2); c.fill();
+          /* highlight */
+          c.globalAlpha = 0.5 + pulse * 0.2;
+          c.fillStyle = "rgba(255,255,255,0.7)";
+          c.beginPath(); c.arc(lx - 1, ly + 3, 1.5, 0, Math.PI * 2); c.fill();
+        }
+        c.restore();
+      }
+      if (d.plant2) {
+        c.save();
+        c.translate(236, 324);
+        /* pot shadow */
+        c.fillStyle = "rgba(0,0,0,0.06)";
+        c.beginPath(); c.ellipse(0, 14, 14, 4, 0, 0, Math.PI * 2); c.fill();
+        /* pot body */
+        c.fillStyle = "#A07050";
+        rr(c, -10, 0, 20, 14, 4);
+        c.fill();
+        /* pot rim */
+        c.fillStyle = "#B08060";
+        rr(c, -12, -2, 24, 5, 3);
+        c.fill();
+        /* foliage layers */
+        c.fillStyle = "#4A9848";
+        c.beginPath(); c.ellipse(0, -8, 15, 15, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#5EAA56";
+        c.beginPath(); c.ellipse(-5, -14, 11, 11, -0.3, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#6CBC64";
+        c.beginPath(); c.ellipse(5, -12, 9, 9, 0.2, 0, Math.PI * 2); c.fill();
+        /* flowers */
+        c.fillStyle = "#FF8090";
+        c.beginPath(); c.arc(4, -20, 4.5, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(-9, -13, 3.5, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(8, -10, 3, 0, Math.PI * 2); c.fill();
+        /* flower centers */
+        c.fillStyle = "#FFD080";
+        c.beginPath(); c.arc(4, -20, 1.5, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(-9, -13, 1.2, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+      if (d.petBed) {
+        c.save();
+        c.translate(180, 460);
+        /* shadow */
+        c.fillStyle = "rgba(0,0,0,0.08)";
+        c.beginPath(); c.ellipse(0, 8, 42, 14, 0, 0, Math.PI * 2); c.fill();
+        /* outer rim */
+        c.fillStyle = "#B88888";
+        c.beginPath(); c.ellipse(0, 0, 38, 16, 0, 0, Math.PI * 2); c.fill();
+        /* inner cushion */
+        c.fillStyle = "#D4A0A0";
+        c.beginPath(); c.ellipse(0, -1, 32, 12, 0, 0, Math.PI * 2); c.fill();
+        /* pillow center */
+        c.fillStyle = "#E0B4B4";
+        c.beginPath(); c.ellipse(0, -3, 24, 9, 0, 0, Math.PI * 2); c.fill();
+        /* highlight shine */
+        c.fillStyle = "rgba(255,255,255,0.25)";
+        c.beginPath(); c.ellipse(-6, -6, 14, 5, -0.2, 0, Math.PI * 2); c.fill();
+        /* subtle rim stroke */
+        c.strokeStyle = "rgba(160,100,100,0.2)";
+        c.lineWidth = 1;
+        c.beginPath(); c.ellipse(0, 0, 38, 16, 0, 0, Math.PI * 2); c.stroke();
+        c.restore();
+      }
+      const rugColors = ["rgba(216,194,168,1)", "rgba(168,198,148,1)", "rgba(185,170,210,1)", "rgba(210,175,168,1)"];
+      if (d.rugColor > 0) {
+        c.save();
+        c.globalAlpha = 0.22;
+        c.fillStyle = rugColors[d.rugColor];
+        c.beginPath(); c.ellipse(400, 470, 220, 55, 0, 0, Math.PI * 2); c.fill();
+        /* rug texture highlight */
+        c.globalAlpha = 0.06;
+        c.fillStyle = "#FFFFFF";
+        c.beginPath(); c.ellipse(400, 465, 180, 40, 0, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+
       if (mode === "cuddle") {
         drawGlowCircle(c, 398, 310, 170, "rgba(255,255,255,ALPHA)", 0.08);
       }
@@ -2189,6 +2399,8 @@
         this.obi   = { x: 240, y: 440, state: "wander", timer: rand(1, 3), vx: 0, facing: 1, targetX: 240 };
         this.luna  = { x: 560, y: 420, state: "sit", timer: rand(2, 5), vx: 0, facing: -1, targetX: 560 };
         this.interaction = null;  /* { type, timer } */
+        this.subtitleIndex = Math.floor(Math.random() * TITLE_SUBTITLES.length);
+        this.subtitleTimer = 6;
       }
       enter() {
         this.annie.timer = rand(2, 4);
@@ -2233,6 +2445,11 @@
       update(dt) {
         super.update(dt);
         this.hoverStart = pointInRect(game.mouse.x, game.mouse.y, this.startButton) && spriteArt.ready;
+        this.subtitleTimer -= dt;
+        if (this.subtitleTimer <= 0) {
+          this.subtitleIndex = (this.subtitleIndex + 1) % TITLE_SUBTITLES.length;
+          this.subtitleTimer = 6;
+        }
         const a = this.annie, o = this.obi, l = this.luna;
 
         /* Annie */
@@ -2386,13 +2603,18 @@
         c.save();
         c.translate(W / 2, 528);
         c.scale(pulse, pulse);
-        drawButton(c, { x: -140, y: -28, w: 280, h: 56 }, spriteArt.ready ? (isMobile ? "Tap to Start" : "Click to Start") : "Loading Cozy Art...", this.hoverStart, "#B84B3A");
+        const loadDots = ".".repeat(Math.floor(game.time * 2) % 4);
+        drawButton(c, { x: -140, y: -28, w: 280, h: 56 }, spriteArt.ready ? (isMobile ? "Tap to Start" : "Click to Start") : "Loading Cozy Art" + loadDots, this.hoverStart, "#B84B3A");
         c.restore();
 
-        c.fillStyle = "rgba(122,78,54,0.85)";
+        c.save();
+        const subFade = Math.min(clamp(this.subtitleTimer / 0.8, 0, 1), clamp((6 - this.subtitleTimer) / 0.8, 0, 1));
+        c.globalAlpha = subFade * 0.85;
+        c.fillStyle = "#7A4E36";
         c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
-        c.fillText("A cozy little gift for Annie, Obi, and Luna", W / 2, 574);
+        c.fillText(TITLE_SUBTITLES[this.subtitleIndex], W / 2, 574);
+        c.restore();
       }
     }
 
@@ -2401,23 +2623,28 @@
       constructor() {
         super("hangout");
         this.gamesButton = { x: 20, y: 16, w: 122, h: 40 };
+        this.decorButton = { x: 600, y: 16, w: 122, h: 40 };
         this.modeButtons = [
-          { key: "pet", label: "Pet", x: 148, y: 16, w: 100, h: 40 },
-          { key: "treat", label: "Treats", x: 260, y: 16, w: 100, h: 40 },
-          { key: "toy", label: "Play", x: 372, y: 16, w: 100, h: 40 },
-          { key: "brush", label: "Brush", x: 484, y: 16, w: 100, h: 40 }
+          { key: "pet", label: "Pet", x: 148, y: 16, w: 88, h: 40 },
+          { key: "treat", label: "Treats", x: 242, y: 16, w: 88, h: 40 },
+          { key: "toy", label: "Play", x: 336, y: 16, w: 88, h: 40 },
+          { key: "brush", label: "Brush", x: 430, y: 16, w: 88, h: 40 }
         ];
         this.hoverKey = null;
         this.mode = "pet";
         this.menuOpen = false;
+        this.decorOpen = false;
+        this.decorHover = null;
+        this.decorFade = 0;
         this.menuHover = null;
         this.menuFade = 0;
+        this.dedication = store.firstVisit ? { phase: 0, alpha: 0 } : null;
         this.gameCards = [
-          { key: "treat", title: "Treat Toss", desc: "Toss treats to Obi and build catch combos!", color: "#E8A84C", icon: "bone", best: () => "Best: " + store.best_treat },
-          { key: "laser", title: "Laser Chase", desc: "Guide Luna's laser dot through glowing targets!", color: "#D44040", icon: "catEye", best: () => "Best: " + store.best_laser },
-          { key: "cuddle", title: "Cuddle Pile", desc: "Keep the couch balanced while everyone fidgets!", color: "#7FB3D5", icon: "heart", best: () => "Best: " + store.best_cuddle + "s" },
-          { key: "walk", title: "Obi's Walk", desc: "Walk Obi through the neighborhood and find treasures!", color: "#8D6E4C", icon: "bone", best: () => "Best: " + store.best_walk },
-          { key: "nap", title: "Luna's Nap Spot", desc: "Place cushions in sunbeams to help Luna nap!", color: "#C39BD3", icon: "heart", best: () => "Best: " + store.best_nap }
+          { key: "treat", title: "Treat Toss", desc: "Toss treats to Obi and build catch combos!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_treat; const st = (s>=1000?3:s>=500?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "laser", title: "Laser Chase", desc: "Guide Luna's laser dot through glowing targets!", color: "#D44040", icon: "catEye", best: () => { const s = store.best_laser; const st = (s>=800?3:s>=400?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "cuddle", title: "Cuddle Pile", desc: "Keep the couch balanced while everyone fidgets!", color: "#7FB3D5", icon: "heart", best: () => { const s = store.best_cuddle; const st = (s>=90?3:s>=60?2:s>=30?1:0); return "Best: " + s + "s  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "walk", title: "Obi's Walk", desc: "Walk Obi through the neighborhood and find treasures!", color: "#8D6E4C", icon: "bone", best: () => { const s = store.best_walk; const st = (s>=600?3:s>=300?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "nap", title: "Luna's Nap Spot", desc: "Place cushions in sunbeams to help Luna nap!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_nap; const st = (s>=800?3:s>=450?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
         ];
         this.statusText = "Welcome home! Obi and Luna are happy to see you.";
         this.statusPulse = 0;
@@ -2431,13 +2658,13 @@
         this.annieLookDir = 1;
         this.obi = {
           x: 164, y: 430, homeX: 164, homeY: 430, matX: 262, matY: 446,
-          targetX: 164, targetY: 430, joy: 54, facing: 1, bounce: 0,
+          targetX: 164, targetY: 430, joy: store.pet_obi_joy, facing: 1, bounce: 0,
           petTimer: 0, happyTimer: 0, sleepy: false,
           sniffTimer: 0, shakeTimer: 0, sniffing: false
         };
         this.luna = {
           x: 694, y: 258, floorX: 598, floorY: 430, perchX: 694, perchY: 258,
-          targetX: 694, targetY: 258, joy: 56, onTower: true, facing: 1,
+          targetX: 694, targetY: 258, joy: store.pet_luna_joy, onTower: true, facing: 1,
           petTimer: 0, happyTimer: 0, wiggle: 0, pounce: 0, pawBat: 0,
           groomTimer: 0, grooming: false, bellyUp: false, idleBehaviorTimer: rand(5, 8)
         };
@@ -2446,11 +2673,42 @@
         /* thought bubbles */
         this.obiBubble = null;
         this.lunaBubble = null;
-        this.bubbleTimer = rand(8, 14);
+        this.bubbleTimer = store.bubbleOnboarded ? rand(8, 14) : 2;
+        this.bubbleWantHistory = [];
+        /* joy save timer */
+        this.joySaveTimer = 0;
+        /* decoration unlock notification */
+        this.decorNotification = null;
+        /* floating reaction texts */
+        this.floatingTexts = [];
+        /* joy milestone tracking */
+        this.obiMilestone = this.joyTier(this.obi.joy);
+        this.lunaMilestone = this.joyTier(this.luna.joy);
+        /* stroke trail for pet/brush mode */
+        this.strokeTrail = [];
       }
       enter() {
         this.hoverKey = null;
         this.tooltip = null;
+        audio.startAmbient();
+        /* welcome back message if joy decayed while away */
+        if (this.obi.joy < 40 || this.luna.joy < 40) {
+          const msgs = ["The pets missed you! Give them some love.", "Obi and Luna could use some attention.", "Welcome back! The pets are waiting for you."];
+          this.statusText = msgs[Math.floor(Math.random() * msgs.length)];
+          this.statusPulse = 0.5;
+        }
+        /* check for newly unlocked decorations */
+        const stars = totalStarsEarned();
+        if (stars > store.lastKnownStars) {
+          for (const item of DECOR_ITEMS) {
+            if (item.stars > store.lastKnownStars && item.stars <= stars) {
+              this.decorNotification = { text: "New decoration unlocked: " + item.name + "!", timer: 4 };
+              break;
+            }
+          }
+          store.lastKnownStars = stars;
+          saveNumber("lastKnownStars", stars);
+        }
       }
       getPetRect(key) {
         if (key === "obi") return { x: this.obi.x - 72, y: this.obi.y - 112, w: 144, h: 120 };
@@ -2461,10 +2719,10 @@
         if (this.mode !== nextMode) {
           this.mode = nextMode;
           this.statusPulse = 1;
-          if (nextMode === "pet") this.statusText = isMobile ? "Tap on Obi or Luna to pet them." : "Stroke over Obi or Luna with the mouse.";
-          else if (nextMode === "treat") this.statusText = isMobile ? "Tap anywhere to toss a treat." : "Click anywhere to toss a treat. Left side favors Obi, right side favors Luna.";
-          else if (nextMode === "brush") this.statusText = isMobile ? "Tap on Obi or Luna to brush them!" : "Click on Obi or Luna to brush them! They love it!";
-          else this.statusText = isMobile ? "Tap to throw Obi's ball or tease Luna." : "Click to throw Obi's ball or tease Luna with a flutter toy.";
+          if (nextMode === "pet") this.statusText = isMobile ? "Pet mode \u2014 tap and drag over Obi or Luna!" : "Pet mode \u2014 click and drag over Obi or Luna!";
+          else if (nextMode === "treat") this.statusText = isMobile ? "Treat mode \u2014 tap anywhere to toss a snack!" : "Treat mode \u2014 click anywhere to toss a snack!";
+          else if (nextMode === "toy") this.statusText = isMobile ? "Play mode \u2014 tap left for Obi's ball, right for Luna's yarn!" : "Play mode \u2014 click left for Obi's ball, right for Luna's yarn!";
+          else if (nextMode === "brush") this.statusText = isMobile ? "Brush mode \u2014 tap and drag over a pet to brush them!" : "Brush mode \u2014 drag over a pet to brush them until they sparkle!";
         }
       }
       pickPetForPoint(x, y) {
@@ -2511,6 +2769,8 @@
       rewardPet(key, amount, source, x, y) {
         const pet = key === "obi" ? this.obi : this.luna;
         pet.joy = clamp(pet.joy + amount, 0, 100);
+        store[key === "obi" ? "pet_obi_joy" : "pet_luna_joy"] = pet.joy;
+        saveNumber(key === "obi" ? "pet_obi_joy" : "pet_luna_joy", pet.joy);
         pet.petTimer = source === "pet" ? 0.32 : 0.18;
         pet.happyTimer = 0.9;
         this.statusPulse = 1;
@@ -2546,8 +2806,10 @@
           if (key === "obi") audio.combo(); else { audio.pounce(); audio.targetHit(); }
         }
         this.checkBubbleReward(key, source);
+        this.checkJoyMilestone(key);
       }
       updateHover(x, y) {
+        if (this.dedication) return;
         if (this.menuOpen) {
           this.menuHover = null;
           for (let i = 0; i < this.gameCards.length; i++) {
@@ -2558,8 +2820,18 @@
           if (pointInRect(x, y, closeBtn)) this.menuHover = "close";
           return;
         }
+        if (this.decorOpen) {
+          this.decorHover = null;
+          for (let i = 0; i < DECOR_ITEMS.length; i++) {
+            if (pointInRect(x, y, this.getDecorItemRect(i))) { this.decorHover = i; break; }
+          }
+          const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, closeBtn)) this.decorHover = "close";
+          return;
+        }
         this.hoverKey = null;
         if (pointInRect(x, y, this.gamesButton)) this.hoverKey = "games";
+        else if (pointInRect(x, y, this.decorButton)) this.hoverKey = "decor";
         else {
           for (const btn of this.modeButtons) {
             if (pointInRect(x, y, btn)) {
@@ -2575,28 +2847,50 @@
       getCardRect(i) {
         return { x: 90, y: 126 + i * 88, w: 620, h: 78 };
       }
+      getDecorItemRect(i) {
+        return { x: 130, y: 140 + i * 96, w: 540, h: 82 };
+      }
       onMouseMove(x, y) {
         this.updateHover(x, y);
       }
       interactiveAt(x, y) {
+        if (this.dedication) return true;
         if (this.menuOpen) {
           for (let i = 0; i < this.gameCards.length; i++) {
             if (pointInRect(x, y, this.getCardRect(i))) return true;
           }
           return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
         }
+        if (this.decorOpen) {
+          for (let i = 0; i < DECOR_ITEMS.length; i++) {
+            if (pointInRect(x, y, this.getDecorItemRect(i))) return true;
+          }
+          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
+        }
         if (pointInRect(x, y, this.gamesButton)) return true;
+        if (pointInRect(x, y, this.decorButton)) return true;
         if (this.modeButtons.some((btn) => pointInRect(x, y, btn))) return true;
         if (pointInRect(x, y, this.getPetRect("obi")) || pointInRect(x, y, this.getPetRect("luna"))) return true;
         return y > 90 && this.mode !== "pet" && this.mode !== "brush";
       }
       onClick(x, y) {
+        /* dedication screen - click anywhere to dismiss */
+        if (this.dedication) {
+          if (this.dedication.alpha > 0.5) {
+            this.dedication = null;
+            store.firstVisit = false;
+            saveBool("firstVisit", false);
+            audio.tinyChime();
+          }
+          return;
+        }
         if (this.menuOpen) {
           const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, closeBtn)) { audio.menu(); this.menuOpen = false; return; }
           for (let i = 0; i < this.gameCards.length; i++) {
             if (pointInRect(x, y, this.getCardRect(i))) {
               audio.menu();
+              audio.stopAmbient();
               const key = this.gameCards[i].key;
               if (key === "treat") transitionTo(new TreatTossScene());
               else if (key === "laser") transitionTo(new LaserChaseScene());
@@ -2606,15 +2900,44 @@
               return;
             }
           }
-          /* click outside cards closes menu */
           audio.menu();
           this.menuOpen = false;
+          return;
+        }
+        if (this.decorOpen) {
+          const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.decorOpen = false; return; }
+          const stars = totalStarsEarned();
+          for (let i = 0; i < DECOR_ITEMS.length; i++) {
+            if (pointInRect(x, y, this.getDecorItemRect(i))) {
+              const item = DECOR_ITEMS[i];
+              if (stars < item.stars) { audio.miss(); this.statusText = "Need " + (item.stars - stars) + " more star" + (item.stars - stars === 1 ? "" : "s") + " to unlock " + item.name + "!"; this.statusPulse = 1; return; }
+              if (item.type === "toggle") {
+                store.decor[item.key] = !store.decor[item.key];
+              } else if (item.type === "cycle") {
+                store.decor[item.key] = (store.decor[item.key] + 1) % (item.max + 1);
+              }
+              saveDecor();
+              audio.tinyChime();
+              /* rebuild static cache to reflect rug changes */
+              if (item.key === "rugColor") { sceneCache.livingRoomBase = null; }
+              return;
+            }
+          }
+          audio.menu();
+          this.decorOpen = false;
           return;
         }
         if (pointInRect(x, y, this.gamesButton)) {
           audio.menu();
           this.menuOpen = true;
           this.menuFade = 0;
+          return;
+        }
+        if (pointInRect(x, y, this.decorButton)) {
+          audio.menu();
+          this.decorOpen = true;
+          this.decorFade = 0;
           return;
         }
         for (const btn of this.modeButtons) {
@@ -2631,8 +2954,10 @@
             const zone = this.getPetZone(target, x, y);
             if (target === "obi") {
               const msgs = { head: "Obi loves ear scratches!", body: "Good boy, Obi!", belly: "Belly rubs make Obi's day!" };
+              const floats = { head: "Ear scratches!", body: "Good boy!", belly: "Belly rubs!" };
               this.rewardPet("obi", zone === "belly" ? 9 : zone === "head" ? 8 : 6, "pet", x, y);
               this.statusText = msgs[zone];
+              this.addFloatingText(floats[zone], x, y - 20, COLORS.softPink);
             } else {
               if (zone === "belly" && Math.random() < 0.35) {
                 this.luna.pawBat = Math.max(this.luna.pawBat, 0.7);
@@ -2640,10 +2965,13 @@
                 this.statusPulse = 1;
                 this.luna.joy = clamp(this.luna.joy - 2, 0, 100);
                 audio.miss();
+                this.addFloatingText("Luna swats!", x, y - 20, COLORS.warmRed);
               } else {
                 const msgs = { head: "Luna leans into the chin scratch.", body: "Luna purrs softly.", belly: "Luna... actually let you touch her belly!" };
+                const floats = { head: "Chin scratch!", body: "Purrs...", belly: "Belly touch!" };
                 this.rewardPet("luna", zone === "head" ? 8 : 6, "pet", x, y);
                 this.statusText = msgs[zone];
+                this.addFloatingText(floats[zone], x, y - 20, COLORS.softPink);
               }
             }
           }
@@ -2672,8 +3000,18 @@
       onKeyDown(key) {
         if (key === "Escape") {
           audio.menu();
-          if (this.menuOpen) { this.menuOpen = false; }
-          else { transitionTo(new TitleScene()); }
+          if (this.dedication) { this.dedication = null; store.firstVisit = false; saveBool("firstVisit", false); }
+          else if (this.menuOpen) { this.menuOpen = false; }
+          else if (this.decorOpen) { this.decorOpen = false; }
+          else { audio.stopAmbient(); transitionTo(new TitleScene()); }
+        }
+        if (!this.menuOpen && !this.decorOpen && !this.dedication) {
+          if (key === "1" || key === "p") { audio.menu(); this.setMode("pet"); }
+          else if (key === "2" || key === "t") { audio.menu(); this.setMode("treat"); }
+          else if (key === "3" || key === "y") { audio.menu(); this.setMode("toy"); }
+          else if (key === "4" || key === "b") { audio.menu(); this.setMode("brush"); }
+          else if (key === "g") { audio.menu(); this.menuOpen = true; this.menuFade = 0; }
+          else if (key === "d") { audio.menu(); this.decorOpen = true; this.decorFade = 0; }
         }
       }
       tossTreat(x, y) {
@@ -2698,6 +3036,7 @@
         }
       }
       throwToy(x, y) {
+        if (this.toy) return;
         const pet = this.pickPetForPoint(x, y);
         if (pet === "obi") {
           const targetX = clamp(x, 100, 340);
@@ -2808,7 +3147,8 @@
             if (dist(this.obi.x, this.obi.y, this.obi.matX, this.obi.matY) < 18) {
               if (!this.obi.sleepy) {
                 this.obi.sleepy = true;
-                this.statusText = "Obi found his favorite nap spot.";
+                const napMsgs = ["Obi found his favorite nap spot.", "Obi curls up for a snooze.", "Obi is dreaming of treats.", "Obi settles in for a cozy nap."];
+                this.statusText = napMsgs[Math.floor(Math.random() * napMsgs.length)];
               }
             }
             this.obi.sniffing = false;
@@ -2847,7 +3187,7 @@
           if (Math.abs(dx) > 2) this.obi.facing = dx >= 0 ? 1 : -1;
         }
         this.obi.bounce = busy ? 0.07 * Math.abs(Math.sin(game.time * 11)) : this.obi.petTimer > 0 ? 0.03 : 0;
-        this.obi.joy = clamp(this.obi.joy - dt * 0.5, 0, 100);
+        this.obi.joy = clamp(this.obi.joy - dt * 0.3, 0, 100);
       }
       updateLuna(dt) {
         this.luna.petTimer = Math.max(0, this.luna.petTimer - dt);
@@ -2862,7 +3202,8 @@
             /* retreat to tower after long idle */
             if (!this.luna.onTower) {
               this.luna.onTower = true;
-              this.statusText = "Luna hopped up to her favorite perch.";
+              const perchMsgs = ["Luna hopped up to her favorite perch.", "Luna retreats to the high ground.", "Luna surveys her kingdom from above.", "Luna claims the best seat in the house."];
+              this.statusText = perchMsgs[Math.floor(Math.random() * perchMsgs.length)];
             }
             this.luna.targetX = this.luna.perchX;
             this.luna.targetY = this.luna.perchY;
@@ -2913,7 +3254,7 @@
         if (!this.luna.onTower && (busy || this.hoverKey === "luna")) {
           this.luna.x += Math.sin(game.time * 7 + this.luna.x * 0.03) * 8 * dt;
         }
-        this.luna.joy = clamp(this.luna.joy - dt * 0.45, 0, 100);
+        this.luna.joy = clamp(this.luna.joy - dt * 0.28, 0, 100);
       }
       handlePetStroke(dt) {
         if (!game.mouse.down || (this.mode !== "pet" && this.mode !== "brush")) return;
@@ -2922,6 +3263,12 @@
         const y = game.mouse.y;
         const target = pointInRect(x, y, this.getPetRect("obi")) ? "obi" : pointInRect(x, y, this.getPetRect("luna")) ? "luna" : null;
         if (!target) return;
+        /* stroke trail */
+        const last = this.strokeTrail[this.strokeTrail.length - 1];
+        if (!last || dist(last.x, last.y, x, y) > 6) {
+          this.strokeTrail.push({ x, y, life: 0.35 });
+          if (this.strokeTrail.length > 20) this.strokeTrail.shift();
+        }
         if (this.strokeTick <= 0) {
           this.strokeTick = 0.1;
           const zone = this.getPetZone(target, x, y);
@@ -2942,12 +3289,13 @@
               this.rewardPet("luna", amount + 1, this.mode, x, y);
               if (Math.random() < 0.3) this.statusText = "Luna tilts into the chin scratch.";
             } else if (zone === "belly") {
-              /* cats don't always like belly rubs */
-              if (Math.random() < 0.4) {
+              /* cats don't always like belly rubs - same odds as click (35%) */
+              if (Math.random() < 0.35) {
                 this.luna.pawBat = Math.max(this.luna.pawBat, 0.6);
                 this.statusText = "Luna swats! She's not a belly-rub cat.";
                 this.statusPulse = 1;
-                this.luna.joy = clamp(this.luna.joy - 3, 0, 100);
+                this.luna.joy = clamp(this.luna.joy - 2, 0, 100);
+                this.addFloatingText("Luna swats!", x, y - 20, COLORS.warmRed);
               } else {
                 this.rewardPet("luna", amount, this.mode, x, y);
                 if (Math.random() < 0.3) this.statusText = "Luna tolerates the belly touch... barely.";
@@ -2975,6 +3323,7 @@
         this.idleTime += dt;
         this.tooltip = null;
         if (this.hoverKey === "games") this.tooltip = { x: 82, y: 66, title: "Minigames", body: "Play cozy games with Obi and Luna!" };
+        else if (this.hoverKey === "decor") this.tooltip = { x: 662, y: 66, title: "Decorate", body: "Customize the living room with unlockable items!" };
         else if (this.hoverKey === "pet") this.tooltip = { x: 198, y: 66, title: "Pet Mode", body: "Stroke directly over Obi or Luna for happy reactions." };
         else if (this.hoverKey === "treat") this.tooltip = { x: 310, y: 66, title: "Treat Mode", body: "Click to toss snacks from Annie toward either pet." };
         else if (this.hoverKey === "toy") this.tooltip = { x: 422, y: 66, title: "Play Mode", body: "Obi chases a ball; Luna stalks a yarn ball." };
@@ -3000,8 +3349,16 @@
         }
 
         this.statusPulse = Math.max(0, this.statusPulse - dt * 2.6);
+        /* dedication screen */
+        if (this.dedication) {
+          this.dedication.phase += dt;
+          this.dedication.alpha = clamp(this.dedication.phase / 1.5, 0, 1);
+          return;
+        }
         if (this.menuOpen) { this.menuFade = clamp(this.menuFade + dt * 5, 0, 1); return; }
         this.menuFade = clamp(this.menuFade - dt * 5, 0, 1);
+        if (this.decorOpen) { this.decorFade = clamp(this.decorFade + dt * 5, 0, 1); return; }
+        this.decorFade = clamp(this.decorFade - dt * 5, 0, 1);
         this.handlePetStroke(dt);
         this.updateTreats(dt);
         this.updateToy(dt);
@@ -3009,6 +3366,36 @@
         this.updateLuna(dt);
         this.updatePetInteraction(dt);
         this.updateThoughtBubbles(dt);
+        /* ambient particles - occasional dust motes */
+        if (Math.random() < dt * 0.8) {
+          spawnParticleBurst(rand(100, 700), rand(150, 450), ["rgba(255,240,200,0.5)"], 1, ["star"]);
+        }
+        /* periodic joy save */
+        this.joySaveTimer -= dt;
+        if (this.joySaveTimer <= 0) {
+          this.joySaveTimer = 2;
+          store.pet_obi_joy = this.obi.joy;
+          store.pet_luna_joy = this.luna.joy;
+          saveNumber("pet_obi_joy", this.obi.joy);
+          saveNumber("pet_luna_joy", this.luna.joy);
+        }
+        /* decoration notification tick */
+        if (this.decorNotification) {
+          this.decorNotification.timer -= dt;
+          if (this.decorNotification.timer <= 0) this.decorNotification = null;
+        }
+        /* stroke trail tick */
+        for (let i = this.strokeTrail.length - 1; i >= 0; i--) {
+          this.strokeTrail[i].life -= dt;
+          if (this.strokeTrail[i].life <= 0) this.strokeTrail.splice(i, 1);
+        }
+        /* floating text tick */
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+          const ft = this.floatingTexts[i];
+          ft.life -= dt;
+          ft.y -= 25 * dt;
+          if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+        }
       }
       updatePetInteraction(dt) {
         const pi = this.petInteraction;
@@ -3032,6 +3419,7 @@
                 this.statusPulse = 1;
                 spawnParticleBurst(midX, midY, [COLORS.softPink, COLORS.gold], 8, ["heart", "star"]);
                 audio.tinyChime();
+                this.addFloatingText("Nose boop!", midX, midY - 10, COLORS.softPink);
                 this.obi.joy = clamp(this.obi.joy + 6, 0, 100);
                 this.luna.joy = clamp(this.luna.joy + 4, 0, 100);
                 pi.active = false; pi.timer = rand(8, 14); pi.phase = 0;
@@ -3052,6 +3440,7 @@
                 this.statusPulse = 1;
                 spawnParticleBurst(this.obi.x, this.obi.y - 20, [COLORS.gold, COLORS.softPink], 6, ["star", "heart"]);
                 audio.tinyChime();
+                this.addFloatingText("Got the tail!", midX, midY - 10, COLORS.gold);
                 this.luna.joy = clamp(this.luna.joy + 6, 0, 100);
                 this.obi.joy = clamp(this.obi.joy + 4, 0, 100);
                 pi.active = false; pi.timer = rand(8, 14); pi.phase = 0;
@@ -3137,9 +3526,11 @@
         this.bubbleTimer -= dt;
         if (this.bubbleTimer <= 0 && !this.petInteraction.active) {
           this.bubbleTimer = rand(5, 10);
-          /* Don't stack - only show if that pet doesn't already have one */
-          const canObi = !this.obiBubble && !this.obi.sleepy;
-          const canLuna = !this.lunaBubble && !this.luna.onTower;
+          /* Don't stack - only show if that pet doesn't already have one and isn't busy */
+          const obiBusy = this.treats.some(t => t.pet === "obi") || (this.toy && this.toy.pet === "obi");
+          const lunaBusy = this.treats.some(t => t.pet === "luna") || (this.toy && this.toy.pet === "luna");
+          const canObi = !this.obiBubble && !this.obi.sleepy && !obiBusy;
+          const canLuna = !this.lunaBubble && !this.luna.onTower && !lunaBusy;
           if (!canObi && !canLuna) return;
           const pet = (canObi && canLuna) ? (Math.random() < 0.5 ? "obi" : "luna") : (canObi ? "obi" : "luna");
           const joy = pet === "obi" ? this.obi.joy : this.luna.joy;
@@ -3155,18 +3546,64 @@
             else if (joy < 60) want = Math.random() < 0.4 ? "toy" : (Math.random() < 0.5 ? "brush" : "treat");
             else want = Math.random() < 0.35 ? "toy" : (Math.random() < 0.5 ? "brush" : "treat");
           }
+          /* avoid repeating recent wants */
+          const allWants = ["pet", "treat", "toy", "brush"];
+          const recent = this.bubbleWantHistory.slice(-2);
+          if (recent.includes(want)) {
+            const alternatives = allWants.filter(w => !recent.includes(w));
+            if (alternatives.length > 0) want = alternatives[Math.floor(Math.random() * alternatives.length)];
+          }
+          this.bubbleWantHistory.push(want);
+          if (this.bubbleWantHistory.length > 6) this.bubbleWantHistory.shift();
           const bubble = { want, timer: rand(6, 10), age: 0 };
           if (pet === "obi") {
             this.obiBubble = bubble;
-            const wantNames = { pet: "pets", treat: "a treat", toy: "to play", brush: "brushing" };
-            this.statusText = "Obi is thinking about " + wantNames[want] + "...";
+            if (!store.bubbleOnboarded) {
+              const modeNames = { pet: "Pet", treat: "Treats", toy: "Play", brush: "Brush" };
+              const actions = { pet: (isMobile ? "tap" : "click") + " on him", treat: (isMobile ? "tap" : "click") + " to toss one", toy: (isMobile ? "tap" : "click") + " to throw his ball", brush: (isMobile ? "tap" : "click") + " on him" };
+              this.statusText = "Obi wants " + { pet: "pets", treat: "a treat", toy: "to play", brush: "brushing" }[want] + "! Switch to " + modeNames[want] + " mode and " + actions[want] + "!";
+              store.bubbleOnboarded = true;
+              saveBool("bubbleOnboarded", true);
+            } else {
+              const wantNames = { pet: "pets", treat: "a treat", toy: "to play", brush: "brushing" };
+              this.statusText = "Obi is thinking about " + wantNames[want] + "...";
+            }
           } else {
             this.lunaBubble = bubble;
-            const wantNames = { pet: "attention", treat: "a snack", toy: "the yarn ball", brush: "being brushed" };
-            this.statusText = "Luna wants " + wantNames[want] + "...";
+            if (!store.bubbleOnboarded) {
+              const modeNames = { pet: "Pet", treat: "Treats", toy: "Play", brush: "Brush" };
+              const actions = { pet: (isMobile ? "tap" : "click") + " on her", treat: (isMobile ? "tap" : "click") + " to toss one", toy: (isMobile ? "tap" : "click") + " to tease her", brush: (isMobile ? "tap" : "click") + " on her" };
+              this.statusText = "Luna wants " + { pet: "attention", treat: "a snack", toy: "the yarn ball", brush: "being brushed" }[want] + "! Switch to " + modeNames[want] + " mode and " + actions[want] + "!";
+              store.bubbleOnboarded = true;
+              saveBool("bubbleOnboarded", true);
+            } else {
+              const wantNames = { pet: "attention", treat: "a snack", toy: "the yarn ball", brush: "being brushed" };
+              this.statusText = "Luna wants " + wantNames[want] + "...";
+            }
           }
           this.statusPulse = 0.5;
         }
+      }
+      joyTier(joy) { return joy >= 85 ? 3 : joy >= 65 ? 2 : joy >= 40 ? 1 : 0; }
+      checkJoyMilestone(key) {
+        const pet = key === "obi" ? this.obi : this.luna;
+        const tier = this.joyTier(pet.joy);
+        const prev = key === "obi" ? this.obiMilestone : this.lunaMilestone;
+        if (tier > prev) {
+          if (key === "obi") this.obiMilestone = tier;
+          else this.lunaMilestone = tier;
+          const px = key === "obi" ? this.obi.x : this.luna.x;
+          const py = key === "obi" ? this.obi.y - 40 : (this.luna.onTower ? this.luna.perchY - 40 : this.luna.y - 40);
+          const msgs = key === "obi"
+            ? ["Obi perks up!", "Obi is wagging hard!", "Obi is thrilled!"]
+            : ["Luna is warming up!", "Luna is curious!", "Luna is purring!"];
+          this.addFloatingText(msgs[tier - 1], px, py, COLORS.gold);
+          spawnParticleBurst(px, py, [COLORS.gold, COLORS.softPink], 8, ["star", "heart"]);
+          audio.tinyChime();
+        }
+      }
+      addFloatingText(text, x, y, color = "#7A4E36") {
+        this.floatingTexts.push({ text, x, y, life: 1.5, color });
       }
       checkBubbleReward(key, source) {
         const bubble = key === "obi" ? this.obiBubble : this.lunaBubble;
@@ -3185,6 +3622,7 @@
           this.statusText = this.petName(key) + " got exactly what they wanted!";
           this.statusPulse = 1;
           audio.combo();
+          this.addFloatingText("Got it!", px, py, COLORS.gold);
           if (key === "obi") this.obiBubble = null;
           else this.lunaBubble = null;
         }
@@ -3291,62 +3729,122 @@
 
         /* icon inside - bigger and cleaner */
         if (bubble.want === "pet") {
-          drawHeart(c, 0, -2, 1.0, COLORS.softPink);
+          drawHeart(c, 0, -4, 1.0, COLORS.softPink);
         } else if (bubble.want === "treat") {
-          drawBone(c, 0, -2, 20, 10, "#D49A4A");
+          drawBone(c, 0, -4, 20, 10, "#D49A4A");
         } else if (bubble.want === "toy") {
-          drawStar(c, 0, -2, 12, COLORS.gold);
+          drawStar(c, 0, -4, 12, COLORS.gold);
         } else if (bubble.want === "brush") {
           c.fillStyle = "#E0A0C0";
           c.textAlign = "center";
           c.font = '20px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("✦", 0, 5);
+          c.fillText("\u2726", 0, 3);
         }
+        /* text label */
+        const labels = { pet: "Pets!", treat: "Treat!", toy: "Play!", brush: "Brush!" };
+        c.fillStyle = "rgba(122,78,54,0.7)";
+        c.textAlign = "center";
+        c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText(labels[bubble.want], 0, 12);
         c.restore();
       }
       draw(c) {
         drawLivingRoom(c);
 
+        /* mode-specific ambient overlay */
+        if (!this.menuOpen && !this.decorOpen && !this.dedication) {
+          if (this.mode === "treat") {
+            c.save();
+            c.fillStyle = "rgba(232,168,76,0.04)";
+            c.fillRect(0, 0, W, H);
+            c.restore();
+          } else if (this.mode === "toy") {
+            c.save();
+            c.fillStyle = "rgba(74,144,217,0.03)";
+            c.fillRect(0, 0, W, H);
+            c.restore();
+          } else if (this.mode === "brush") {
+            c.save();
+            c.fillStyle = "rgba(224,160,192,0.04)";
+            c.fillRect(0, 0, W, H);
+            c.restore();
+          }
+        }
+
         /* buttons row */
         drawButton(c, this.gamesButton, "Games", this.hoverKey === "games", "#A86D3F");
+        drawButton(c, this.decorButton, "Decorate", this.hoverKey === "decor", "#9B7DBD");
         for (const btn of this.modeButtons) {
           const active = this.mode === btn.key;
           drawButton(c, btn, btn.label, this.hoverKey === btn.key || active, active ? "#B84B3A" : "#C7A37B");
         }
 
-        /* compact pet status - small pills instead of big cards */
+        /* star counter */
         c.save();
-        rr(c, 14, 62, 140, 38, 12);
-        c.fillStyle = "rgba(255,255,255,0.75)";
+        c.fillStyle = "rgba(255,248,240,0.65)";
+        rr(c, 527, 57, 68, 22, 11);
         c.fill();
+        c.fillStyle = COLORS.gold;
+        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "center";
+        c.fillText("\u2605 " + totalStarsEarned() + "/15", 561, 73);
+        c.restore();
+
+        /* compact pet status - small pills */
+        c.save();
+        rr(c, 14, 62, 140, 42, 12);
+        c.fillStyle = "rgba(255,255,255,0.78)";
+        c.fill();
+        c.strokeStyle = "rgba(146,104,72,0.12)";
+        c.lineWidth = 1;
+        c.stroke();
         c.fillStyle = "#5A3E2B";
         c.textAlign = "left";
         c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.fillText("Obi: " + this.petMood("obi"), 24, 78);
-        rr(c, 24, 84, 120, 7, 4);
+        rr(c, 24, 84, 120, 12, 6);
         c.fillStyle = "rgba(0,0,0,0.08)";
         c.fill();
-        rr(c, 24, 84, 120 * clamp(this.obi.joy / 100, 0, 1), 7, 4);
-        c.fillStyle = "#4A90D9";
-        c.fill();
+        const obiBarW = 120 * clamp(this.obi.joy / 100, 0, 1);
+        if (obiBarW > 1) {
+          rr(c, 24, 84, obiBarW, 12, 6);
+          c.fillStyle = "#4A90D9";
+          c.fill();
+          /* bar shine */
+          c.fillStyle = "rgba(255,255,255,0.25)";
+          rr(c, 24, 84, obiBarW, 5, 6);
+          c.fill();
+        }
         c.restore();
 
         c.save();
-        rr(c, 646, 62, 140, 38, 12);
-        c.fillStyle = "rgba(255,255,255,0.75)";
+        rr(c, 646, 62, 140, 42, 12);
+        c.fillStyle = "rgba(255,255,255,0.78)";
         c.fill();
+        c.strokeStyle = "rgba(146,104,72,0.12)";
+        c.lineWidth = 1;
+        c.stroke();
         c.fillStyle = "#5A3E2B";
         c.textAlign = "left";
         c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.fillText("Luna: " + this.petMood("luna"), 656, 78);
-        rr(c, 656, 84, 120, 7, 4);
+        rr(c, 656, 84, 120, 12, 6);
         c.fillStyle = "rgba(0,0,0,0.08)";
         c.fill();
-        rr(c, 656, 84, 120 * clamp(this.luna.joy / 100, 0, 1), 7, 4);
-        c.fillStyle = "#A8C686";
-        c.fill();
+        const lunaBarW = 120 * clamp(this.luna.joy / 100, 0, 1);
+        if (lunaBarW > 1) {
+          rr(c, 656, 84, lunaBarW, 12, 6);
+          c.fillStyle = "#A8C686";
+          c.fill();
+          c.fillStyle = "rgba(255,255,255,0.25)";
+          rr(c, 656, 84, lunaBarW, 5, 6);
+          c.fill();
+        }
         c.restore();
 
+        /* warm scene glow */
+        drawGlowCircle(c, 400, 380, 200, "rgba(255,240,210,ALPHA)", 0.06);
+        /* ground shadows */
         c.save();
         c.fillStyle = "rgba(121,88,63,0.18)";
         c.beginPath();
@@ -3356,6 +3854,27 @@
         c.ellipse(606, 462, 84, 24, 0, 0, Math.PI * 2);
         c.fill();
         c.restore();
+
+        /* treat mode side indicators */
+        if (this.mode === "treat" && !this.menuOpen && !this.decorOpen && !this.dedication) {
+          c.save();
+          c.globalAlpha = 0.45;
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillStyle = "#4A90D9";
+          c.fillText("\u2190 Obi's side", 200, 520);
+          c.fillStyle = "#A8C686";
+          c.fillText("Luna's side \u2192", 600, 520);
+          /* subtle center divider */
+          c.strokeStyle = "rgba(122,78,54,0.2)";
+          c.setLineDash([4, 6]);
+          c.beginPath();
+          c.moveTo(400, 110);
+          c.lineTo(400, 530);
+          c.stroke();
+          c.setLineDash([]);
+          c.restore();
+        }
 
         drawAnnie(c, 404, 336, 1.34, {
           pose: this.anniePose,
@@ -3379,14 +3898,108 @@
         for (const t of this.treats) this.drawTreat(c, t);
         this.drawToy(c);
 
+        /* stroke trail */
+        if (this.strokeTrail.length > 0 && (this.mode === "pet" || this.mode === "brush")) {
+          for (const pt of this.strokeTrail) {
+            c.save();
+            c.globalAlpha = clamp(pt.life / 0.35, 0, 1) * 0.35;
+            const color = this.mode === "brush" ? COLORS.gold : COLORS.softPink;
+            c.fillStyle = color;
+            c.beginPath();
+            c.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+          }
+        }
+
+        /* brush cursor sprite (Update 5) */
+        if (this.mode === "brush" && !this.menuOpen && !this.decorOpen && !this.dedication) {
+          drawGlowCircle(c, game.mouse.x, game.mouse.y, 28, "rgba(255,220,140,ALPHA)", 0.12);
+          const brushFrame = spriteArt.frames.items ? spriteArt.frames.items.brush : null;
+          if (brushFrame && spriteArt.image) {
+            c.save();
+            c.translate(game.mouse.x, game.mouse.y);
+            c.rotate(-0.4);
+            const bs = 0.18;
+            c.drawImage(spriteArt.image, brushFrame.x, brushFrame.y, brushFrame.w, brushFrame.h, -brushFrame.w*bs/2, -brushFrame.h*bs, brushFrame.w*bs, brushFrame.h*bs);
+            c.restore();
+          }
+        }
+
+        /* floating reaction texts (Update 6) */
+        for (const ft of this.floatingTexts) {
+          c.save();
+          const fadeAlpha = clamp(ft.life / 0.4, 0, 1);
+          const scaleIn = ft.life > 1.2 ? easeOutBack(clamp((1.5 - ft.life) / 0.3, 0, 1)) : 1;
+          c.globalAlpha = fadeAlpha;
+          c.translate(ft.x, ft.y);
+          c.scale(scaleIn, scaleIn);
+          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.strokeStyle = "rgba(255,255,255,0.85)";
+          c.lineWidth = 3.5;
+          c.strokeText(ft.text, 0, 0);
+          c.fillStyle = ft.color;
+          c.fillText(ft.text, 0, 0);
+          c.restore();
+        }
+
+        /* decoration notification banner (Update 2) */
+        if (this.decorNotification) {
+          c.save();
+          const dn = this.decorNotification;
+          const fadeAlpha = clamp(dn.timer / 0.5, 0, 1) * clamp((4 - dn.timer) / 0.5, 0, 1);
+          c.globalAlpha = fadeAlpha;
+          const glow = 0.5 + 0.5 * Math.sin(game.time * 4);
+          /* shadow */
+          c.fillStyle = "rgba(60,30,80,0.12)";
+          rr(c, 202, 108, 400, 36, 18);
+          c.fill();
+          /* banner */
+          const grad = c.createLinearGradient(200, 105, 600, 105);
+          grad.addColorStop(0, "rgba(128,80,180,0.94)");
+          grad.addColorStop(1, "rgba(200,160,60,0.94)");
+          rr(c, 200, 105, 400, 36, 18);
+          c.fillStyle = grad;
+          c.fill();
+          c.strokeStyle = "rgba(255,255,255,0.3)";
+          c.lineWidth = 1.5;
+          c.stroke();
+          /* shine */
+          c.fillStyle = "rgba(255,255,255,0.1)";
+          rr(c, 204, 106, 392, 14, 14);
+          c.fill();
+          drawGlowCircle(c, 400, 123, 220, "rgba(255,215,0,ALPHA)", 0.06 * glow);
+          c.fillStyle = "#FFF8F0";
+          c.textAlign = "center";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("\u2605 " + dn.text + " \u2605", 400, 128);
+          c.restore();
+        }
+
         c.save();
-        rr(c, 122, 536, 556, 40, 18);
-        c.fillStyle = "rgba(255,255,255,0.88)";
+        /* status bar shadow */
+        c.fillStyle = "rgba(92,68,52,0.06)";
+        rr(c, 124, 539, 556, 40, 18);
         c.fill();
-        c.strokeStyle = "rgba(146,104,72,0.15)";
-        c.lineWidth = 2;
+        /* status bar */
+        rr(c, 122, 536, 556, 40, 18);
+        c.fillStyle = "rgba(255,255,255,0.9)";
+        c.fill();
+        c.strokeStyle = "rgba(146,104,72,0.18)";
+        c.lineWidth = 1.5;
         c.stroke();
-        c.fillStyle = "#8A6045";
+        /* shine */
+        c.fillStyle = "rgba(255,255,255,0.2)";
+        rr(c, 126, 537, 548, 16, 14);
+        c.fill();
+        /* pulse glow */
+        if (this.statusPulse > 0.05) {
+          c.globalAlpha = this.statusPulse * 0.15;
+          drawGlowCircle(c, 400, 556, 300, "rgba(255,215,0,ALPHA)", 0.12);
+          c.globalAlpha = 1;
+        }
+        c.fillStyle = "#7A5040";
         c.textAlign = "center";
         c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.fillText(this.statusText, 400, 560);
@@ -3419,12 +4032,13 @@
 
           /* close button */
           const closeHover = this.menuHover === "close";
-          c.fillStyle = closeHover ? "rgba(180,80,60,0.9)" : "rgba(140,100,70,0.6)";
+          if (closeHover) drawGlowCircle(c, W / 2 + 218, 100, 24, "rgba(180,80,60,ALPHA)", 0.2);
+          c.fillStyle = closeHover ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
           c.beginPath();
-          c.arc(W / 2 + 218, 100, 16, 0, Math.PI * 2);
+          c.arc(W / 2 + 218, 100, closeHover ? 18 : 16, 0, Math.PI * 2);
           c.fill();
           c.strokeStyle = "#FFF8F0";
-          c.lineWidth = 2.5;
+          c.lineWidth = closeHover ? 3 : 2.5;
           c.beginPath(); c.moveTo(W / 2 + 212, 94); c.lineTo(W / 2 + 224, 106); c.stroke();
           c.beginPath(); c.moveTo(W / 2 + 224, 94); c.lineTo(W / 2 + 212, 106); c.stroke();
 
@@ -3440,6 +4054,11 @@
             c.scale(scale, scale);
             c.translate(-(cr.x + cr.w / 2), -(cr.y + cr.h / 2));
 
+            /* card shadow */
+            c.fillStyle = "rgba(92,68,52,0.08)";
+            rr(c, cr.x + 2, cr.y + 3, cr.w, cr.h, 14);
+            c.fill();
+
             /* card bg */
             rr(c, cr.x, cr.y, cr.w, cr.h, 14);
             c.fillStyle = hover ? "rgba(255,255,255,1)" : "rgba(255,252,245,0.95)";
@@ -3454,11 +4073,11 @@
             c.fill();
             c.fillRect(cr.x + 7, cr.y + 4, 1, cr.h - 8);
 
-            /* icon circle */
+            /* icon circle with glow */
             c.save();
-            c.globalAlpha = this.menuFade * 0.12;
+            c.globalAlpha = this.menuFade * 0.28;
             c.fillStyle = card.color;
-            c.beginPath(); c.arc(cr.x + 52, cr.y + cr.h / 2, 28, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(cr.x + 52, cr.y + cr.h / 2, 30, 0, Math.PI * 2); c.fill();
             c.restore();
             c.fillStyle = card.color;
             c.beginPath(); c.arc(cr.x + 52, cr.y + cr.h / 2, 22, 0, Math.PI * 2); c.fill();
@@ -3479,12 +4098,12 @@
             c.fillStyle = "rgba(92,61,46,0.65)";
             c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
             c.fillText(card.desc, cr.x + 88, cr.y + 50);
-            c.fillStyle = "rgba(92,61,46,0.45)";
-            c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillStyle = "rgba(92,61,46,0.5)";
+            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
             c.fillText(card.best(), cr.x + 88, cr.y + 67);
 
             /* play arrow */
-            c.fillStyle = hover ? card.color : "rgba(92,61,46,0.25)";
+            c.fillStyle = hover ? card.color : "rgba(92,61,46,0.4)";
             c.beginPath();
             c.moveTo(cr.x + cr.w - 42, cr.y + cr.h / 2 - 10);
             c.lineTo(cr.x + cr.w - 42, cr.y + cr.h / 2 + 10);
@@ -3501,6 +4120,158 @@
           c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           const unlocked = Object.values(store.achievements).filter(Boolean).length;
           c.fillText("Achievements: " + unlocked + " / " + ACHIEVEMENTS.length, W / 2, 558);
+
+          c.restore();
+        }
+
+        /* ── Decoration panel overlay ── */
+        if (this.decorFade > 0.01) {
+          c.save();
+          c.globalAlpha = this.decorFade;
+          c.fillStyle = "rgba(40,28,18,0.55)";
+          c.fillRect(0, 0, W, H);
+
+          rr(c, 100, 70, 600, 480, 28);
+          c.fillStyle = "rgba(255,248,240,0.97)";
+          c.fill();
+          c.strokeStyle = "rgba(146,104,72,0.2)";
+          c.lineWidth = 3;
+          c.stroke();
+
+          c.fillStyle = "#7A4E36";
+          c.textAlign = "center";
+          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Decorate", W / 2, 110);
+
+          const stars = totalStarsEarned();
+          c.fillStyle = "rgba(92,61,46,0.5)";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Stars earned: " + stars + " / 15  •  Unlock items by earning stars in minigames!", W / 2, 130);
+
+          /* close button */
+          const closeHover = this.decorHover === "close";
+          if (closeHover) drawGlowCircle(c, W / 2 + 200, 100, 24, "rgba(180,80,60,ALPHA)", 0.2);
+          c.fillStyle = closeHover ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
+          c.beginPath(); c.arc(W / 2 + 200, 100, closeHover ? 18 : 16, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = "#FFF8F0"; c.lineWidth = closeHover ? 3 : 2.5;
+          c.beginPath(); c.moveTo(W / 2 + 194, 94); c.lineTo(W / 2 + 206, 106); c.stroke();
+          c.beginPath(); c.moveTo(W / 2 + 206, 94); c.lineTo(W / 2 + 194, 106); c.stroke();
+
+          for (let i = 0; i < DECOR_ITEMS.length; i++) {
+            const item = DECOR_ITEMS[i];
+            const ir = this.getDecorItemRect(i);
+            const hover = this.decorHover === i;
+            const have = stars >= item.stars;
+            const active = item.type === "toggle" ? store.decor[item.key] : store.decor[item.key] > 0;
+
+            c.save();
+            if (!have) c.globalAlpha = 0.6;
+            /* item shadow */
+            c.fillStyle = "rgba(92,68,52,0.05)";
+            rr(c, ir.x + 2, ir.y + 2, ir.w, ir.h, 14);
+            c.fill();
+            rr(c, ir.x, ir.y, ir.w, ir.h, 14);
+            c.fillStyle = hover ? "rgba(255,255,255,1)" : "rgba(255,252,245,0.95)";
+            c.fill();
+            if (hover && have) drawGlowCircle(c, ir.x + ir.w / 2, ir.y + ir.h / 2, ir.w * 0.6, "rgba(155,125,189,ALPHA)", 0.08);
+            c.strokeStyle = hover && have ? "#9B7DBD" : !have ? "rgba(146,104,72,0.1)" : "rgba(146,104,72,0.15)";
+            c.lineWidth = hover && have ? 3 : 2;
+            c.stroke();
+
+            /* star cost */
+            c.fillStyle = have ? COLORS.gold : "rgba(180,160,140,0.5)";
+            c.textAlign = "center";
+            c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            drawStar(c, ir.x + 32, ir.y + ir.h / 2 - 8, 10, have ? COLORS.gold : "#C8B8A8");
+            c.fillStyle = have ? "#8A6045" : "rgba(160,140,120,0.6)";
+            c.fillText(item.stars, ir.x + 32, ir.y + ir.h / 2 + 18);
+
+            /* name and desc */
+            c.textAlign = "left";
+            c.fillStyle = have ? "#5C3D2E" : "rgba(92,61,46,0.4)";
+            c.font = '17px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(item.name, ir.x + 64, ir.y + 30);
+            c.fillStyle = have ? "rgba(92,61,46,0.6)" : "rgba(92,61,46,0.3)";
+            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(item.desc, ir.x + 64, ir.y + 50);
+
+            /* toggle/cycle state */
+            if (have) {
+              if (item.type === "toggle") {
+                const tx = ir.x + ir.w - 60;
+                const ty = ir.y + ir.h / 2;
+                rr(c, tx, ty - 12, 44, 24, 12);
+                c.fillStyle = active ? "#7DB36C" : "rgba(180,160,140,0.4)";
+                c.fill();
+                c.fillStyle = "#FFF8F0";
+                c.beginPath(); c.arc(active ? tx + 32 : tx + 12, ty, 9, 0, Math.PI * 2); c.fill();
+              } else if (item.type === "cycle") {
+                c.fillStyle = "rgba(92,61,46,0.6)";
+                c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+                c.textAlign = "right";
+                c.fillText(item.labels[store.decor[item.key]] + " ▸", ir.x + ir.w - 24, ir.y + ir.h / 2 + 5);
+              }
+            } else {
+              c.fillStyle = "rgba(160,140,120,0.4)";
+              c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.textAlign = "right";
+              c.fillText("Need " + item.stars + " ★", ir.x + ir.w - 24, ir.y + ir.h / 2 + 5);
+            }
+            c.restore();
+          }
+          c.restore();
+        }
+
+        /* ── First visit dedication screen ── */
+        if (this.dedication) {
+          const a = this.dedication.alpha;
+          c.save();
+          c.globalAlpha = a;
+          c.fillStyle = "rgba(60,40,28,0.7)";
+          c.fillRect(0, 0, W, H);
+
+          /* warm glow behind text */
+          drawGlowCircle(c, W / 2, 260, 220, "rgba(255,230,180,ALPHA)", 0.15 * a);
+
+          /* main panel */
+          rr(c, 120, 120, 560, 360, 32);
+          c.fillStyle = "rgba(255,248,240,0.96)";
+          c.fill();
+          c.strokeStyle = "rgba(200,160,120,0.25)";
+          c.lineWidth = 3;
+          c.stroke();
+
+          /* heart decorations */
+          for (let i = 0; i < 8; i++) {
+            c.save();
+            c.globalAlpha = a * (0.15 + Math.sin(game.time * 1.5 + i * 0.9) * 0.08);
+            const hx = 160 + i * 72;
+            const hy = 140 + Math.sin(game.time * 0.8 + i * 1.3) * 8;
+            drawHeart(c, hx, hy, 0.5, COLORS.softPink);
+            c.restore();
+          }
+
+          c.fillStyle = "#7A4E36";
+          c.textAlign = "center";
+          c.font = '36px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Made with Love", W / 2, 220);
+          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillStyle = "rgba(122,78,54,0.8)";
+          c.fillText("for Annie, Obi, and Luna", W / 2, 256);
+
+          /* small characters */
+          c.save();
+          c.globalAlpha = a * clamp(this.dedication.phase - 0.5, 0, 1);
+          drawAnnie(c, 320, 370, 0.8, { pose: "cheer", breath: Math.sin(game.time * 2), blink: blinkSignal(game.time, 0.5), hairSway: Math.sin(game.time * 1.2) });
+          drawObi(c, 420, 390, 0.7, { pose: "sit", expression: "happy", tail: Math.sin(game.time * 8) });
+          drawLuna(c, 500, 382, 0.65, { pose: "sit", tail: Math.sin(game.time * 2), earTwitch: earSignal(game.time) });
+          c.restore();
+
+          /* click to continue */
+          c.globalAlpha = a * (0.4 + Math.sin(game.time * 2.5) * 0.3);
+          c.fillStyle = "#8A6045";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(isMobile ? "Tap anywhere to begin" : "Click anywhere to begin", W / 2, 454);
 
           c.restore();
         }
@@ -3531,6 +4302,8 @@
         this.starTimer = 0;
         this.scoreInT = 0;
         this.personalBest = 0;
+        this.playHint = null;
+        this.playHintTimer = 4;
       }
       enter() {
         this.phase = "instructions";
@@ -3590,6 +4363,13 @@
             } else {
               this.timeLeft = Math.max(0, this.timeLeft - dt);
               this.updatePlay(dt);
+              /* first-play hint timer */
+              if (this.playHint) {
+                this.playHint.life -= dt;
+                if (this.playHint.life <= 0) this.playHint = null;
+              } else if (this.playHintTimer > 0) {
+                this.playHintTimer -= dt;
+              }
               if (this.timeLeft <= 0) this.finishGame();
             }
           }
@@ -3717,6 +4497,7 @@
         this.scoreInT = 0;
         this.revealedStars = 0;
         this.starTimer = 0;
+        this.confettiFired = false;
       }
       createReplay() {
         const map = { treat: TreatTossScene, laser: LaserChaseScene, cuddle: CuddlePileScene, walk: ObiWalkScene, nap: LunaNapScene };
@@ -3837,8 +4618,26 @@
       }
       drawResults(c, characterDraw) {
         c.save();
-        c.fillStyle = "rgba(255,248,240,0.88)";
+        c.fillStyle = "rgba(255,248,240,0.82)";
         c.fillRect(0, 0, W, H);
+
+        /* confetti burst on 3 stars */
+        if (this.resultsStars >= 3 && this.revealedStars >= 3 && !this.confettiFired) {
+          this.confettiFired = true;
+          const confettiColors = [COLORS.gold, COLORS.softPink, "#87CEEB", "#A8D870", "#FFB347", "#FF8FAA", "#C39BD3"];
+          for (let i = 0; i < 40; i++) {
+            game.particles.push({
+              x: W / 2 + rand(-200, 200), y: rand(50, 200),
+              vx: rand(-120, 120), vy: rand(-180, 40),
+              life: rand(1.5, 3), maxLife: 3,
+              size: rand(4, 8), rot: rand(0, 6.28), vr: rand(-5, 5),
+              shape: Math.random() < 0.5 ? "star" : "heart",
+              color: confettiColors[Math.floor(Math.random() * confettiColors.length)]
+            });
+          }
+          audio.achievement();
+        }
+
         c.fillStyle = "#7A4E36";
         c.textAlign = "center";
         c.font = '38px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
@@ -3861,12 +4660,21 @@
         c.fillText("Personal Best  ★  " + this.personalBest, W / 2, 210);
 
         if (this.newBest) {
-          rr(c, W / 2 - 120, 225, 240, 42, 18);
+          const bestPulse = 1 + Math.sin(game.time * 4) * 0.04;
+          c.save();
+          c.translate(W / 2, 246);
+          c.scale(bestPulse, bestPulse);
+          rr(c, -120, -21, 240, 42, 18);
           c.fillStyle = "#E2B83B";
           c.fill();
+          c.strokeStyle = "rgba(255,255,255,0.4)";
+          c.lineWidth = 2;
+          c.stroke();
           c.fillStyle = "#FFF8F0";
-          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Personal Best!", W / 2, 252);
+          c.font = '19px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("✦ New Personal Best! ✦", 0, 6);
+          c.restore();
         }
 
         for (let i = 0; i < 3; i++) {
@@ -3875,7 +4683,21 @@
           c.save();
           c.translate(W / 2 - 64 + i * 64, 310);
           c.scale(t, t);
+          if (revealed) {
+            drawGlowCircle(c, 0, 0, 28, "rgba(255,215,0,ALPHA)", 0.15);
+          }
           drawStar(c, 0, 0, 22, revealed ? COLORS.gold : "#D3C8B4");
+          c.restore();
+        }
+
+        /* celebration message for 3 stars */
+        if (this.resultsStars >= 3 && this.revealedStars >= 3) {
+          c.save();
+          c.globalAlpha = clamp(this.phaseTime - 1.2, 0, 1);
+          c.fillStyle = COLORS.gold;
+          c.textAlign = "center";
+          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Perfect score! Amazing!", W / 2, 348);
           c.restore();
         }
 
@@ -3894,6 +4716,19 @@
         else if (this.phase === "play" && this.paused) this.drawPause(c);
         else if (this.phase === "results") this.drawResults(c, this.drawResultCharacter.bind(this));
         else if (this.phase === "ending") this.drawEndingOverlay(c);
+        /* first-play hint */
+        if (this.playHint && this.phase === "play") {
+          c.save();
+          c.globalAlpha = clamp(this.playHint.life / 0.5, 0, 1) * 0.85;
+          c.fillStyle = "rgba(255,248,240,0.88)";
+          rr(c, W/2 - 180, H - 60, 360, 34, 14);
+          c.fill();
+          c.fillStyle = "#7A4E36";
+          c.textAlign = "center";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(this.playHint.text, W/2, H - 38);
+          c.restore();
+        }
         drawAchievementBanner(c, this.achievementBanner);
       }
       drawScene() {}
@@ -3918,6 +4753,8 @@
         this.rampStep = 0;
         this.perfectTimer = 0;
         this.goldenFlash = 0;
+        this.missTimer = 0;
+        this.speedUpTimer = 0;
       }
       enter() {
         super.enter();
@@ -3933,6 +4770,8 @@
         this.rampStep = 0;
         this.perfectTimer = 0;
         this.goldenFlash = 0;
+        this.missTimer = 0;
+        this.speedUpTimer = 0;
       }
       extraInteractiveAt() { return true; }
       onGameClick(x) {
@@ -3955,14 +4794,22 @@
         audio.menu();
       }
       updatePlay(dt) {
+        if (this.playHintTimer <= 0 && !this.playHint && this.score === 0 && !this.treat) {
+          this.playHint = { text: isMobile ? "Tap anywhere to toss a treat!" : "Click anywhere to toss a treat!", life: 5 };
+          this.playHintTimer = -1;
+        }
         const elapsed = this.duration - this.timeLeft;
         const newRamp = Math.floor(elapsed / 15);
         if (newRamp > this.rampStep) {
           this.rampStep = newRamp;
           this.obiSpeed = Math.pow(1.15, this.rampStep);
+          this.speedUpTimer = 1.0;
+          audio.pounce();
         }
 
         this.perfectTimer = Math.max(0, this.perfectTimer - dt);
+        this.missTimer = Math.max(0, this.missTimer - dt);
+        this.speedUpTimer = Math.max(0, this.speedUpTimer - dt);
         this.goldenFlash = Math.max(0, this.goldenFlash - dt);
         this.obiPhase += dt * (1.2 * this.obiSpeed);
         const prevX = this.obiX;
@@ -4019,6 +4866,7 @@
               this.treat.vy = 0;
               this.combo = 1;
               this.sadTimer = 0.6;
+              this.missTimer = 0.7;
               audio.miss();
             }
           }
@@ -4107,6 +4955,30 @@
           c.fillText("Perfect Catch!", 400, 118);
           c.restore();
         }
+        if (this.missTimer > 0) {
+          c.save();
+          c.globalAlpha = clamp(this.missTimer / 0.4, 0, 1);
+          c.fillStyle = COLORS.warmRed;
+          c.strokeStyle = "rgba(255,255,255,0.7)";
+          c.lineWidth = 4;
+          c.font = '22px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.strokeText("Miss!", 400, 118);
+          c.fillText("Miss!", 400, 118);
+          c.restore();
+        }
+        if (this.speedUpTimer > 0) {
+          c.save();
+          c.globalAlpha = clamp(this.speedUpTimer / 0.5, 0, 1);
+          c.fillStyle = "#E88A20";
+          c.strokeStyle = "rgba(255,255,255,0.6)";
+          c.lineWidth = 3;
+          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.strokeText("Obi speeds up!", 400, 150);
+          c.fillText("Obi speeds up!", 400, 150);
+          c.restore();
+        }
       }
       drawResultCharacter(c) {
         drawObi(c, 400, 405, 1.45, {
@@ -4126,6 +4998,7 @@
         this.targets = [];
         this.spawnedTargetCap = 1;
         this.trail = [];
+        this.scorePopups = [];
       }
       enter() {
         super.enter();
@@ -4133,6 +5006,7 @@
         this.targets = [];
         this.spawnedTargetCap = 1;
         this.trail = [];
+        this.scorePopups = [];
         this.fillTargets();
       }
       obstacles() {
@@ -4172,6 +5046,10 @@
           t.life -= dt;
           if (t.life <= 0 && !t.fading) {
             t.fading = true;
+            if (this.combo > 1) {
+              this.scorePopups.push({ x: t.x, y: t.y, text: "Miss!", life: 0.8 });
+              audio.miss();
+            }
             this.combo = 1;
           }
           if (t.fading) {
@@ -4224,7 +5102,9 @@
         for (let i = this.targets.length - 1; i >= 0; i--) {
           const t = this.targets[i];
           if (dist(this.luna.x, this.luna.y, t.x, t.y) < 30) {
-            this.addScore((t.bonus ? 35 : 20) * this.combo);
+            const pts = (t.bonus ? 35 : 20) * this.combo;
+            this.addScore(pts);
+            this.scorePopups.push({ x: t.x, y: t.y, text: "+" + pts, life: 1 });
             this.combo++;
             store.stats.bestLaserCombo = Math.max(store.stats.bestLaserCombo, this.combo);
             saveStats();
@@ -4238,6 +5118,12 @@
             this.fillTargets();
             break;
           }
+        }
+        /* tick score popups */
+        for (let i = this.scorePopups.length - 1; i >= 0; i--) {
+          this.scorePopups[i].life -= dt;
+          this.scorePopups[i].y -= 40 * dt;
+          if (this.scorePopups[i].life <= 0) this.scorePopups.splice(i, 1);
         }
       }
       drawInstructionIcon(c, x, y) {
@@ -4303,6 +5189,20 @@
           pawBat: this.luna.pawBat
         });
 
+        /* score popups */
+        for (const sp of this.scorePopups) {
+          c.save();
+          c.globalAlpha = clamp(sp.life, 0, 1);
+          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.strokeStyle = "rgba(60,40,20,0.7)";
+          c.lineWidth = 3;
+          c.strokeText(sp.text, sp.x, sp.y);
+          c.fillStyle = COLORS.gold;
+          c.fillText(sp.text, sp.x, sp.y);
+          c.restore();
+        }
+
         c.fillStyle = "rgba(92,68,52,0.5)";
         c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
@@ -4328,6 +5228,7 @@
         this.bubble = null;
         this.failedSide = null;
         this.winState = false;
+        this.btnFlash = { left: 0, right: 0 };
       }
       enter() {
         super.enter();
@@ -4337,6 +5238,7 @@
         this.bubble = null;
         this.failedSide = null;
         this.winState = false;
+        this.btnFlash = { left: 0, right: 0 };
       }
       extraInteractiveAt(x, y) {
         if (isMobile) {
@@ -4350,8 +5252,10 @@
           const ab = this.cuddleArrowButtons();
           if (pointInRect(x, y, ab.left)) {
             this.balanceTarget = clamp(this.balanceTarget - 10, -100, 100);
+            this.btnFlash.left = 0.2;
           } else if (pointInRect(x, y, ab.right)) {
             this.balanceTarget = clamp(this.balanceTarget + 10, -100, 100);
+            this.btnFlash.right = 0.2;
           }
         }
       }
@@ -4370,13 +5274,19 @@
             this.paused = !this.paused;
             return;
           }
-          if (key === "ArrowLeft") this.balanceTarget = clamp(this.balanceTarget - 10, -100, 100);
-          if (key === "ArrowRight") this.balanceTarget = clamp(this.balanceTarget + 10, -100, 100);
+          if (key === "ArrowLeft") { this.balanceTarget = clamp(this.balanceTarget - 10, -100, 100); this.btnFlash.left = 0.2; }
+          if (key === "ArrowRight") { this.balanceTarget = clamp(this.balanceTarget + 10, -100, 100); this.btnFlash.right = 0.2; }
         }
       }
       updatePlay(dt) {
+        if (this.playHintTimer <= 0 && !this.playHint && this.score < 2) {
+          this.playHint = { text: isMobile ? "Tap LEFT/RIGHT to keep balanced!" : "Press LEFT/RIGHT arrows to keep balanced!", life: 5 };
+          this.playHintTimer = -1;
+        }
         this.score = 90 - this.timeLeft;
         this.balance = lerp(this.balance, this.balanceTarget, dt * 6);
+        this.btnFlash.left = Math.max(0, this.btnFlash.left - dt);
+        this.btnFlash.right = Math.max(0, this.btnFlash.right - dt);
         if (this.bubble) {
           this.bubble.time -= dt;
           if (this.bubble.time <= 0) this.bubble = null;
@@ -4581,16 +5491,19 @@
           const ab = this.cuddleArrowButtons();
           const lHover = pointInRect(game.mouse.x, game.mouse.y, ab.left);
           const rHover = pointInRect(game.mouse.x, game.mouse.y, ab.right);
-          c.fillStyle = lHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.55)";
+          const lFlash = this.btnFlash.left > 0;
+          const rFlash = this.btnFlash.right > 0;
+          c.fillStyle = lFlash ? "rgba(255,255,255,0.85)" : lHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.55)";
           rr(c, ab.left.x, ab.left.y, ab.left.w, ab.left.h, 18);
           c.fill();
-          c.fillStyle = rHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.55)";
+          c.fillStyle = rFlash ? "rgba(255,255,255,0.85)" : rHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.55)";
           rr(c, ab.right.x, ab.right.y, ab.right.w, ab.right.h, 18);
           c.fill();
-          c.fillStyle = COLORS.cream;
           c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("← Left", ab.left.x + ab.left.w / 2, ab.left.y + 42);
-          c.fillText("Right →", ab.right.x + ab.right.w / 2, ab.right.y + 42);
+          c.fillStyle = lFlash ? "#5C4434" : COLORS.cream;
+          c.fillText("\u25C4 Left", ab.left.x + ab.left.w / 2, ab.left.y + 42);
+          c.fillStyle = rFlash ? "#5C4434" : COLORS.cream;
+          c.fillText("Right \u25BA", ab.right.x + ab.right.w / 2, ab.right.y + 42);
         } else {
           c.fillText("← Shift left", 150, 576);
           c.fillText("Shift right →", 650, 576);
@@ -4600,6 +5513,39 @@
           const bx = this.bubble.who === "obi" ? 258 : this.bubble.who === "luna" ? 556 : 400;
           const by = this.bubble.who === "obi" ? 270 : this.bubble.who === "luna" ? 244 : 230;
           drawTooltip(c, bx, by, "Fidget!", this.bubble.text, clamp(this.bubble.time / 1.2, 0, 1));
+        }
+
+        /* directional hint arrows (Update 13) */
+        if (this.phase === "play" && !this.paused && Math.abs(this.balance) > 30) {
+          const arrowAlpha = clamp((Math.abs(this.balance) - 30) / 40, 0, 0.6);
+          const pulse = 0.7 + 0.3 * Math.sin(game.time * 4);
+          const intensity = clamp((Math.abs(this.balance) - 30) / 70, 0, 1);
+          const r = Math.floor(200 + 55 * intensity);
+          const g2 = Math.floor(120 - 80 * intensity);
+          const b = Math.floor(40 - 20 * intensity);
+          c.save();
+          c.globalAlpha = arrowAlpha * pulse;
+          c.fillStyle = `rgb(${r},${g2},${b})`;
+          if (this.balance < -30) {
+            /* hint right */
+            drawGlowCircle(c, 740, 300, 40, `rgba(${r},${g2},${b},ALPHA)`, 0.15);
+            c.beginPath(); c.moveTo(720, 280); c.lineTo(760, 300); c.lineTo(720, 320); c.closePath(); c.fill();
+            if (isMobile) {
+              c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.textAlign = "center";
+              c.fillText("\u25BA", 740, 260);
+            }
+          } else {
+            /* hint left */
+            drawGlowCircle(c, 60, 300, 40, `rgba(${r},${g2},${b},ALPHA)`, 0.15);
+            c.beginPath(); c.moveTo(80, 280); c.lineTo(40, 300); c.lineTo(80, 320); c.closePath(); c.fill();
+            if (isMobile) {
+              c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.textAlign = "center";
+              c.fillText("\u25C4", 60, 260);
+            }
+          }
+          c.restore();
         }
       }
       drawEndingOverlay(c) {
@@ -5039,6 +5985,10 @@
         spawnParticleBurst(x, y - 10, ["#FFF4C0"], 4, ["star"]);
       }
       updatePlay(dt) {
+        if (this.playHintTimer <= 0 && !this.playHint && this.cushions.length === 0) {
+          this.playHint = { text: isMobile ? "Tap in the bright spots to place cushions!" : "Click in the bright spots to place cushions!", life: 5 };
+          this.playHintTimer = -1;
+        }
         /* update sunbeams */
         for (let i = this.beams.length - 1; i >= 0; i--) {
           const b = this.beams[i];
@@ -5302,7 +6252,7 @@
         from: game.scene,
         to: nextScene,
         t: 0,
-        duration: 0.4
+        duration: 0.6
       };
     }
 
@@ -5321,7 +6271,8 @@
         audio.ensure();
         store.muted = !store.muted;
         saveBool("muted", store.muted);
-        if (!store.muted) audio.menu();
+        if (!store.muted) { audio.menu(); if (game.scene && game.scene.name === "hangout") audio.startAmbient(); }
+        else { audio.stopAmbient(); }
         return true;
       }
       return false;
@@ -5353,12 +6304,14 @@
         if (game.transition.from) {
           ctx.save();
           ctx.globalAlpha = 1 - p;
+          ctx.translate(W/2, H/2); ctx.scale(1 - p*0.03, 1 - p*0.03); ctx.translate(-W/2, -H/2);
           game.transition.from.draw(ctx);
           drawMuteIcon(ctx);
           ctx.restore();
         }
         ctx.save();
         ctx.globalAlpha = p;
+        ctx.translate(W/2, H/2); ctx.scale(0.97 + p*0.03, 0.97 + p*0.03); ctx.translate(-W/2, -H/2);
         game.transition.to.draw(ctx);
         drawMuteIcon(ctx);
         ctx.restore();
@@ -5367,6 +6320,15 @@
         drawMuteIcon(ctx);
       }
       drawSharedParticles(ctx);
+
+      /* warm vignette */
+      ctx.save();
+      const vg = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.35, W/2, H/2, Math.max(W,H)*0.72);
+      vg.addColorStop(0, "rgba(0,0,0,0)");
+      vg.addColorStop(1, "rgba(40,25,15,0.18)");
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
 
       if (game.scene || game.transition) {
         const activeScene = game.transition ? game.transition.from : game.scene;
@@ -5395,8 +6357,9 @@
       game.mouse.x = x;
       game.mouse.y = y;
       audio.ensure();
+      if (game.transition) return;
       if (handleMuteClick(x, y)) return;
-      const activeScene = game.transition ? game.transition.from : game.scene;
+      const activeScene = game.scene;
       if (activeScene && activeScene.onClick) activeScene.onClick(x, y);
     });
 
@@ -5416,7 +6379,8 @@
       game.mouse.y = y;
       game.mouse.down = true;
       audio.ensure();
-      const activeScene = game.transition ? game.transition.from : game.scene;
+      if (game.transition) return;
+      const activeScene = game.scene;
       if (activeScene && activeScene.onMouseMove) activeScene.onMouseMove(x, y);
       if (handleMuteClick(x, y)) return;
       if (activeScene && activeScene.onClick) activeScene.onClick(x, y);
@@ -5430,6 +6394,10 @@
       if (activeScene && activeScene.onMouseMove) activeScene.onMouseMove(x, y);
     }, { passive: false });
     canvas.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      game.mouse.down = false;
+    }, { passive: false });
+    canvas.addEventListener("touchcancel", (e) => {
       e.preventDefault();
       game.mouse.down = false;
     }, { passive: false });
