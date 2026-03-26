@@ -2792,9 +2792,9 @@
         this.treats = [];
         this.toy = null;
         this.annie = {
-          x: 404, y: 336, homeX: 404, homeY: 336,
+          x: 404, y: 336, homeX: 404, homeY: 336, floorY: 420,
           pose: "idle", poseTimer: rand(3, 6), facing: 1,
-          state: "idle", stateTimer: rand(4, 7)
+          state: "idle", stateTimer: rand(4, 7), targetY: 336
         };
         this.obi = {
           x: 164, y: 430, homeX: 164, homeY: 430, matX: 262, matY: 446,
@@ -3293,6 +3293,14 @@
         a.poseTimer -= dt;
         a.stateTimer -= dt;
 
+        /* smooth Y interpolation toward target */
+        const dy = a.targetY - a.y;
+        if (Math.abs(dy) > 1) {
+          a.y += Math.sign(dy) * Math.min(Math.abs(dy), 80 * dt);
+        } else {
+          a.y = a.targetY;
+        }
+
         /* reactive poses override idle behavior */
         if (this.obi.happyTimer > 0.1 || this.luna.happyTimer > 0.1) {
           a.pose = "cheer";
@@ -3309,36 +3317,33 @@
           /* autonomous state machine */
           if (a.stateTimer <= 0) {
             const r = Math.random();
-            if (r < 0.2 && a.state !== "walkToObi" && a.state !== "walkToLuna") {
-              /* walk toward Obi */
+            if (r < 0.22 && a.state !== "walkToObi" && a.state !== "walkToLuna") {
               a.state = "walkToObi";
               a.stateTimer = rand(3, 5);
-            } else if (r < 0.4 && a.state !== "walkToLuna" && a.state !== "walkToObi") {
-              /* walk toward Luna */
+              a.targetY = a.floorY;
+            } else if (r < 0.44 && a.state !== "walkToLuna" && a.state !== "walkToObi") {
               a.state = "walkToLuna";
               a.stateTimer = rand(3, 5);
-            } else if (r < 0.55) {
-              /* kneel down */
+              a.targetY = a.floorY;
+            } else if (r < 0.56) {
+              a.state = "wander";
+              a.stateTimer = rand(2.5, 4);
+              a.targetX = rand(180, 560);
+              a.targetY = a.floorY;
+            } else if (r < 0.7) {
               a.state = "kneel";
               a.stateTimer = rand(2, 4);
               a.pose = "kneel";
               a.poseTimer = a.stateTimer;
-            } else if (r < 0.7) {
-              /* walk to a random spot */
-              a.state = "wander";
-              a.stateTimer = rand(2.5, 4);
-              a.targetX = rand(300, 520);
+              a.targetY = a.floorY;
             } else if (r < 0.85) {
-              /* sit and relax */
-              a.state = "sit";
-              a.stateTimer = rand(3, 6);
-              a.pose = "sit";
-              a.poseTimer = a.stateTimer;
+              a.state = "returnHome";
+              a.stateTimer = rand(3, 5);
+              a.targetY = a.homeY;
             } else {
-              /* idle standing */
               a.state = "idle";
               a.stateTimer = rand(3, 5);
-              a.pose = "idle";
+              a.pose = Math.abs(a.y - a.homeY) < 10 ? "sit" : "idle";
               a.poseTimer = a.stateTimer;
             }
           }
@@ -3349,28 +3354,29 @@
             a.pose = "walk";
             a.poseTimer = 0.5;
             a.facing = tx < a.x ? -1 : 1;
-            if (Math.abs(a.x - tx) > 12) {
-              a.x += Math.sign(tx - a.x) * 55 * dt;
+            if (Math.abs(a.x - tx) > 14 || Math.abs(a.y - a.floorY) > 10) {
+              a.x += Math.sign(tx - a.x) * 60 * dt;
             } else {
               a.state = "kneel";
-              a.stateTimer = rand(2, 3.5);
+              a.stateTimer = rand(2.5, 4);
               a.pose = "kneel";
               a.poseTimer = a.stateTimer;
               a.facing = this.obi.x < a.x ? -1 : 1;
               this.statusText = "Annie kneels down to check on Obi.";
               this.statusPulse = 0.3;
+              spawnParticleBurst(this.obi.x, this.obi.y - 30, [COLORS.softPink], 3, ["heart"]);
             }
           } else if (a.state === "walkToLuna") {
             const lunaX = this.luna.onTower ? this.luna.perchX : this.luna.x;
-            const tx = lunaX - 50;
+            const tx = lunaX - 55;
             a.pose = "walk";
             a.poseTimer = 0.5;
             a.facing = tx < a.x ? -1 : 1;
-            if (Math.abs(a.x - tx) > 12) {
-              a.x += Math.sign(tx - a.x) * 55 * dt;
+            if (Math.abs(a.x - tx) > 14 || Math.abs(a.y - a.floorY) > 10) {
+              a.x += Math.sign(tx - a.x) * 60 * dt;
             } else {
               a.state = "idle";
-              a.stateTimer = rand(2, 3);
+              a.stateTimer = rand(2, 3.5);
               a.pose = "laugh";
               a.poseTimer = 1.5;
               a.facing = lunaX > a.x ? 1 : -1;
@@ -3378,30 +3384,43 @@
               this.statusPulse = 0.3;
             }
           } else if (a.state === "wander") {
+            const tx = a.targetX || a.homeX;
             a.pose = "walk";
             a.poseTimer = 0.5;
-            a.facing = (a.targetX || a.homeX) < a.x ? -1 : 1;
-            const tx = a.targetX || a.homeX;
+            a.facing = tx < a.x ? -1 : 1;
             if (Math.abs(a.x - tx) > 8) {
-              a.x += Math.sign(tx - a.x) * 50 * dt;
+              a.x += Math.sign(tx - a.x) * 55 * dt;
             } else {
               a.state = "idle";
               a.stateTimer = rand(2, 4);
               a.pose = "idle";
               a.poseTimer = a.stateTimer;
             }
+          } else if (a.state === "returnHome") {
+            a.pose = "walk";
+            a.poseTimer = 0.5;
+            a.facing = a.homeX < a.x ? -1 : 1;
+            if (Math.abs(a.x - a.homeX) > 10 || Math.abs(a.y - a.homeY) > 10) {
+              a.x += Math.sign(a.homeX - a.x) * 55 * dt;
+            } else {
+              a.x = a.homeX;
+              a.state = "idle";
+              a.stateTimer = rand(3, 6);
+              a.pose = "sit";
+              a.poseTimer = a.stateTimer;
+            }
           }
 
-          /* return home when in idle/sit/kneel and far from home */
-          if ((a.state === "idle" || a.state === "sit") && Math.abs(a.x - a.homeX) > 80 && a.stateTimer < 1) {
-            a.state = "wander";
-            a.targetX = a.homeX;
-            a.stateTimer = rand(2, 3);
+          /* if far from home and idle, eventually return */
+          if ((a.state === "idle" || a.state === "kneel") && Math.abs(a.x - a.homeX) > 60 && a.stateTimer < 0.5) {
+            a.state = "returnHome";
+            a.stateTimer = rand(3, 5);
+            a.targetY = a.homeY;
           }
         }
 
-        /* clamp Annie's position to valid range */
-        a.x = clamp(a.x, 220, 580);
+        a.x = clamp(a.x, 140, 640);
+        a.y = clamp(a.y, a.homeY, a.floorY);
       }
       updateObi(dt) {
         this.obi.petTimer = Math.max(0, this.obi.petTimer - dt);
@@ -4117,7 +4136,7 @@
           c.fill();
           c.restore();
         };
-        drawDynShadow(this.annie.x, 458, 44, 14);
+        drawDynShadow(this.annie.x, Math.max(this.annie.y + 120, 458), 44, 14);
         drawDynShadow(this.obi.x, 466, 42, 14);
         const lunaY = this.luna.onTower ? 280 : 462;
         drawDynShadow(this.luna.x, lunaY + 8, 38, 12);
