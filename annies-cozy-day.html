@@ -2653,9 +2653,11 @@
         this.strokeTick = 0;
         this.treats = [];
         this.toy = null;
-        this.anniePose = "idle";
-        this.anniePoseTimer = 0;
-        this.annieLookDir = 1;
+        this.annie = {
+          x: 404, y: 336, homeX: 404, homeY: 336,
+          pose: "idle", poseTimer: rand(3, 6), facing: 1,
+          state: "idle", stateTimer: rand(4, 7)
+        };
         this.obi = {
           x: 164, y: 430, homeX: 164, homeY: 430, matX: 262, matY: 446,
           targetX: 164, targetY: 430, joy: store.pet_obi_joy, facing: 1, bounce: 0,
@@ -3133,6 +3135,121 @@
           }
         }
       }
+      updateAnnie(dt) {
+        const a = this.annie;
+        a.poseTimer -= dt;
+        a.stateTimer -= dt;
+
+        /* reactive poses override idle behavior */
+        if (this.obi.happyTimer > 0.1 || this.luna.happyTimer > 0.1) {
+          a.pose = "cheer";
+          a.poseTimer = 1.5;
+          a.facing = this.obi.happyTimer > this.luna.happyTimer ? -1 : 1;
+        } else if (this.mode === "brush" && this.obi.shakeTimer > 0) {
+          a.pose = "laugh";
+          a.poseTimer = 1;
+        } else if (this.petInteraction.active) {
+          a.pose = "laugh";
+          a.poseTimer = 0.5;
+          a.facing = this.obi.x < 400 ? -1 : 1;
+        } else if (a.poseTimer <= 0) {
+          /* autonomous state machine */
+          if (a.stateTimer <= 0) {
+            const r = Math.random();
+            if (r < 0.2 && a.state !== "walkToObi" && a.state !== "walkToLuna") {
+              /* walk toward Obi */
+              a.state = "walkToObi";
+              a.stateTimer = rand(3, 5);
+            } else if (r < 0.4 && a.state !== "walkToLuna" && a.state !== "walkToObi") {
+              /* walk toward Luna */
+              a.state = "walkToLuna";
+              a.stateTimer = rand(3, 5);
+            } else if (r < 0.55) {
+              /* kneel down */
+              a.state = "kneel";
+              a.stateTimer = rand(2, 4);
+              a.pose = "kneel";
+              a.poseTimer = a.stateTimer;
+            } else if (r < 0.7) {
+              /* walk to a random spot */
+              a.state = "wander";
+              a.stateTimer = rand(2.5, 4);
+              a.targetX = rand(300, 520);
+            } else if (r < 0.85) {
+              /* sit and relax */
+              a.state = "sit";
+              a.stateTimer = rand(3, 6);
+              a.pose = "sit";
+              a.poseTimer = a.stateTimer;
+            } else {
+              /* idle standing */
+              a.state = "idle";
+              a.stateTimer = rand(3, 5);
+              a.pose = "idle";
+              a.poseTimer = a.stateTimer;
+            }
+          }
+
+          /* movement */
+          if (a.state === "walkToObi") {
+            const tx = this.obi.x + 50;
+            a.pose = "walk";
+            a.poseTimer = 0.5;
+            a.facing = tx < a.x ? -1 : 1;
+            if (Math.abs(a.x - tx) > 12) {
+              a.x += Math.sign(tx - a.x) * 55 * dt;
+            } else {
+              a.state = "kneel";
+              a.stateTimer = rand(2, 3.5);
+              a.pose = "kneel";
+              a.poseTimer = a.stateTimer;
+              a.facing = this.obi.x < a.x ? -1 : 1;
+              this.statusText = "Annie kneels down to check on Obi.";
+              this.statusPulse = 0.3;
+            }
+          } else if (a.state === "walkToLuna") {
+            const lunaX = this.luna.onTower ? this.luna.perchX : this.luna.x;
+            const tx = lunaX - 50;
+            a.pose = "walk";
+            a.poseTimer = 0.5;
+            a.facing = tx < a.x ? -1 : 1;
+            if (Math.abs(a.x - tx) > 12) {
+              a.x += Math.sign(tx - a.x) * 55 * dt;
+            } else {
+              a.state = "idle";
+              a.stateTimer = rand(2, 3);
+              a.pose = "laugh";
+              a.poseTimer = 1.5;
+              a.facing = lunaX > a.x ? 1 : -1;
+              this.statusText = "Annie smiles at Luna.";
+              this.statusPulse = 0.3;
+            }
+          } else if (a.state === "wander") {
+            a.pose = "walk";
+            a.poseTimer = 0.5;
+            a.facing = (a.targetX || a.homeX) < a.x ? -1 : 1;
+            const tx = a.targetX || a.homeX;
+            if (Math.abs(a.x - tx) > 8) {
+              a.x += Math.sign(tx - a.x) * 50 * dt;
+            } else {
+              a.state = "idle";
+              a.stateTimer = rand(2, 4);
+              a.pose = "idle";
+              a.poseTimer = a.stateTimer;
+            }
+          }
+
+          /* return home when in idle/sit/kneel and far from home */
+          if ((a.state === "idle" || a.state === "sit") && Math.abs(a.x - a.homeX) > 80 && a.stateTimer < 1) {
+            a.state = "wander";
+            a.targetX = a.homeX;
+            a.stateTimer = rand(2, 3);
+          }
+        }
+
+        /* clamp Annie's position to valid range */
+        a.x = clamp(a.x, 220, 580);
+      }
       updateObi(dt) {
         this.obi.petTimer = Math.max(0, this.obi.petTimer - dt);
         this.obi.happyTimer = Math.max(0, this.obi.happyTimer - dt);
@@ -3330,23 +3447,8 @@
         else if (this.hoverKey === "brush") this.tooltip = { x: 534, y: 66, title: "Brush Mode", body: "Brush Obi or Luna until they sparkle!" };
         else if (this.hoverKey === "obi") this.tooltip = { x: this.obi.x, y: this.obi.y - 104, title: "Obi", body: this.petMood("obi") === "thrilled" ? "Obi is thrilled!" : "Mood: " + this.petMood("obi") };
         else if (this.hoverKey === "luna") this.tooltip = { x: this.luna.x, y: (this.luna.onTower ? this.luna.perchY : this.luna.y) - 104, title: "Luna", body: this.petMood("luna") === "purring" ? "Luna is purring!" : "Mood: " + this.petMood("luna") };
-        /* Annie reacts to what's happening */
-        this.anniePoseTimer -= dt;
-        if (this.obi.happyTimer > 0.1 || this.luna.happyTimer > 0.1) {
-          this.anniePose = "cheer";
-          this.anniePoseTimer = 1.5;
-          this.annieLookDir = this.obi.happyTimer > this.luna.happyTimer ? -1 : 1;
-        } else if (this.mode === "brush" && (this.obi.shakeTimer > 0)) {
-          this.anniePose = "laugh";
-          this.anniePoseTimer = 1;
-        } else if (this.petInteraction.active) {
-          this.anniePose = "laugh";
-          this.anniePoseTimer = 0.5;
-          this.annieLookDir = this.obi.x < 400 ? -1 : 1;
-        } else if (this.anniePoseTimer <= 0) {
-          this.anniePose = this.idleTime > 6 ? "sit" : "idle";
-          this.annieLookDir = 1;
-        }
+        /* Annie behavior system */
+        this.updateAnnie(dt);
 
         this.statusPulse = Math.max(0, this.statusPulse - dt * 2.6);
         /* dedication screen */
@@ -3844,6 +3946,13 @@
 
         /* warm scene glow */
         drawGlowCircle(c, 400, 380, 200, "rgba(255,240,210,ALPHA)", 0.06);
+        /* Annie shadow */
+        c.save();
+        c.fillStyle = "rgba(121,88,63,0.12)";
+        c.beginPath();
+        c.ellipse(this.annie.x, 456, 44, 14, 0, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
         /* ground shadows */
         c.save();
         c.fillStyle = "rgba(121,88,63,0.18)";
@@ -3876,13 +3985,13 @@
           c.restore();
         }
 
-        drawAnnie(c, 404, 336, 1.34, {
-          pose: this.anniePose,
+        drawAnnie(c, this.annie.x, this.annie.y, 1.34, {
+          pose: this.annie.pose,
           breath: Math.sin(game.time * 2),
           blink: blinkSignal(game.time + 0.25, 0.55),
           hairSway: Math.sin(game.time * 1.2),
-          headTilt: 0.1 * Math.sin(game.time * 0.8),
-          facing: this.annieLookDir
+          headTilt: this.annie.pose === "walk" ? 0 : 0.1 * Math.sin(game.time * 0.8),
+          facing: this.annie.facing
         });
 
         drawObi(c, this.obi.x, this.obi.y, 1.12, this.petSpriteState("obi"));
@@ -6419,7 +6528,7 @@
 
     buildStaticCaches();
     loadCozyArt();
-    game.scene = new HangoutScene();
+    game.scene = new TitleScene();
     game.scene.enter();
     requestAnimationFrame(loop);
   })();
