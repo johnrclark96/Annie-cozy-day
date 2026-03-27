@@ -47,7 +47,7 @@
         if (this.washPhase === "scrub") {
           if (game.mouse.down && overPet) {
             this.cleanMeter = clamp(this.cleanMeter + dt * 35, 0, 100);
-            this.addScore(0.5);
+            this.addScore(dt * 30);
             // Spawn bubbles
             if (Math.random() < dt * 12) {
               this.bubbles.push({ x: mx + rand(-20, 20), y: my + rand(-10, 10), size: rand(4, 10), life: rand(2, 4), vy: rand(-8, -3) });
@@ -68,7 +68,7 @@
         } else if (this.washPhase === "dry") {
           if (game.mouse.down && overPet) {
             this.dryMeter = clamp(this.dryMeter + dt * 30, 0, 100);
-            this.addScore(0.5);
+            this.addScore(dt * 25);
           }
           if (this.dryMeter >= 100) {
             const elapsed = this.phaseTime - this.phaseStartTime;

@@ -43,6 +43,10 @@
       best_nap: loadNumber("best_nap", 0),
       best_bath: loadNumber("best_bath", 0),
       best_sort: loadNumber("best_sort", 0),
+      best_pillow: loadNumber("best_pillow", 0),
+      best_findluna: loadNumber("best_findluna", 0),
+      best_window: loadNumber("best_window", 0),
+      best_pawstep: loadNumber("best_pawstep", 0),
       stats: loadJSON("stats", {
         totalTreatCatches: 0,
         bestTreatCombo: 1,
@@ -58,7 +62,13 @@
         couchPotato: false,
         maximumCozy: false,
         goodWalker: false,
-        napMaster: false
+        napMaster: false,
+        squeakyClean: false,
+        sortingPro: false,
+        whackQueen: false,
+        sharpEye: false,
+        birdWatcher: false,
+        goodMemory: false
       }),
       decor: loadJSON("decor", {
         fairyLights: false,
@@ -85,7 +95,12 @@
       pet_water_lastFill: loadNumber("pet_water_lastFill", Date.now()),
       lastVisitDate: loadJSON("lastVisitDate", null),
       careStreak: loadJSON("careStreak", { count: 0, lastCareDate: null, todayActions: [], bestStreak: 0, milestonesClaimed: [] }),
-      dailyTasks: loadJSON("dailyTasks", { date: null, tasks: [], completed: [] })
+      dailyTasks: loadJSON("dailyTasks", { date: null, tasks: [], completed: [] }),
+      coins: loadNumber("coins", 50),
+      wardrobe: loadJSON("wardrobe", { owned: [], equipped: { obi: null, luna: null } }),
+      backyardFlowers: loadNumber("backyardFlowers", 0),
+      photos: loadJSON("photos", []),
+      scrapbook: loadJSON("scrapbook", { entries: [], photosViewed: 0 })
     };
 
     /* backfill decor keys for existing saves */
@@ -98,6 +113,15 @@
     if (store.decor.photoWall === undefined) store.decor.photoWall = false;
     if (store.achievements.squeakyClean === undefined) store.achievements.squeakyClean = false;
     if (store.achievements.sortingPro === undefined) store.achievements.sortingPro = false;
+    if (store.achievements.whackQueen === undefined) store.achievements.whackQueen = false;
+    if (store.achievements.sharpEye === undefined) store.achievements.sharpEye = false;
+    if (store.achievements.birdWatcher === undefined) store.achievements.birdWatcher = false;
+    if (store.achievements.goodMemory === undefined) store.achievements.goodMemory = false;
+    /* stats migration for Phase 3 */
+    if (store.stats.totalSessions === undefined) store.stats.totalSessions = 0;
+    if (store.stats.totalJoyGiven === undefined) store.stats.totalJoyGiven = 0;
+    if (store.stats.totalPhotos === undefined) store.stats.totalPhotos = 0;
+    if (store.stats.totalCoinsEarned === undefined) store.stats.totalCoinsEarned = 0;
 
     function saveStats() { saveJSON("stats", store.stats); }
     function saveAchievements() { saveJSON("achievements", store.achievements); }
@@ -112,6 +136,22 @@
       }
       return false;
     }
+    function addCoins(amount) {
+      store.coins = Math.max(0, store.coins + amount);
+      saveNumber("coins", store.coins);
+      if (amount > 0) {
+        store.stats.totalCoinsEarned += amount;
+        saveStats();
+      }
+      return store.coins;
+    }
+    function saveWardrobe() { saveJSON("wardrobe", store.wardrobe); }
+    function addScrapbookEntry(type, text, icon) {
+      var entry = { type: type, text: text, date: new Date().toDateString(), icon: icon || "star" };
+      store.scrapbook.entries.push(entry);
+      if (store.scrapbook.entries.length > 50) store.scrapbook.entries.shift();
+      saveJSON("scrapbook", store.scrapbook);
+    }
     function totalStarsEarned() {
       const games = [
         { best: store.best_treat, thresholds: [200, 500, 1000] },
@@ -120,7 +160,11 @@
         { best: store.best_walk, thresholds: [150, 300, 600] },
         { best: store.best_nap, thresholds: [200, 450, 800] },
         { best: store.best_bath, thresholds: [80, 200, 400] },
-        { best: store.best_sort, thresholds: [150, 350, 700] }
+        { best: store.best_sort, thresholds: [150, 350, 700] },
+        { best: store.best_pillow, thresholds: [100, 250, 500] },
+        { best: store.best_findluna, thresholds: [80, 200, 400] },
+        { best: store.best_window, thresholds: [120, 300, 600] },
+        { best: store.best_pawstep, thresholds: [60, 150, 300] }
       ];
       let total = 0;
       for (const g of games) {

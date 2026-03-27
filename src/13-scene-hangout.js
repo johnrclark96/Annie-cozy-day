@@ -11,7 +11,11 @@
       constructor() {
         super("hangout");
         this.gamesButton = { x: 20, y: 16, w: 122, h: 40 };
-        this.decorButton = { x: 600, y: 16, w: 122, h: 40 };
+        this.decorButton = { x: 524, y: 16, w: 90, h: 40 };
+        this.wardrobeButton = { x: 620, y: 16, w: 100, h: 40 };
+        this.wardrobeOpen = false;
+        this.wardrobeHover = null;
+        this.wardrobeFade = 0;
         this.modeButtons = [
           { key: "pet", label: "Pet", x: 148, y: 16, w: 88, h: 40 },
           { key: "treat", label: "Treats", x: 242, y: 16, w: 88, h: 40 },
@@ -34,8 +38,13 @@
           { key: "walk", title: "Obi's Walk", desc: "Walk Obi through the neighborhood and find treasures!", color: "#8D6E4C", icon: "bone", best: () => { const s = store.best_walk; const st = (s>=600?3:s>=300?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
           { key: "nap", title: "Luna's Nap Spot", desc: "Place cushions in sunbeams to help Luna nap!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_nap; const st = (s>=800?3:s>=450?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
           { key: "bath", title: "Bath Time", desc: "Scrub, rinse, and dry Obi and Luna!", color: "#87CEEB", icon: "heart", best: () => { const s = store.best_bath; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "sort", title: "Snack Sort", desc: "Sort treats into the right bowls!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_sort; const st = (s>=700?3:s>=350?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
+          { key: "sort", title: "Snack Sort", desc: "Sort treats into the right bowls!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_sort; const st = (s>=700?3:s>=350?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "pillow", title: "Pillow Pop", desc: "Boop Luna before she hides again!", color: "#F48FB1", icon: "paw", best: () => { const s = store.best_pillow; const st = (s>=500?3:s>=250?2:s>=100?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "findluna", title: "Where's Luna?", desc: "Track Luna under the shuffling cushions!", color: "#7CB342", icon: "catEye", best: () => { const s = store.best_findluna; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "window", title: "Window Watch", desc: "Help Luna catch birds and butterflies!", color: "#87CEEB", icon: "star", best: () => { const s = store.best_window; const st = (s>=600?3:s>=300?2:s>=120?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "pawstep", title: "Pawstep Patterns", desc: "Repeat the pet action sequences!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_pawstep; const st = (s>=300?3:s>=150?2:s>=60?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
         ];
+        this.menuScroll = 0;
         this.statusText = "Welcome home! Obi and Luna are happy to see you.";
         this.statusPulse = 0;
         this.sessionJoy = 0;
@@ -115,6 +124,19 @@
         this.ambientEventCooldown = rand(60, 180);
         /* decor pagination */
         this.decorPage = 0;
+        /* coin popup */
+        this.coinPopup = null;
+        /* camera flash */
+        this.cameraFlash = 0;
+        /* backyard door */
+        this.backyardDoor = { x: 740, y: 300, w: 60, h: 100 };
+        /* camera + scrapbook buttons — positioned below mute icon */
+        this.cameraButton = { x: W - 54, y: 56, w: 40, h: 40 };
+        this.scrapbookButton = { x: W - 54, y: 100, w: 40, h: 40 };
+        this.scrapbookOpen = false;
+        this.scrapbookHover = null;
+        this.scrapbookFade = 0;
+        this.scrapbookTab = "milestones";
         /* window + pet bed hitboxes */
         this.windowHitbox = { x: 62, y: 48, w: 128, h: 160 };
         this.petBedHitbox = { x: 142, y: 448, w: 76, h: 28 };
@@ -123,6 +145,15 @@
         this.hoverKey = null;
         this.tooltip = null;
         audio.startAmbient();
+        /* record returning from a minigame as a "game" care action */
+        if (game.transition && game.transition.from instanceof BaseMinigameScene) {
+          this.recordCareAction("game");
+        }
+        /* count session when entering from title */
+        if (game.transition && game.transition.from instanceof TitleScene) {
+          store.stats.totalSessions++;
+          saveStats();
+        }
         /* welcome back message if joy decayed while away */
         if (this.obi.joy < 40 || this.luna.joy < 40) {
           const msgs = ["The pets missed you! Give them some love.", "Obi and Luna could use some attention.", "Welcome back! The pets are waiting for you."];
@@ -161,6 +192,9 @@
             streak.milestonesClaimed.push(m.days);
             saveCareStreak();
             m.reward();
+            this.earnCoins(15);
+            if (m.days === 7) addScrapbookEntry("milestone", "Reached a 7-day care streak!", "heart");
+            else if (m.days === 30) addScrapbookEntry("milestone", "A whole month of daily care!", "heart");
             this.decorNotification = { text: m.text, timer: 5 };
           }
         }
@@ -280,7 +314,6 @@
         }
         if (key === "luna") {
           this.luna.perch = "floor";
-          this.luna.perch = "floor";
           this.luna.targetX = this.luna.floorX;
           this.luna.targetY = this.luna.floorY;
           this.luna.grooming = false;
@@ -319,12 +352,14 @@
           pet.joy = clamp(pet.joy + bonus, 0, 100);
           if (!this.favDiscovered[key]) {
             this.favDiscovered[key] = true;
-            this.addFloatingText("Favorite!", px, py - 20, "#FF69B4");
-            spawnParticleBurst(px, py - 10, ["#FF69B4", COLORS.gold, "#FFF4C0"], 10, ["heart", "star"]);
+            this.earnCoins(3);
+            addScrapbookEntry("discovery", "Discovered " + this.petName(key) + "'s favorite: " + fav + "!", "heart");
+            this.addFloatingText("Favorite!", x, y - 20, "#FF69B4");
+            spawnParticleBurst(x, y - 10, ["#FF69B4", COLORS.gold, "#FFF4C0"], 10, ["heart", "star"]);
             audio.combo();
             this.statusText = this.petName(key) + "'s favorite thing this week!";
           } else {
-            spawnParticleBurst(px, py - 10, ["#FF69B4"], 3, ["heart"]);
+            spawnParticleBurst(x, y - 10, ["#FF69B4"], 3, ["heart"]);
           }
         }
       }
@@ -332,9 +367,15 @@
         if (this.dedication) return;
         if (this.menuOpen) {
           this.menuHover = null;
-          for (let i = 0; i < this.gameCards.length; i++) {
-            const cr = this.getCardRect(i);
-            if (pointInRect(x, y, cr)) { this.menuHover = i; break; }
+          if (this.menuScroll > 0 && pointInRect(x, y, { x: W / 2 - 50, y: 106, w: 100, h: 20 })) {
+            this.menuHover = "scrollUp";
+          } else if (this.menuScroll + 6 < this.gameCards.length && pointInRect(x, y, { x: W / 2 - 50, y: 126 + 6 * 72 + 2, w: 100, h: 20 })) {
+            this.menuHover = "scrollDown";
+          } else {
+            for (let vi = 0; vi < Math.min(6, this.gameCards.length - this.menuScroll); vi++) {
+              const cr = this.getCardRect(vi);
+              if (pointInRect(x, y, cr)) { this.menuHover = this.menuScroll + vi; break; }
+            }
           }
           const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, closeBtn)) this.menuHover = "close";
@@ -352,9 +393,30 @@
           if (pointInRect(x, y, { x: 460, y: 530, w: 40, h: 30 })) this.decorHover = "nextPage";
           return;
         }
+        if (this.wardrobeOpen) {
+          this.wardrobeHover = null;
+          var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, closeBtn)) { this.wardrobeHover = "close"; return; }
+          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
+          for (var ai = 0; ai < allAcc.length; ai++) {
+            var wr = this.getWardrobeItemRect(ai);
+            if (pointInRect(x, y, wr)) { this.wardrobeHover = ai; break; }
+          }
+          return;
+        }
+        if (this.scrapbookOpen) {
+          this.scrapbookHover = null;
+          var scClose = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, scClose)) this.scrapbookHover = "close";
+          else if (pointInRect(x, y, { x: 80, y: 110, w: 80, h: 24 })) this.scrapbookHover = "photos";
+          else if (pointInRect(x, y, { x: 170, y: 110, w: 100, h: 24 })) this.scrapbookHover = "milestones";
+          else if (pointInRect(x, y, { x: 280, y: 110, w: 60, h: 24 })) this.scrapbookHover = "stats";
+          return;
+        }
         this.hoverKey = null;
         if (pointInRect(x, y, this.gamesButton)) this.hoverKey = "games";
         else if (pointInRect(x, y, this.decorButton)) this.hoverKey = "decor";
+        else if (pointInRect(x, y, this.wardrobeButton)) this.hoverKey = "wardrobe";
         else {
           for (const btn of this.modeButtons) {
             if (pointInRect(x, y, btn)) {
@@ -367,14 +429,17 @@
           else if (pointInRect(x, y, this.lampHitbox)) this.hoverKey = "lamp";
           else if (pointInRect(x, y, this.toyBasketHitbox)) this.hoverKey = "toyBasket";
           else if (pointInRect(x, y, this.windowHitbox)) this.hoverKey = "window";
+          else if (pointInRect(x, y, this.backyardDoor)) this.hoverKey = "backyardDoor";
+          else if (pointInRect(x, y, this.cameraButton)) this.hoverKey = "camera";
+          else if (pointInRect(x, y, this.scrapbookButton)) this.hoverKey = "scrapbook";
           else if (store.decor.petBed && pointInRect(x, y, this.petBedHitbox)) this.hoverKey = "petBed";
           else if (pointInRect(x, y, this.getPetRect("obi"))) this.hoverKey = "obi";
           else if (pointInRect(x, y, this.getPetRect("luna"))) this.hoverKey = "luna";
           else if (this.mode !== "pet" && this.mode !== "brush" && y > 90) this.hoverKey = "playfield";
         }
       }
-      getCardRect(i) {
-        return { x: 90, y: 114 + i * 64, w: 620, h: 56 };
+      getCardRect(displayIndex) {
+        return { x: 90, y: 126 + displayIndex * 72, w: 620, h: 62 };
       }
       getDecorItemRect(i) {
         return { x: 130, y: 150 + i * 88, w: 540, h: 78 };
@@ -391,9 +456,11 @@
       interactiveAt(x, y) {
         if (this.dedication) return true;
         if (this.menuOpen) {
-          for (let i = 0; i < this.gameCards.length; i++) {
-            if (pointInRect(x, y, this.getCardRect(i))) return true;
+          for (let vi = 0; vi < Math.min(6, this.gameCards.length - this.menuScroll); vi++) {
+            if (pointInRect(x, y, this.getCardRect(vi))) return true;
           }
+          if (this.menuScroll > 0 && pointInRect(x, y, { x: W / 2 - 50, y: 106, w: 100, h: 20 })) return true;
+          if (this.menuScroll + 6 < this.gameCards.length && pointInRect(x, y, { x: W / 2 - 50, y: 126 + 6 * 72 + 2, w: 100, h: 20 })) return true;
           return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
         }
         if (this.decorOpen) {
@@ -405,8 +472,25 @@
           if (pointInRect(x, y, { x: 460, y: 530, w: 40, h: 30 })) return true;
           return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
         }
+        if (this.wardrobeOpen) {
+          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
+          for (var ai = 0; ai < allAcc.length; ai++) {
+            if (pointInRect(x, y, this.getWardrobeItemRect(ai))) return true;
+          }
+          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
+        }
+        if (this.scrapbookOpen) {
+          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 }) ||
+            pointInRect(x, y, { x: 80, y: 110, w: 80, h: 24 }) ||
+            pointInRect(x, y, { x: 170, y: 110, w: 100, h: 24 }) ||
+            pointInRect(x, y, { x: 280, y: 110, w: 60, h: 24 });
+        }
         if (pointInRect(x, y, this.gamesButton)) return true;
         if (pointInRect(x, y, this.decorButton)) return true;
+        if (pointInRect(x, y, this.wardrobeButton)) return true;
+        if (pointInRect(x, y, this.backyardDoor)) return true;
+        if (pointInRect(x, y, this.cameraButton)) return true;
+        if (pointInRect(x, y, this.scrapbookButton)) return true;
         if (this.modeButtons.some((btn) => pointInRect(x, y, btn))) return true;
         if (pointInRect(x, y, this.foodBowlHitbox)) return true;
         if (pointInRect(x, y, this.waterBowlHitbox)) return true;
@@ -425,6 +509,9 @@
             store.firstVisit = false;
             saveBool("firstVisit", false);
             audio.tinyChime();
+            addScrapbookEntry("milestone", "Played Annie's Cozy Day for the first time!", "heart");
+            store.stats.totalSessions++;
+            saveStats();
           }
           return;
         }
@@ -441,6 +528,7 @@
             ];
             const gift = gifts[Math.floor(Math.random() * gifts.length)];
             gift.effect();
+            this.earnCoins(5);
             this.statusText = gift.text;
             this.statusPulse = 1;
             spawnParticleBurst(W / 2, 260, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 18, ["star", "heart"]);
@@ -452,11 +540,13 @@
         if (this.menuOpen) {
           const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, closeBtn)) { audio.menu(); this.menuOpen = false; return; }
-          for (let i = 0; i < this.gameCards.length; i++) {
-            if (pointInRect(x, y, this.getCardRect(i))) {
+          if (this.menuHover === "scrollUp") { this.menuScroll = Math.max(0, this.menuScroll - 1); return; }
+          if (this.menuHover === "scrollDown") { this.menuScroll = Math.min(this.gameCards.length - 6, this.menuScroll + 1); return; }
+          for (let vi = 0; vi < Math.min(6, this.gameCards.length - this.menuScroll); vi++) {
+            if (pointInRect(x, y, this.getCardRect(vi))) {
               audio.menu();
               audio.stopAmbient();
-              transitionTo(SceneRegistry.create(this.gameCards[i].key));
+              transitionTo(SceneRegistry.create(this.gameCards[this.menuScroll + vi].key));
               return;
             }
           }
@@ -498,16 +588,78 @@
           this.decorOpen = false;
           return;
         }
+        if (this.wardrobeOpen) {
+          var wCloseBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, wCloseBtn)) { audio.menu(); this.wardrobeOpen = false; return; }
+          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
+          for (var ai = 0; ai < allAcc.length; ai++) {
+            var wr = this.getWardrobeItemRect(ai);
+            if (pointInRect(x, y, wr)) {
+              var acc = allAcc[ai];
+              var pet = ai < ACCESSORIES.obi.length ? "obi" : "luna";
+              var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
+              if (!owned) {
+                if (store.coins >= acc.price) {
+                  addCoins(-acc.price);
+                  store.wardrobe.owned.push(acc.key);
+                  store.wardrobe.equipped[pet] = acc.key;
+                  saveWardrobe();
+                  audio.combo();
+                  this.statusText = "Bought " + acc.name + "!";
+                  this.statusPulse = 1;
+                  if (store.wardrobe.owned.length === 1) {
+                    addScrapbookEntry("milestone", "Bought " + acc.name + " — first accessory!", "star");
+                  }
+                } else {
+                  audio.miss();
+                  this.statusText = "Not enough coins for " + acc.name + "!";
+                  this.statusPulse = 1;
+                }
+              } else {
+                if (store.wardrobe.equipped[pet] === acc.key) {
+                  store.wardrobe.equipped[pet] = null;
+                } else {
+                  store.wardrobe.equipped[pet] = acc.key;
+                }
+                saveWardrobe();
+                audio.tinyChime();
+              }
+              return;
+            }
+          }
+          audio.menu();
+          this.wardrobeOpen = false;
+          return;
+        }
+        if (this.scrapbookOpen) {
+          var scClose = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, scClose)) { audio.menu(); this.scrapbookOpen = false; return; }
+          if (pointInRect(x, y, { x: 80, y: 110, w: 80, h: 24 })) { this.scrapbookTab = "photos"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 170, y: 110, w: 100, h: 24 })) { this.scrapbookTab = "milestones"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 280, y: 110, w: 60, h: 24 })) { this.scrapbookTab = "stats"; audio.tinyChime(); return; }
+          audio.menu();
+          this.scrapbookOpen = false;
+          return;
+        }
         if (pointInRect(x, y, this.gamesButton)) {
           audio.menu();
+          this.decorOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
           this.menuOpen = true;
           this.menuFade = 0;
           return;
         }
         if (pointInRect(x, y, this.decorButton)) {
           audio.menu();
+          this.menuOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
           this.decorOpen = true;
           this.decorFade = 0;
+          return;
+        }
+        if (pointInRect(x, y, this.wardrobeButton)) {
+          audio.menu();
+          this.menuOpen = false; this.decorOpen = false; this.scrapbookOpen = false;
+          this.wardrobeOpen = true;
+          this.wardrobeFade = 0;
           return;
         }
         for (const btn of this.modeButtons) {
@@ -517,8 +669,31 @@
             return;
           }
         }
+        /* camera button */
+        if (pointInRect(x, y, this.cameraButton)) {
+          this.capturePhoto();
+          return;
+        }
+        /* scrapbook button */
+        if (pointInRect(x, y, this.scrapbookButton)) {
+          audio.menu();
+          this.menuOpen = false; this.decorOpen = false; this.wardrobeOpen = false;
+          this.scrapbookOpen = true;
+          this.scrapbookFade = 0;
+          return;
+        }
+        /* backyard door */
+        if (pointInRect(x, y, this.backyardDoor)) {
+          audio.menu();
+          store.pet_obi_joy = this.obi.joy;
+          store.pet_luna_joy = this.luna.joy;
+          saveNumber("pet_obi_joy", this.obi.joy);
+          saveNumber("pet_luna_joy", this.luna.joy);
+          transitionTo(SceneRegistry.create("backyard"));
+          return;
+        }
         /* bowl refills */
-        if (!this.menuOpen && !this.decorOpen) {
+        if (!this.menuOpen && !this.decorOpen && !this.wardrobeOpen && !this.scrapbookOpen) {
           if (pointInRect(x, y, this.foodBowlHitbox)) {
             this.foodBowl.fill = 100;
             this.foodBowl.lastFill = Date.now();
@@ -659,9 +834,11 @@
           if (this.dedication) { this.dedication = null; store.firstVisit = false; saveBool("firstVisit", false); }
           else if (this.menuOpen) { this.menuOpen = false; }
           else if (this.decorOpen) { this.decorOpen = false; }
+          else if (this.wardrobeOpen) { this.wardrobeOpen = false; }
+          else if (this.scrapbookOpen) { this.scrapbookOpen = false; }
           else { audio.stopAmbient(); transitionTo(SceneRegistry.create("title")); }
         }
-        if (!this.menuOpen && !this.decorOpen && !this.dedication) {
+        if (!this.menuOpen && !this.decorOpen && !this.wardrobeOpen && !this.scrapbookOpen && !this.dedication) {
           if (key === "1" || key === "p") { audio.menu(); this.setMode("pet"); }
           else if (key === "2" || key === "t") { audio.menu(); this.setMode("treat"); }
           else if (key === "3" || key === "y") { audio.menu(); this.setMode("toy"); }
@@ -1189,7 +1366,8 @@
         this.idleTime += dt;
         this.tooltip = null;
         if (this.hoverKey === "games") this.tooltip = { x: 82, y: 66, title: "Minigames", body: "Play cozy games with Obi and Luna!" };
-        else if (this.hoverKey === "decor") this.tooltip = { x: 662, y: 66, title: "Decorate", body: "Customize the living room with unlockable items!" };
+        else if (this.hoverKey === "decor") this.tooltip = { x: 570, y: 66, title: "Decorate", body: "Customize the living room with unlockable items!" };
+        else if (this.hoverKey === "wardrobe") this.tooltip = { x: 670, y: 66, title: "Wardrobe", body: "Buy and equip accessories for Obi and Luna!" };
         else if (this.hoverKey === "pet") this.tooltip = { x: 198, y: 66, title: "Pet Mode", body: "Stroke directly over Obi or Luna for happy reactions." };
         else if (this.hoverKey === "treat") this.tooltip = { x: 310, y: 66, title: "Treat Mode", body: "Click to toss snacks from Annie toward either pet." };
         else if (this.hoverKey === "toy") this.tooltip = { x: 422, y: 66, title: "Play Mode", body: "Obi chases a ball; Luna stalks a yarn ball." };
@@ -1215,6 +1393,13 @@
           this.dailyGift.phase += dt;
           if (this.dailyGift.phase > 3) this.dailyGift = null;
         }
+        /* coin popup decay */
+        if (this.coinPopup) {
+          this.coinPopup.timer -= dt;
+          if (this.coinPopup.timer <= 0) this.coinPopup = null;
+        }
+        /* camera flash decay */
+        if (this.cameraFlash > 0) this.cameraFlash = Math.max(0, this.cameraFlash - dt * 2.5);
         /* bowl depletion during play */
         this.foodBowl.fill = clamp(this.foodBowl.fill - dt * 0.4, 0, 100);
         this.waterBowl.fill = clamp(this.waterBowl.fill - dt * 0.55, 0, 100);
@@ -1236,6 +1421,10 @@
         this.menuFade = clamp(this.menuFade - dt * 5, 0, 1);
         if (this.decorOpen) { this.decorFade = clamp(this.decorFade + dt * 5, 0, 1); return; }
         this.decorFade = clamp(this.decorFade - dt * 5, 0, 1);
+        if (this.wardrobeOpen) { this.wardrobeFade = clamp(this.wardrobeFade + dt * 5, 0, 1); return; }
+        this.wardrobeFade = clamp(this.wardrobeFade - dt * 5, 0, 1);
+        if (this.scrapbookOpen) { this.scrapbookFade = clamp(this.scrapbookFade + dt * 5, 0, 1); return; }
+        this.scrapbookFade = clamp(this.scrapbookFade - dt * 5, 0, 1);
         this.handlePetStroke(dt);
         this.updateTreats(dt);
         this.updateToy(dt);
@@ -1507,6 +1696,7 @@
         if (isExact) {
           pet.joy = clamp(pet.joy + 10, 0, 100);
           this.sessionJoy += 10;
+          this.earnCoins(2);
           spawnParticleBurst(px, py, [COLORS.gold, "#FFF4C0"], 12, ["star"]);
           this.statusText = this.petName(key) + " got exactly what they wanted!";
           this.statusPulse = 1;
@@ -1523,6 +1713,81 @@
           this.addFloatingText("Close!", px, py, COLORS.softPink);
           audio.tinyChime();
         }
+      }
+      earnCoins(amount) {
+        addCoins(amount);
+        this.coinPopup = { amount: amount, timer: 1.5 };
+      }
+      logAmbientEntry(type) {
+        var entries = store.scrapbook.entries;
+        var text = "Saw " + type + " outside!";
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].text === text) return;
+        }
+        addScrapbookEntry("event", text, "star");
+      }
+      drawSceneContents(c) {
+        drawLivingRoom(c);
+        var obiSt = this.petSpriteState("obi");
+        drawObi(c, this.obi.x, this.obi.y, 1.12, obiSt);
+        drawAccessoryOverlay(c, "obi", this.obi.x, this.obi.y, 1.12, obiSt.pose, obiSt.facing);
+        var lunaY = this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y;
+        var lunaS = this.luna.perch === "floor" ? 0.98 : this.luna.perch === "tower" ? 1.06 : 0.92;
+        var lunaSt = this.petSpriteState("luna");
+        drawLuna(c, this.luna.x, lunaY, lunaS, lunaSt);
+        drawAccessoryOverlay(c, "luna", this.luna.x, lunaY, lunaS, lunaSt.pose, lunaSt.facing);
+      }
+      capturePhoto() {
+        if (!spriteArt.ready) {
+          this.statusText = "Please wait for images to load...";
+          this.statusPulse = 1;
+          return;
+        }
+        var captureCanvas = makeBufferCanvas(W, H);
+        var cc = captureCanvas.getContext("2d");
+        /* draw scene background + characters without HUD */
+        this.drawSceneContents(cc);
+        /* watermark */
+        cc.fillStyle = "rgba(122,78,54,0.3)";
+        cc.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        cc.textAlign = "right";
+        cc.fillText("Annie's Cozy Day", W - 12, H - 8);
+        /* download */
+        var dataURL = captureCanvas.toDataURL("image/png");
+        if (isMobile) {
+          window.open(dataURL, "_blank");
+        } else {
+          var link = document.createElement("a");
+          link.download = "cozy-moment-" + Date.now() + ".png";
+          link.href = dataURL;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+        /* flash effect */
+        this.cameraFlash = 0.4;
+        audio.tinyChime();
+        this.statusText = "Photo saved!";
+        this.statusPulse = 1;
+        /* save thumbnail */
+        var thumbCanvas = makeBufferCanvas(160, 120);
+        thumbCanvas.getContext("2d").drawImage(captureCanvas, 0, 0, 160, 120);
+        var thumbData = thumbCanvas.toDataURL("image/jpeg", 0.6);
+        var photos = loadJSON("photos", []);
+        photos.push({ data: thumbData, date: new Date().toDateString(), room: this.name });
+        if (photos.length > 20) photos.shift();
+        saveJSON("photos", photos);
+        store.stats.totalPhotos++;
+        saveStats();
+        /* scrapbook entry for first photo */
+        if (store.stats.totalPhotos === 1) {
+          addScrapbookEntry("milestone", "Took the first photo!", "star");
+        }
+      }
+      getWardrobeItemRect(index) {
+        var col = index < ACCESSORIES.obi.length ? 0 : 1;
+        var row = col === 0 ? index : index - ACCESSORIES.obi.length;
+        return { x: 80 + col * 340, y: 160 + row * 78, w: 320, h: 68 };
       }
       drawPetCard(c, x, y, title, joy, accent, body) {
         c.save();
@@ -1742,6 +2007,7 @@
           if (store.dailyTasks.completed.length >= 3) {
             this.obi.joy = clamp(this.obi.joy + 5, 0, 100);
             this.luna.joy = clamp(this.luna.joy + 5, 0, 100);
+            this.earnCoins(8);
             this.decorNotification = { text: "All daily tasks complete! +5 joy for both pets!", timer: 4 };
             audio.combo();
           }
@@ -1779,6 +2045,7 @@
         for (let i = 0; i < count; i++) data.push({ x: rand(80, 170), y: rand(70, 160), phase: rand(0, 6), color: ["#FFB3D9", "#B3D9FF", "#FFFAB3"][i % 3] });
         this.ambientEvent = { type: "butterfly", timer: rand(12, 18), data };
         this.statusText = "Butterflies at the window!";
+        this.logAmbientEntry("butterflies");
       }
       spawnBirdEvent() {
         const count = Math.floor(rand(1, 3));
@@ -1786,12 +2053,14 @@
         for (let i = 0; i < count; i++) data.push({ x: rand(80, 160), y: 196, hop: 0, phase: rand(0, 6) });
         this.ambientEvent = { type: "bird", timer: rand(8, 14), data };
         this.statusText = "Birds on the window sill!";
+        this.logAmbientEntry("birds");
       }
       spawnRainEvent() {
         const drops = [];
         for (let i = 0; i < 25; i++) drops.push({ x: rand(68, 184), y: rand(54, 200), speed: rand(80, 140), len: rand(6, 14) });
         this.ambientEvent = { type: "rain", timer: rand(30, 60), data: drops };
         this.statusText = "It's raining outside... so cozy in here.";
+        this.logAmbientEntry("rain");
       }
       spawnPackageEvent() {
         this.ambientEvent = { type: "package", timer: rand(10, 15), data: { x: 740, y: 458, alpha: 1 } };
@@ -1944,21 +2213,47 @@
 
         /* buttons row */
         drawButton(c, this.gamesButton, "Games", this.hoverKey === "games", "#A86D3F");
-        drawButton(c, this.decorButton, "Decorate", this.hoverKey === "decor", "#9B7DBD");
+        drawButton(c, this.decorButton, "Decor", this.hoverKey === "decor", "#9B7DBD");
+        drawButton(c, this.wardrobeButton, "Wardrobe", this.hoverKey === "wardrobe", "#C07850");
         for (const btn of this.modeButtons) {
           const active = this.mode === btn.key;
           drawButton(c, btn, btn.label, this.hoverKey === btn.key || active, active ? "#B84B3A" : "#C7A37B");
         }
 
+        /* coin pill */
+        c.save();
+        c.fillStyle = "rgba(255,248,240,0.65)";
+        rr(c, 452, 59, 72, 22, 11);
+        c.fill();
+        c.fillStyle = COLORS.gold;
+        c.beginPath(); c.arc(466, 70, 7, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#FFF4C0";
+        c.beginPath(); c.arc(464, 68, 3, 0, Math.PI * 2); c.fill();
+        c.fillStyle = COLORS.gold;
+        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "center";
+        c.fillText(store.coins, 503, 75);
+        c.restore();
+        /* coin popup */
+        if (this.coinPopup) {
+          c.save();
+          var cpAlpha = clamp(this.coinPopup.timer / 0.4, 0, 1);
+          c.globalAlpha = cpAlpha;
+          c.fillStyle = COLORS.gold;
+          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("+" + this.coinPopup.amount, 503, 52 - (1 - cpAlpha) * 12);
+          c.restore();
+        }
         /* star counter */
         c.save();
         c.fillStyle = "rgba(255,248,240,0.65)";
-        rr(c, 527, 57, 68, 22, 11);
+        rr(c, 527, 59, 68, 22, 11);
         c.fill();
         c.fillStyle = COLORS.gold;
         c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
-        c.fillText("\u2605 " + totalStarsEarned() + "/21", 561, 73);
+        c.fillText("\u2605 " + totalStarsEarned() + "/33", 561, 75);
         c.restore();
 
         /* care streak pill */
@@ -2112,10 +2407,14 @@
         /* toy basket */
         this.drawToyBasket(c, this.hoverKey === "toyBasket");
 
-        drawObi(c, this.obi.x, this.obi.y, 1.12, this.petSpriteState("obi"));
+        var obiState = this.petSpriteState("obi");
+        drawObi(c, this.obi.x, this.obi.y, 1.12, obiState);
+        drawAccessoryOverlay(c, "obi", this.obi.x, this.obi.y, 1.12, obiState.pose, obiState.facing);
         const lunaDrawY = this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y;
         const lunaDrawScale = this.luna.perch === "floor" ? 0.98 : this.luna.perch === "tower" ? 1.06 : 0.92;
-        drawLuna(c, this.luna.x, lunaDrawY, lunaDrawScale, this.petSpriteState("luna"));
+        var lunaState = this.petSpriteState("luna");
+        drawLuna(c, this.luna.x, lunaDrawY, lunaDrawScale, lunaState);
+        drawAccessoryOverlay(c, "luna", this.luna.x, lunaDrawY, lunaDrawScale, lunaState.pose, lunaState.facing);
 
         /* thought bubbles */
         if (this.obiBubble) this.drawThoughtBubble(c, this.obi.x + 32, this.obi.y - 92, this.obiBubble);
@@ -2234,6 +2533,62 @@
         c.fillText(this.statusText, 400, 560);
         c.restore();
 
+        /* camera button */
+        c.save();
+        var camHover = this.hoverKey === "camera";
+        c.fillStyle = camHover ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
+        rr(c, this.cameraButton.x, this.cameraButton.y, this.cameraButton.w, this.cameraButton.h, 10);
+        c.fill();
+        /* camera icon */
+        c.fillStyle = COLORS.cream;
+        rr(c, this.cameraButton.x + 8, this.cameraButton.y + 12, 24, 18, 4);
+        c.fill();
+        c.fillStyle = camHover ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
+        c.beginPath(); c.arc(this.cameraButton.x + 20, this.cameraButton.y + 21, 5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = COLORS.cream;
+        rr(c, this.cameraButton.x + 14, this.cameraButton.y + 8, 12, 5, 2);
+        c.fill();
+        c.restore();
+
+        /* scrapbook button */
+        c.save();
+        var bookHover = this.hoverKey === "scrapbook";
+        c.fillStyle = bookHover ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
+        rr(c, this.scrapbookButton.x, this.scrapbookButton.y, this.scrapbookButton.w, this.scrapbookButton.h, 10);
+        c.fill();
+        /* book icon */
+        c.fillStyle = COLORS.cream;
+        c.fillRect(this.scrapbookButton.x + 12, this.scrapbookButton.y + 8, 16, 24);
+        c.strokeStyle = COLORS.cream;
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(this.scrapbookButton.x + 20, this.scrapbookButton.y + 8);
+        c.lineTo(this.scrapbookButton.x + 20, this.scrapbookButton.y + 32);
+        c.stroke();
+        c.restore();
+
+        /* backyard door indicator */
+        c.save();
+        var doorHover = this.hoverKey === "backyardDoor";
+        c.fillStyle = doorHover ? "rgba(168,198,134,0.45)" : "rgba(168,198,134,0.2)";
+        rr(c, this.backyardDoor.x, this.backyardDoor.y, this.backyardDoor.w, this.backyardDoor.h, 8);
+        c.fill();
+        c.fillStyle = doorHover ? "#5C7A3A" : "rgba(92,122,58,0.5)";
+        c.textAlign = "center";
+        c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("Backyard", this.backyardDoor.x + 30, this.backyardDoor.y + 45);
+        c.fillText("\u2192", this.backyardDoor.x + 30, this.backyardDoor.y + 62);
+        c.restore();
+
+        /* camera flash effect */
+        if (this.cameraFlash > 0) {
+          c.save();
+          c.globalAlpha = this.cameraFlash;
+          c.fillStyle = "#FFFFFF";
+          c.fillRect(0, 0, W, H);
+          c.restore();
+        }
+
         if (this.tooltip && this.tooltipAlpha > 0.02) drawTooltip(c, this.tooltip.x, this.tooltip.y, this.tooltip.title, this.tooltip.body, this.tooltipAlpha);
 
         /* ── Games menu overlay ── */
@@ -2246,7 +2601,7 @@
           c.fillRect(0, 0, W, H);
 
           /* menu panel */
-          rr(c, 60, 70, 680, 500, 28);
+          rr(c, 40, 60, 720, 540, 28);
           c.fillStyle = "rgba(255,248,240,0.97)";
           c.fill();
           c.strokeStyle = "rgba(146,104,72,0.2)";
@@ -2261,20 +2616,37 @@
 
           /* close button */
           const closeHover = this.menuHover === "close";
-          if (closeHover) drawGlowCircle(c, W / 2 + 218, 100, 24, "rgba(180,80,60,ALPHA)", 0.2);
+          const cBx = W / 2 + 218, cBy = 102;
+          if (closeHover) drawGlowCircle(c, cBx, cBy, 24, "rgba(180,80,60,ALPHA)", 0.2);
           c.fillStyle = closeHover ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
           c.beginPath();
-          c.arc(W / 2 + 218, 100, closeHover ? 18 : 16, 0, Math.PI * 2);
+          c.arc(cBx, cBy, closeHover ? 18 : 16, 0, Math.PI * 2);
           c.fill();
           c.strokeStyle = "#FFF8F0";
           c.lineWidth = closeHover ? 3 : 2.5;
-          c.beginPath(); c.moveTo(W / 2 + 212, 94); c.lineTo(W / 2 + 224, 106); c.stroke();
-          c.beginPath(); c.moveTo(W / 2 + 224, 94); c.lineTo(W / 2 + 212, 106); c.stroke();
+          c.beginPath(); c.moveTo(cBx - 6, cBy - 6); c.lineTo(cBx + 6, cBy + 6); c.stroke();
+          c.beginPath(); c.moveTo(cBx + 6, cBy - 6); c.lineTo(cBx - 6, cBy + 6); c.stroke();
+
+          /* scroll arrows */
+          if (this.menuScroll > 0) {
+            c.fillStyle = this.menuHover === "scrollUp" ? "#B84B3A" : "rgba(92,68,52,0.5)";
+            c.font = '16px "Fredoka One", sans-serif';
+            c.textAlign = "center";
+            c.fillText("\u25B2 more", W / 2, 122);
+          }
+          const visEnd = Math.min(this.menuScroll + 6, this.gameCards.length);
+          if (visEnd < this.gameCards.length) {
+            c.fillStyle = this.menuHover === "scrollDown" ? "#B84B3A" : "rgba(92,68,52,0.5)";
+            c.font = '16px "Fredoka One", sans-serif';
+            c.textAlign = "center";
+            c.fillText("\u25BC more", W / 2, 126 + 6 * 72 + 12);
+          }
 
           /* game cards */
-          for (let i = 0; i < this.gameCards.length; i++) {
+          for (let vi = 0; vi < visEnd - this.menuScroll; vi++) {
+            const i = this.menuScroll + vi;
             const card = this.gameCards[i];
-            const cr = this.getCardRect(i);
+            const cr = this.getCardRect(vi);
             const hover = this.menuHover === i;
             const scale = hover ? 1.02 : 1;
 
@@ -2317,6 +2689,8 @@
             if (card.icon === "bone") drawBone(c, 0, 0, 18, 8, "#FFF8F0");
             else if (card.icon === "catEye") drawBadgeIcon(c, "catEye", 0, 0, "#FFF8F0");
             else if (card.icon === "heart") drawHeart(c, 0, 0, 1.0, "#FFF8F0");
+            else if (card.icon === "paw") drawBadgeIcon(c, "paw", 0, 0, "#FFF8F0");
+            else if (card.icon === "star") drawStar(c, 0, 0, 10, "#FFF8F0");
             c.restore();
 
             /* text */
@@ -2379,12 +2753,13 @@
 
           /* close button */
           const closeHover = this.decorHover === "close";
-          if (closeHover) drawGlowCircle(c, W / 2 + 200, 100, 24, "rgba(180,80,60,ALPHA)", 0.2);
+          const dBx = W / 2 + 218, dBy = 102;
+          if (closeHover) drawGlowCircle(c, dBx, dBy, 24, "rgba(180,80,60,ALPHA)", 0.2);
           c.fillStyle = closeHover ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
-          c.beginPath(); c.arc(W / 2 + 200, 100, closeHover ? 18 : 16, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(dBx, dBy, closeHover ? 18 : 16, 0, Math.PI * 2); c.fill();
           c.strokeStyle = "#FFF8F0"; c.lineWidth = closeHover ? 3 : 2.5;
-          c.beginPath(); c.moveTo(W / 2 + 194, 94); c.lineTo(W / 2 + 206, 106); c.stroke();
-          c.beginPath(); c.moveTo(W / 2 + 206, 94); c.lineTo(W / 2 + 194, 106); c.stroke();
+          c.beginPath(); c.moveTo(dBx - 6, dBy - 6); c.lineTo(dBx + 6, dBy + 6); c.stroke();
+          c.beginPath(); c.moveTo(dBx + 6, dBy - 6); c.lineTo(dBx - 6, dBy + 6); c.stroke();
 
           const pageItems = this.getDecorPageItems();
           for (let i = 0; i < pageItems.length; i++) {
@@ -2474,6 +2849,216 @@
               c.fillStyle = this.decorHover === "nextPage" ? COLORS.warmRed : "#8A6045";
               c.fillText("\u25BA", 482, 548);
             }
+          }
+          c.restore();
+        }
+
+        /* ── Wardrobe panel overlay ── */
+        if (this.wardrobeFade > 0.01) {
+          c.save();
+          c.globalAlpha = this.wardrobeFade;
+          c.fillStyle = "rgba(40,28,18,0.55)";
+          c.fillRect(0, 0, W, H);
+          rr(c, 40, 60, 720, 520, 28);
+          c.fillStyle = "rgba(255,248,240,0.97)";
+          c.fill();
+          c.strokeStyle = "rgba(146,104,72,0.2)";
+          c.lineWidth = 3;
+          c.stroke();
+          c.fillStyle = "#7A4E36";
+          c.textAlign = "center";
+          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Wardrobe", W / 2, 100);
+          c.fillStyle = "rgba(92,61,46,0.5)";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Coins: " + store.coins + "  •  Buy and equip accessories!", W / 2, 120);
+          /* close button */
+          var wchov = this.wardrobeHover === "close";
+          var wcx = W / 2 + 218, wcy = 102;
+          if (wchov) drawGlowCircle(c, wcx, wcy, 24, "rgba(180,80,60,ALPHA)", 0.2);
+          c.fillStyle = wchov ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
+          c.beginPath(); c.arc(wcx, wcy, wchov ? 18 : 16, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = "#FFF8F0"; c.lineWidth = wchov ? 3 : 2.5;
+          c.beginPath(); c.moveTo(wcx - 6, wcy - 6); c.lineTo(wcx + 6, wcy + 6); c.stroke();
+          c.beginPath(); c.moveTo(wcx + 6, wcy - 6); c.lineTo(wcx - 6, wcy + 6); c.stroke();
+          /* column headers */
+          c.fillStyle = "#8B6914";
+          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("Obi", 240, 150);
+          c.fillStyle = "#9B7D3C";
+          c.fillText("Luna", 580, 150);
+          /* items */
+          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
+          for (var ai = 0; ai < allAcc.length; ai++) {
+            var acc = allAcc[ai];
+            var pet = ai < ACCESSORIES.obi.length ? "obi" : "luna";
+            var wr = this.getWardrobeItemRect(ai);
+            var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
+            var equipped = store.wardrobe.equipped[pet] === acc.key;
+            var hover = this.wardrobeHover === ai;
+            c.save();
+            rr(c, wr.x, wr.y, wr.w, wr.h, 14);
+            c.fillStyle = hover ? "rgba(255,255,255,1)" : "rgba(255,252,245,0.95)";
+            c.fill();
+            c.strokeStyle = equipped ? "#7DB36C" : hover ? "#C07850" : "rgba(146,104,72,0.15)";
+            c.lineWidth = equipped ? 3 : 2;
+            c.stroke();
+            /* accessory color dot */
+            var acColors = { bandanaRed: "#D44040", bandanaPlaid: "#8B6914", bandanaCamo: "#5C7A3A", sweaterRed: "#C0392B", bowPink: "#FF69B4", flowerCrown: "#FF9800", starCollar: "#FFD700" };
+            c.fillStyle = acColors[acc.key] || "#888";
+            c.beginPath(); c.arc(wr.x + 28, wr.y + wr.h / 2, 12, 0, Math.PI * 2); c.fill();
+            /* name */
+            c.textAlign = "left";
+            c.fillStyle = "#5C3D2E";
+            c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(acc.name, wr.x + 50, wr.y + 28);
+            c.fillStyle = "rgba(92,61,46,0.5)";
+            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(acc.slot, wr.x + 50, wr.y + 48);
+            /* buy/equip status */
+            c.textAlign = "right";
+            if (!owned) {
+              c.fillStyle = store.coins >= acc.price ? COLORS.gold : "rgba(180,160,140,0.5)";
+              c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.fillText(acc.price + " coins", wr.x + wr.w - 16, wr.y + wr.h / 2 + 5);
+            } else if (equipped) {
+              c.fillStyle = "#7DB36C";
+              c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.fillText("Equipped", wr.x + wr.w - 16, wr.y + wr.h / 2 + 5);
+            } else {
+              c.fillStyle = "rgba(92,61,46,0.5)";
+              c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.fillText("Equip", wr.x + wr.w - 16, wr.y + wr.h / 2 + 5);
+            }
+            c.restore();
+          }
+          c.restore();
+        }
+
+        /* ── Scrapbook panel overlay ── */
+        if (this.scrapbookFade > 0.01) {
+          c.save();
+          c.globalAlpha = this.scrapbookFade;
+          c.fillStyle = "rgba(40,28,18,0.55)";
+          c.fillRect(0, 0, W, H);
+          rr(c, 40, 60, 720, 520, 28);
+          c.fillStyle = "rgba(255,248,240,0.97)";
+          c.fill();
+          c.strokeStyle = "rgba(146,104,72,0.2)";
+          c.lineWidth = 3;
+          c.stroke();
+          c.fillStyle = "#7A4E36";
+          c.textAlign = "center";
+          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Scrapbook", W / 2, 100);
+          /* close button */
+          var schov = this.scrapbookHover === "close";
+          var scx = W / 2 + 218, scy = 102;
+          if (schov) drawGlowCircle(c, scx, scy, 24, "rgba(180,80,60,ALPHA)", 0.2);
+          c.fillStyle = schov ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
+          c.beginPath(); c.arc(scx, scy, schov ? 18 : 16, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = "#FFF8F0"; c.lineWidth = schov ? 3 : 2.5;
+          c.beginPath(); c.moveTo(scx - 6, scy - 6); c.lineTo(scx + 6, scy + 6); c.stroke();
+          c.beginPath(); c.moveTo(scx + 6, scy - 6); c.lineTo(scx - 6, scy + 6); c.stroke();
+          /* tabs */
+          var tabs = [
+            { key: "photos", label: "Photos", x: 80, w: 80 },
+            { key: "milestones", label: "Milestones", x: 170, w: 100 },
+            { key: "stats", label: "Stats", x: 280, w: 60 }
+          ];
+          for (var ti = 0; ti < tabs.length; ti++) {
+            var tab = tabs[ti];
+            var active = this.scrapbookTab === tab.key;
+            var thov = this.scrapbookHover === tab.key;
+            rr(c, tab.x, 110, tab.w, 24, 8);
+            c.fillStyle = active ? "#7A4E36" : thov ? "rgba(122,78,54,0.3)" : "rgba(122,78,54,0.1)";
+            c.fill();
+            c.fillStyle = active ? "#FFF8F0" : "#7A4E36";
+            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.textAlign = "center";
+            c.fillText(tab.label, tab.x + tab.w / 2, 126);
+          }
+          /* tab content */
+          if (this.scrapbookTab === "photos") {
+            var photos = loadJSON("photos", []);
+            if (photos.length === 0) {
+              c.fillStyle = "rgba(92,61,46,0.4)";
+              c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.textAlign = "center";
+              c.fillText("No photos yet! Use the camera button to take photos.", W / 2, 300);
+            } else {
+              for (var pi = 0; pi < photos.length; pi++) {
+                var px = 80 + (pi % 4) * 170;
+                var py = 150 + Math.floor(pi / 4) * 140;
+                if (py > 510) break;
+                /* draw thumbnail */
+                var img = new Image();
+                img.src = photos[pi].data;
+                c.save();
+                rr(c, px, py, 160, 120, 8);
+                c.clip();
+                c.drawImage(img, px, py, 160, 120);
+                c.restore();
+                c.strokeStyle = "rgba(146,104,72,0.2)";
+                c.lineWidth = 2;
+                rr(c, px, py, 160, 120, 8);
+                c.stroke();
+                /* date label */
+                c.fillStyle = "rgba(92,61,46,0.5)";
+                c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+                c.textAlign = "center";
+                c.fillText(photos[pi].date, px + 80, py + 135);
+              }
+            }
+          } else if (this.scrapbookTab === "milestones") {
+            var entries = store.scrapbook.entries;
+            if (entries.length === 0) {
+              c.fillStyle = "rgba(92,61,46,0.4)";
+              c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.textAlign = "center";
+              c.fillText("No milestones yet! Keep playing to earn them.", W / 2, 300);
+            } else {
+              var startIdx = Math.max(0, entries.length - 8);
+              for (var ei = startIdx; ei < entries.length; ei++) {
+                var entry = entries[ei];
+                var ey = 155 + (ei - startIdx) * 48;
+                /* icon */
+                if (entry.icon === "heart") {
+                  c.fillStyle = COLORS.softPink;
+                  c.beginPath(); c.arc(90, ey, 8, 0, Math.PI * 2); c.fill();
+                } else if (entry.icon === "bone") {
+                  c.fillStyle = "#8B6914";
+                  rr(c, 82, ey - 5, 16, 10, 4);
+                  c.fill();
+                } else {
+                  drawStar(c, 90, ey, 8, COLORS.gold);
+                }
+                /* text */
+                c.fillStyle = "#5C3D2E";
+                c.textAlign = "left";
+                c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+                c.fillText(entry.text, 110, ey + 4);
+                /* date */
+                c.fillStyle = "rgba(92,61,46,0.4)";
+                c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+                c.textAlign = "right";
+                c.fillText(entry.date, 720, ey + 4);
+              }
+            }
+          } else if (this.scrapbookTab === "stats") {
+            c.fillStyle = "#5C3D2E";
+            c.textAlign = "left";
+            c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            var sy = 165;
+            c.fillText("Total Stars: " + totalStarsEarned() + " / 33", 120, sy); sy += 40;
+            c.fillText("Total Coins Earned: " + store.stats.totalCoinsEarned, 120, sy); sy += 40;
+            c.fillText("Current Coins: " + store.coins, 120, sy); sy += 40;
+            c.fillText("Photos Taken: " + store.stats.totalPhotos, 120, sy); sy += 40;
+            c.fillText("Care Streak: " + store.careStreak.count + " days", 120, sy); sy += 40;
+            c.fillText("Best Streak: " + (store.careStreak.bestStreak || 0) + " days", 120, sy); sy += 40;
+            c.fillText("Accessories Owned: " + store.wardrobe.owned.length + " / 7", 120, sy); sy += 40;
+            c.fillText("Scrapbook Entries: " + store.scrapbook.entries.length, 120, sy);
           }
           c.restore();
         }

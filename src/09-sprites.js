@@ -2,228 +2,68 @@
 
     const SPRITE_FRAME_BOXES = {
       "annie": {
-            "stand": {
-                  "x": 8,
-                  "y": 8,
-                  "w": 462,
-                  "h": 974
-            },
-            "sit": {
-                  "x": 472,
-                  "y": 990,
-                  "w": 515,
-                  "h": 957
-            },
-            "cheer": {
-                  "x": 478,
-                  "y": 8,
-                  "w": 514,
-                  "h": 970
-            },
-            "laugh": {
-                  "x": 8,
-                  "y": 990,
-                  "w": 456,
-                  "h": 970
-            },
-            "kneel": {
-                  "x": 8,
-                  "y": 7467,
-                  "w": 730,
-                  "h": 745
-            },
-            "walkSide": {
-                  "x": 8,
-                  "y": 8220,
-                  "w": 633,
-                  "h": 970
-            },
-            "walkFront": {
-                  "x": 8,
-                  "y": 9198,
-                  "w": 613,
-                  "h": 984
-            }
+            "stand": { "x": 8, "y": 8, "w": 462, "h": 974 },
+            "sit": { "x": 472, "y": 990, "w": 515, "h": 957 },
+            "cheer": { "x": 478, "y": 8, "w": 514, "h": 970 },
+            "laugh": { "x": 8, "y": 990, "w": 456, "h": 970 },
+            "kneel": { "x": 8, "y": 7467, "w": 730, "h": 745 },
+            "walkSide": { "x": 8, "y": 8220, "w": 633, "h": 970 },
+            "walkFront": { "x": 8, "y": 9198, "w": 613, "h": 984 }
       },
       "items": {
-            "yarnBall": {
-                  "x": 8,
-                  "y": 10190,
-                  "w": 352,
-                  "h": 257
-            },
-            "brush": {
-                  "x": 8,
-                  "y": 10455,
-                  "w": 381,
-                  "h": 294
-            },
-            "foodBowl": {
-                  "x": 8,
-                  "y": 14106,
-                  "w": 644,
-                  "h": 410
-            },
-            "waterBowl": {
-                  "x": 8,
-                  "y": 14524,
-                  "w": 645,
-                  "h": 406
-            },
-            "giftBox": {
-                  "x": 8,
-                  "y": 14938,
-                  "w": 484,
-                  "h": 410
-            },
-            "dogTreats": {
-                  "x": 8,
-                  "y": 15356,
-                  "w": 580,
-                  "h": 258
-            },
-            "catTreats": {
-                  "x": 8,
-                  "y": 15622,
-                  "w": 489,
-                  "h": 208
-            }
+            "yarnBall": { "x": 8, "y": 10190, "w": 352, "h": 257 },
+            "brush": { "x": 8, "y": 10455, "w": 381, "h": 294 },
+            "giftBox": { "x": 516, "y": 11515, "w": 307, "h": 308 },
+            "dogTreats": { "x": 8, "y": 11861, "w": 362, "h": 307 },
+            "waterBowl": { "x": 378, "y": 11861, "w": 400, "h": 305 },
+            "foodBowl": { "x": 8, "y": 13026, "w": 400, "h": 230 },
+            "catTreats": { "x": 266, "y": 14067, "w": 315, "h": 89 }
       },
       "obi": {
-            "sitHappy": {
-                  "x": 8,
-                  "y": 2558,
-                  "w": 360,
-                  "h": 512
-            },
-            "run": {
-                  "x": 8,
-                  "y": 3907,
-                  "w": 564,
-                  "h": 379
-            },
-            "leap": {
-                  "x": 8,
-                  "y": 3517,
-                  "w": 485,
-                  "h": 382
-            },
-            "sitSad": {
-                  "x": 376,
-                  "y": 2558,
-                  "w": 367,
-                  "h": 471
-            },
-            "sleep": {
-                  "x": 8,
-                  "y": 4666,
-                  "w": 653,
-                  "h": 342
-            },
-            "sniff": {
-                  "x": 8,
-                  "y": 5016,
-                  "w": 757,
-                  "h": 509
-            },
-            "shake": {
-                  "x": 8,
-                  "y": 5533,
-                  "w": 644,
-                  "h": 520
-            },
-            "eat": {
-                  "x": 8,
-                  "y": 10765,
-                  "w": 634,
-                  "h": 423
-            },
-            "drink": {
-                  "x": 8,
-                  "y": 11196,
-                  "w": 663,
-                  "h": 412
-            },
-            "carryToy": {
-                  "x": 8,
-                  "y": 11616,
-                  "w": 560,
-                  "h": 392
-            },
-            "bath": {
-                  "x": 8,
-                  "y": 12016,
-                  "w": 560,
-                  "h": 506
-            }
+            "sitHappy": { "x": 8, "y": 2558, "w": 360, "h": 512 },
+            "run": { "x": 8, "y": 3907, "w": 564, "h": 379 },
+            "leap": { "x": 8, "y": 3517, "w": 485, "h": 382 },
+            "sitSad": { "x": 376, "y": 2558, "w": 367, "h": 471 },
+            "sleep": { "x": 8, "y": 4666, "w": 653, "h": 342 },
+            "sniff": { "x": 8, "y": 5016, "w": 757, "h": 509 },
+            "shake": { "x": 8, "y": 5533, "w": 644, "h": 520 },
+            "dig": { "x": 8, "y": 12176, "w": 500, "h": 304 },
+            "splash": { "x": 8, "y": 11150, "w": 500, "h": 357 },
+            "eat": { "x": 8, "y": 12488, "w": 396, "h": 277 },
+            "drink": { "x": 412, "y": 12488, "w": 414, "h": 268 },
+            "carryToy": { "x": 516, "y": 11150, "w": 367, "h": 339 },
+            "bath": { "x": 516, "y": 12176, "w": 344, "h": 287 }
       },
       "luna": {
-            "sit": {
-                  "x": 8,
-                  "y": 1968,
-                  "w": 428,
-                  "h": 582
-            },
-            "crouch": {
-                  "x": 8,
-                  "y": 4294,
-                  "w": 524,
-                  "h": 356
-            },
-            "pounce": {
-                  "x": 8,
-                  "y": 3078,
-                  "w": 680,
-                  "h": 431
-            },
-            "paw": {
-                  "x": 444,
-                  "y": 1968,
-                  "w": 353,
-                  "h": 533
-            },
-            "sleep": {
-                  "x": 8,
-                  "y": 6069,
-                  "w": 719,
-                  "h": 372
-            },
-            "groom": {
-                  "x": 8,
-                  "y": 6449,
-                  "w": 581,
-                  "h": 576
-            },
-            "bellyUp": {
-                  "x": 8,
-                  "y": 7033,
-                  "w": 868,
-                  "h": 418
-            },
-            "eat": {
-                  "x": 8,
-                  "y": 12530,
-                  "w": 782,
-                  "h": 336
-            },
-            "drink": {
-                  "x": 8,
-                  "y": 12874,
-                  "w": 783,
-                  "h": 387
-            },
-            "stretch": {
-                  "x": 8,
-                  "y": 13269,
-                  "w": 714,
-                  "h": 411
-            },
-            "bath": {
-                  "x": 8,
-                  "y": 13688,
-                  "w": 560,
-                  "h": 410
-            }
+            "sit": { "x": 8, "y": 1968, "w": 428, "h": 582 },
+            "crouch": { "x": 8, "y": 4294, "w": 524, "h": 356 },
+            "pounce": { "x": 8, "y": 3078, "w": 680, "h": 431 },
+            "paw": { "x": 444, "y": 1968, "w": 353, "h": 533 },
+            "sleep": { "x": 8, "y": 6069, "w": 719, "h": 372 },
+            "groom": { "x": 8, "y": 6449, "w": 581, "h": 576 },
+            "bellyUp": { "x": 8, "y": 7033, "w": 868, "h": 418 },
+            "treeSit": { "x": 8, "y": 10757, "w": 500, "h": 385 },
+            "stalk": { "x": 8, "y": 13909, "w": 500, "h": 150 },
+            "eat": { "x": 8, "y": 13498, "w": 498, "h": 206 },
+            "drink": { "x": 8, "y": 11515, "w": 500, "h": 338 },
+            "stretch": { "x": 516, "y": 10757, "w": 466, "h": 376 },
+            "bath": { "x": 514, "y": 13498, "w": 371, "h": 204 }
+      },
+      "accessories": {
+            "bandanaRed": { "x": 524, "y": 13712, "w": 250, "h": 162 },
+            "bandanaPlaid": { "x": 266, "y": 13264, "w": 250, "h": 210 },
+            "bandanaCamo": { "x": 516, "y": 13909, "w": 250, "h": 145 },
+            "sweaterRed": { "x": 416, "y": 13026, "w": 250, "h": 227 },
+            "bowPink": { "x": 266, "y": 13712, "w": 250, "h": 178 },
+            "flowerCrown": { "x": 8, "y": 13712, "w": 250, "h": 189 },
+            "starCollar": { "x": 8, "y": 14067, "w": 250, "h": 126 }
+      },
+      "backyard": {
+            "birdFeeder": { "x": 249, "y": 12773, "w": 250, "h": 241 },
+            "kiddiePool": { "x": 507, "y": 12773, "w": 250, "h": 234 },
+            "gardenPatch": { "x": 674, "y": 13026, "w": 250, "h": 227 },
+            "bench": { "x": 8, "y": 13264, "w": 250, "h": 226 },
+            "butterflyNet": { "x": 8, "y": 12773, "w": 233, "h": 245 }
       }
 };
 
@@ -373,6 +213,8 @@
       else if (pose === "drink") frame = frames.drink;
       else if (pose === "carryToy") frame = frames.carryToy;
       else if (pose === "bath") frame = frames.bath;
+      else if (pose === "dig") frame = frames.dig;
+      else if (pose === "splash") frame = frames.splash;
       else if (expression === "sad") frame = frames.sitSad;
       else if (happyMotion) frame = Math.sin(game.time * 14) > 0 ? frames.leap : frames.sitHappy;
       drawFrameImage(c, frame, x, y, scale, {
@@ -398,6 +240,8 @@
       else if (pose === "drink") frame = frames.drink;
       else if (pose === "stretch") frame = frames.stretch;
       else if (pose === "bath") frame = frames.bath;
+      else if (pose === "treeSit") frame = frames.treeSit;
+      else if (pose === "stalk") frame = frames.stalk;
       else if (pose === "topdown") {
         if ((s.pawBat || 0) > 0.12) frame = frames.paw;
         else if ((s.pounceStretch || 0) > 0.35) frame = frames.pounce;
@@ -1147,4 +991,41 @@
       }
 
       c.restore();
+    }
+
+    function getAccessoryOffset(pet, key, pose) {
+      var hidden = ["sleeping", "bath", "shake"];
+      if (hidden.indexOf(pose) >= 0) return null;
+      var slot = null;
+      var list = ACCESSORIES[pet];
+      for (var i = 0; i < list.length; i++) { if (list[i].key === key) { slot = list[i].slot; break; } }
+      if (!slot) return null;
+      if (slot === "body" && (pose === "sleeping" || pose === "bath")) return null;
+      var dx = 0, dy = -52, sc = 0.05, rot = 0;
+      if (slot === "head") { dy = -62; sc = 0.04; }
+      else if (slot === "neck") { dy = -50; sc = 0.05; }
+      else if (slot === "body") { dy = -40; sc = 0.07; }
+      if (pose === "run" || pose === "side") { dy += 2; rot = 0.05; }
+      else if (pose === "sniff") { dy += 6; rot = 0.1; }
+      else if (pose === "eat" || pose === "drink") { dy += 8; rot = 0.08; }
+      return { dx: dx, dy: dy, scale: sc, rot: rot };
+    }
+
+    function drawAccessoryOverlay(c, pet, x, y, scale, pose, facing) {
+      var equipped = store.wardrobe.equipped[pet];
+      if (!equipped) return;
+      var off = getAccessoryOffset(pet, equipped, pose);
+      if (!off) return;
+      if (!spriteArt.ready) return;
+      var accFrames = spriteArt.frames.accessories;
+      var frame = accFrames ? accFrames[equipped] : null;
+      if (!frame) return;
+      var ax = x + off.dx * scale * (facing || 1);
+      var ay = y + off.dy * scale;
+      drawFrameImage(c, frame, ax, ay, off.scale, {
+        baseScale: 1,
+        flip: facing || 1,
+        rotation: off.rot * (facing || 1),
+        shadowAlpha: 0
+      });
     }

@@ -212,6 +212,11 @@
         this.resultsStars = this.calculateStars(finalScore);
         this.newBest = setBest(this.gameId, finalScore);
         this.personalBest = store["best_" + this.gameId] || finalScore;
+        this.coinReward = 5 + this.resultsStars * 5 + (this.newBest ? 10 : 0);
+        addCoins(this.coinReward);
+        if (this.resultsStars >= 3 && this.newBest) {
+          addScrapbookEntry("milestone", "Earned 3 stars in " + this.displayTitle + "!", "star");
+        }
         this.phase = "results";
         this.phaseTime = 0;
         this.scoreInT = 0;
@@ -228,6 +233,7 @@
         saveAchievements();
         const info = ACHIEVEMENTS.find((a) => a.key === key);
         if (info) {
+          addScrapbookEntry("achievement", info.name + " unlocked!", "star");
           this.achievementFreeze = Math.max(this.achievementFreeze, 0.5);
           this.achievementBanner = { name: info.name, time: 1.25, maxTime: 1.25 };
           audio.achievement();
@@ -376,7 +382,11 @@
 
         c.fillStyle = "#8A6045";
         c.font = '17px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Personal Best  ★  " + this.personalBest, W / 2, 210);
+        c.fillText("Personal Best  \u2605  " + this.personalBest, W / 2, 210);
+
+        c.fillStyle = COLORS.gold;
+        c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("+" + this.coinReward + " coins", W / 2, this.newBest ? 280 : 228);
 
         if (this.newBest) {
           const bestPulse = 1 + Math.sin(game.time * 4) * 0.04;
