@@ -7,7 +7,7 @@ dist/
 
 # Source sprite sheets (processed into atlas)
 new *.png
-cozy-sprites-atlas.webp
+/cozy-sprites-atlas.webp
 
 # UX review doc
 *.docx
