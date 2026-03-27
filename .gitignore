@@ -1,17 +1,37 @@
-# Node dependencies (sharp, etc.) — reinstall with npm install
+# === ONLY TRACK THE PLAYABLE GAME ===
+# annies-cozy-day.html + assets/ are the game.
+# Everything else is development/build tooling.
+
+# Node
 node_modules/
-
-# Source sprite sheets (processed into atlas)
-new *.png
-
-# Sprite processing artifacts
-sprite-frames-output.json
-process-sprites.js
-package-lock.json
 package.json
+package-lock.json
 
-# Claude Code session data
+# Build system
+build.js
+template.html
+src/
+dist/
+
+# Sprite processing
+process-sprites.js
+process-new-accessories.js
+sprite-frames-output.json
+accessory-frames-output.json
+cozy-sprites-atlas-original.webp
+cozy-sprites-atlas.webp
+
+# Raw source sprite PNGs
+*.png
+
+# Spec/planning docs
+ARCHITECTURE.md
+PHASE-*.md
+REFACTOR-PROMPT.md
+SPRITE-*.md
+
+# Session data
 .claude/
 
-# UX review doc
+# Other
 *.docx

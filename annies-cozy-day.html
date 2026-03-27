@@ -98,21 +98,45 @@
       shadow: "rgba(0,0,0,0.14)"
     };
 
+    /* ── Tier system ── */
+    const TIER_COLORS = { 1: "#8B7355", 2: "#4A90D9", 3: "#9B59B6", 4: "#E8A020", special: "#C0392B" };
+
+    function canAccessTier(tier) {
+      var stars = totalStarsEarned();
+      var streak = store.careStreak.count;
+      var achCount = 0;
+      for (var k in store.achievements) { if (store.achievements[k]) achCount++; }
+      if (tier <= 1) return true;
+      if (tier === 2) return stars >= 10 || streak >= 21 || achCount >= 5;
+      if (tier === 3) return stars >= 20 || streak >= 60 || achCount >= 10;
+      if (tier === 4) return stars >= 30 && achCount >= 14 && streak >= 30;
+      return true;
+    }
+
+    /* ── Achievements ── */
     const ACHIEVEMENTS = [
-      { key: "obiBestFriend", name: "Obi's Best Friend", desc: "Catch 30 total treats across all Treat Toss games.", color: "#A97142", icon: "bone" },
-      { key: "comboStar", name: "Combo Star", desc: "Reach a 10x combo in Treat Toss.", color: "#FFD700", icon: "star" },
-      { key: "catWhisperer", name: "Cat Whisperer", desc: "Score 400+ in a single Laser Chase game.", color: "#7CB342", icon: "catEye" },
-      { key: "pouncePerfect", name: "Pounce Perfect", desc: "Reach a 5x combo in Laser Chase.", color: "#E53935", icon: "paw" },
-      { key: "couchPotato", name: "Couch Potato", desc: "Survive 30 seconds in Cuddle Pile.", color: "#7FB3D5", icon: "couch" },
-      { key: "maximumCozy", name: "Maximum Cozy", desc: "Reach the 90-second win state in Cuddle Pile.", color: "#F48FB1", icon: "heart" },
-      { key: "goodWalker", name: "Good Walker", desc: "Score 300+ on Obi's Walk.", color: "#8D6E4C", icon: "bone" },
-      { key: "napMaster", name: "Nap Master", desc: "Score 400+ on Luna's Nap Spot.", color: "#C39BD3", icon: "heart" },
-      { key: "squeakyClean", name: "Squeaky Clean", desc: "Score 200+ in Bath Time.", color: "#87CEEB", icon: "heart" },
-      { key: "sortingPro", name: "Sorting Pro", desc: "Sort 10 treats correctly in a row.", color: "#E8A84C", icon: "star" },
-      { key: "whackQueen", name: "Whack Queen", desc: "Score 250+ in Pillow Pop.", color: "#F48FB1", icon: "paw" },
-      { key: "sharpEye", name: "Sharp Eye", desc: "Find Luna 8 times in a row in Where's Luna.", color: "#7CB342", icon: "catEye" },
-      { key: "birdWatcher", name: "Bird Watcher", desc: "Score 300+ in Window Watch.", color: "#87CEEB", icon: "star" },
-      { key: "goodMemory", name: "Good Memory", desc: "Repeat a 7-step sequence in Pawstep Patterns.", color: "#C39BD3", icon: "heart" }
+      { key: "obiBestFriend", name: "Obi's Best Friend", desc: "Catch 30 total treats across all Treat Toss games.", color: "#A97142", icon: "bone", coinBonus: 10 },
+      { key: "comboStar", name: "Combo Star", desc: "Reach a 10x combo in Treat Toss.", color: "#FFD700", icon: "star", coinBonus: 10 },
+      { key: "catWhisperer", name: "Cat Whisperer", desc: "Score 400+ in a single Laser Chase game.", color: "#7CB342", icon: "catEye", coinBonus: 10 },
+      { key: "pouncePerfect", name: "Pounce Perfect", desc: "Reach a 5x combo in Laser Chase.", color: "#E53935", icon: "paw", coinBonus: 10 },
+      { key: "couchPotato", name: "Couch Potato", desc: "Survive 30 seconds in Cuddle Pile.", color: "#7FB3D5", icon: "couch", coinBonus: 10 },
+      { key: "maximumCozy", name: "Maximum Cozy", desc: "Reach the 90-second win state in Cuddle Pile.", color: "#F48FB1", icon: "heart", coinBonus: 15 },
+      { key: "goodWalker", name: "Good Walker", desc: "Score 300+ on Obi's Walk.", color: "#8D6E4C", icon: "bone", coinBonus: 10 },
+      { key: "napMaster", name: "Nap Master", desc: "Score 400+ on Luna's Nap Spot.", color: "#C39BD3", icon: "heart", coinBonus: 10 },
+      { key: "squeakyClean", name: "Squeaky Clean", desc: "Score 200+ in Bath Time.", color: "#87CEEB", icon: "heart", coinBonus: 10 },
+      { key: "sortingPro", name: "Sorting Pro", desc: "Sort 10 treats correctly in a row.", color: "#E8A84C", icon: "star", coinBonus: 10 },
+      { key: "whackQueen", name: "Whack Queen", desc: "Score 250+ in Pillow Pop.", color: "#F48FB1", icon: "paw", coinBonus: 10 },
+      { key: "sharpEye", name: "Sharp Eye", desc: "Find Luna 8 times in a row in Where's Luna.", color: "#7CB342", icon: "catEye", coinBonus: 10 },
+      { key: "birdWatcher", name: "Bird Watcher", desc: "Score 300+ in Window Watch.", color: "#87CEEB", icon: "star", coinBonus: 10 },
+      { key: "goodMemory", name: "Good Memory", desc: "Repeat a 7-step sequence in Pawstep Patterns.", color: "#C39BD3", icon: "heart", coinBonus: 10 },
+      { key: "greenThumb", name: "Green Thumb", desc: "Plant 20 total flowers in the backyard.", color: "#5C8A3A", icon: "star", coinBonus: 15 },
+      { key: "shutterBug", name: "Shutter Bug", desc: "Take 10 photos.", color: "#E8A84C", icon: "star", coinBonus: 10 },
+      { key: "fashionista", name: "Fashionista", desc: "Own 10 accessories across all characters.", color: "#9B59B6", icon: "star", coinBonus: 20 },
+      { key: "dedicated", name: "Dedicated Caretaker", desc: "Reach a 30-day care streak.", color: "#E8A020", icon: "heart", coinBonus: 25 },
+      { key: "socialButterfly", name: "Social Butterfly", desc: "Witness 5 different pet-to-pet interactions.", color: "#FF69B4", icon: "heart", coinBonus: 15 },
+      { key: "fullHouse", name: "Full House", desc: "Earn all 33 minigame stars.", color: "#FFD700", icon: "star", coinBonus: 50 },
+      { key: "wellFed", name: "Well Fed", desc: "Fill food and water bowls 50 total times.", color: "#7CB342", icon: "heart", coinBonus: 10 },
+      { key: "collector", name: "Master Collector", desc: "Own every item in the game.", color: "#E8A020", icon: "star", coinBonus: 100 }
     ];
 
     const TITLE_SUBTITLES = [
@@ -126,7 +150,9 @@
       "Made with love and way too much JavaScript"
     ];
 
+    /* ── Living room decorations ── */
     const DECOR_ITEMS = [
+      /* existing star/streak-gated items */
       { key: "fairyLights", name: "Fairy Lights", desc: "Twinkling lights along the wall", stars: 1, type: "toggle" },
       { key: "plant2", name: "Flower Pot", desc: "A flowering plant on the side table", stars: 3, type: "toggle" },
       { key: "petBed", name: "Pet Bed", desc: "A cozy pink bed for napping", stars: 5, type: "toggle" },
@@ -136,7 +162,34 @@
       { key: "wallArt2", name: "Wall Art", desc: "New artwork for the wall", stars: 7, type: "cycle", max: 3, labels: ["Landscape", "Floral", "Portraits", "Abstract"] },
       { key: "windowPlant", name: "Window Herbs", desc: "Fresh herbs on the window sill", stars: 6, type: "toggle" },
       { key: "cozyBlanket", name: "Cozy Blanket", desc: "A warm blanket on the couch", stars: 0, type: "toggle", streakUnlock: 7 },
-      { key: "photoWall", name: "Photo Wall", desc: "Family photos on the wall", stars: 0, type: "toggle", streakUnlock: 30 }
+      { key: "photoWall", name: "Photo Wall", desc: "Family photos on the wall", stars: 0, type: "toggle", streakUnlock: 30 },
+      /* new coin-purchasable decorations */
+      { key: "floorCushion", name: "Floor Cushion", desc: "A round cushion near the rug", stars: 0, type: "toggle", price: 15, tier: 1 },
+      { key: "corkBoard", name: "Cork Board", desc: "A cork board with pinned notes", stars: 0, type: "toggle", price: 20, tier: 1 },
+      { key: "bookStack", name: "Book Stack", desc: "A cozy stack of books by the couch", stars: 0, type: "toggle", price: 25, tier: 1 },
+      { key: "couchPillows", name: "Couch Pillows", desc: "Change pillow colors", stars: 0, type: "cycle", max: 4, labels: ["Default", "Coral", "Mint", "Sunflower", "Lilac"], price: 30, tier: 1 },
+      { key: "hangingPlant", name: "Hanging Plant", desc: "A macrame plant hanger", stars: 0, type: "toggle", price: 45, tier: 2 },
+      { key: "candles", name: "Candle Set", desc: "Three candles that glow at night", stars: 0, type: "toggle", price: 50, tier: 2 },
+      { key: "wallClock", name: "Wall Clock", desc: "A cute clock with moving hands", stars: 0, type: "toggle", price: 55, tier: 2 },
+      { key: "rugPattern", name: "Fancy Rug", desc: "Upgraded rug patterns", stars: 0, type: "cycle", max: 3, labels: ["Default", "Moroccan", "Floral", "Geometric"], price: 60, tier: 2 },
+      { key: "garland", name: "Seasonal Garland", desc: "Hanging garland decorations", stars: 0, type: "cycle", max: 3, labels: ["Spring", "Summer", "Autumn", "Winter"], price: 100, tier: 3 },
+      { key: "petToys", name: "Toy Display", desc: "A basket of visible toys", stars: 0, type: "toggle", price: 120, tier: 3 },
+      { key: "musicBox", name: "Music Box", desc: "A sparkling music box", stars: 0, type: "toggle", achievementUnlock: "maximumCozy" },
+      { key: "familyPortrait", name: "Family Portrait", desc: "Annie, Obi, and Luna together", stars: 33, type: "toggle" }
+    ];
+
+    /* ── Backyard decorations ── */
+    const BACKYARD_DECOR_ITEMS = [
+      { key: "windChime", name: "Wind Chime", desc: "Sways gently from the tree", type: "toggle", price: 20, tier: 1 },
+      { key: "gardenGnome", name: "Garden Gnome", desc: "A cheerful gnome by the garden", type: "toggle", price: 25, tier: 1 },
+      { key: "picnicBlanket", name: "Picnic Blanket", desc: "A checkered blanket on the grass", type: "toggle", price: 45, tier: 2 },
+      { key: "birdBath", name: "Bird Bath", desc: "A stone bird bath near the feeder", type: "toggle", price: 50, tier: 2 },
+      { key: "lanterns", name: "String Lanterns", desc: "Paper lanterns along the fence", type: "toggle", price: 55, tier: 2 },
+      { key: "birdHouse", name: "Bird House", desc: "A painted birdhouse on a post", type: "toggle", price: 100, tier: 3 },
+      { key: "sundial", name: "Sundial", desc: "A stone sundial in the yard", type: "toggle", price: 110, tier: 3 },
+      { key: "dogHouse", name: "Dog House", desc: "Obi's own little house", type: "toggle", price: 150, tier: 3 },
+      { key: "butterflyGarden", name: "Butterfly Garden", desc: "Butterflies flutter near the flowers", type: "toggle", achievementUnlock: "birdWatcher" },
+      { key: "fountain", name: "Garden Fountain", desc: "A stone fountain with flowing water", type: "toggle", price: 300, tier: 4 }
     ];
 
     const DAILY_TASK_POOL = [
@@ -149,19 +202,66 @@
       { id: "game", text: "Play a minigame" }
     ];
 
+    /* ── Weekly challenge pool ── */
+    const WEEKLY_CHALLENGES = [
+      { id: "play5games", text: "Play 5 different minigames", target: 5, reward: 25, trackKey: "gamesPlayed" },
+      { id: "earn8stars", text: "Earn 8 stars total", target: 8, reward: 30, trackKey: "starsEarned" },
+      { id: "pet10", text: "Pet both Obi and Luna 10 times", target: 10, reward: 20, trackKey: "petActions" },
+      { id: "feedBirds5", text: "Fill the bird feeder 5 times", target: 5, reward: 25, trackKey: "feederFills" },
+      { id: "plant4", text: "Plant 4 flowers", target: 4, reward: 20, trackKey: "flowersPlanted" },
+      { id: "photos3", text: "Take 3 photos", target: 3, reward: 25, trackKey: "photosTaken" },
+      { id: "streak5", text: "Maintain a 5-day streak", target: 5, reward: 30, trackKey: "streakDays" },
+      { id: "buy2", text: "Buy 2 items", target: 2, reward: 40, trackKey: "itemsBought" }
+    ];
+
+    /* ── Accessories (all 3 characters) ── */
     const ACCESSORIES = {
       obi: [
-        { key: "bandanaRed", name: "Red Bandana", price: 10, slot: "neck" },
-        { key: "bandanaPlaid", name: "Plaid Bandana", price: 15, slot: "neck" },
-        { key: "bandanaCamo", name: "Camo Bandana", price: 15, slot: "neck" },
-        { key: "sweaterRed", name: "Red Sweater", price: 35, slot: "body" }
+        { key: "bandanaRed", name: "Red Bandana", price: 10, slot: "neck", tier: 1 },
+        { key: "bandanaPlaid", name: "Plaid Bandana", price: 15, slot: "neck", tier: 1 },
+        { key: "bandanaCamo", name: "Camo Bandana", price: 15, slot: "neck", tier: 1 },
+        { key: "bandanaBlue", name: "Blue Bandana", price: 20, slot: "neck", tier: 1 },
+        { key: "sweaterRed", name: "Red Sweater", price: 35, slot: "body", tier: 1 },
+        { key: "partyHat", name: "Party Hat", price: 55, slot: "head", tier: 2 },
+        { key: "bowtieBlack", name: "Black Bow Tie", price: 50, slot: "neck", tier: 2 },
+        { key: "sweaterGreen", name: "Green Sweater", price: 65, slot: "body", tier: 2 },
+        { key: "raincoatYellow", name: "Yellow Raincoat", price: 120, slot: "body", tier: 3 },
+        { key: "flowerLei", name: "Flower Lei", price: 100, slot: "neck", tier: 3 },
+        { key: "jerseyBlue", name: "Sports Jersey", price: 250, slot: "body", tier: 4 },
+        { key: "crownGold", name: "Golden Crown", price: 0, slot: "head", achievementUnlock: "allAchievements" }
       ],
       luna: [
-        { key: "bowPink", name: "Pink Bow", price: 10, slot: "head" },
-        { key: "flowerCrown", name: "Flower Crown", price: 20, slot: "head" },
-        { key: "starCollar", name: "Star Collar", price: 15, slot: "neck" }
+        { key: "bowPink", name: "Pink Bow", price: 10, slot: "head", tier: 1 },
+        { key: "starCollar", name: "Star Collar", price: 15, slot: "neck", tier: 1 },
+        { key: "bellCollar", name: "Bell Collar", price: 20, slot: "neck", tier: 1 },
+        { key: "flowerCrown", name: "Flower Crown", price: 20, slot: "head", tier: 1 },
+        { key: "bowLavender", name: "Lavender Bow", price: 45, slot: "head", tier: 2 },
+        { key: "scarfKnit", name: "Knit Scarf", price: 55, slot: "neck", tier: 2 },
+        { key: "tiara", name: "Crystal Tiara", price: 100, slot: "head", tier: 3 },
+        { key: "witchHat", name: "Witch Hat", price: 130, slot: "head", tier: 3 },
+        { key: "pearlNecklace", name: "Pearl Necklace", price: 250, slot: "neck", tier: 4 },
+        { key: "crownSilver", name: "Silver Crown", price: 0, slot: "head", starUnlock: 33 }
+      ],
+      annie: [
+        { key: "headbandFloral", name: "Floral Headband", price: 15, slot: "head", tier: 1 },
+        { key: "braceletBeaded", name: "Beaded Bracelet", price: 20, slot: "wrist", tier: 1 },
+        { key: "beretPink", name: "Pink Beret", price: 25, slot: "head", tier: 1 },
+        { key: "sunHat", name: "Sun Hat", price: 50, slot: "head", tier: 2 },
+        { key: "watchGold", name: "Gold Watch", price: 55, slot: "wrist", tier: 2 },
+        { key: "hairClipStar", name: "Star Hair Clip", price: 100, slot: "head", tier: 3 },
+        { key: "braceletCharm", name: "Charm Bracelet", price: 120, slot: "wrist", tier: 3 },
+        { key: "crownFloral", name: "Floral Crown", price: 0, slot: "head", achievementUnlock: "napMaster+catWhisperer" }
       ]
     };
+
+    /* ── Star milestone coin rewards ── */
+    const STAR_MILESTONES = [
+      { stars: 10, coins: 15 },
+      { stars: 20, coins: 30 },
+      { stars: 25, coins: 50 },
+      { stars: 30, coins: 75 },
+      { stars: 33, coins: 100 }
+    ];
 
     const LUNA_PERCHES = {
       tower:  { x: 694, y: 258 },
@@ -222,40 +322,31 @@
       best_window: loadNumber("best_window", 0),
       best_pawstep: loadNumber("best_pawstep", 0),
       stats: loadJSON("stats", {
-        totalTreatCatches: 0,
-        bestTreatCombo: 1,
-        bestLaserCombo: 1,
-        bestCuddle: 0,
-        cuddleWon: false
+        totalTreatCatches: 0, bestTreatCombo: 1, bestLaserCombo: 1,
+        bestCuddle: 0, cuddleWon: false,
+        totalSessions: 0, totalPhotos: 0, totalCoinsEarned: 0,
+        totalFlowersPlanted: 0, totalBowlsFilled: 0, petInteractionsSeen: 0
       }),
       achievements: loadJSON("achievements", {
-        obiBestFriend: false,
-        comboStar: false,
-        catWhisperer: false,
-        pouncePerfect: false,
-        couchPotato: false,
-        maximumCozy: false,
-        goodWalker: false,
-        napMaster: false,
-        squeakyClean: false,
-        sortingPro: false,
-        whackQueen: false,
-        sharpEye: false,
-        birdWatcher: false,
-        goodMemory: false
+        obiBestFriend: false, comboStar: false, catWhisperer: false, pouncePerfect: false,
+        couchPotato: false, maximumCozy: false, goodWalker: false, napMaster: false,
+        squeakyClean: false, sortingPro: false, whackQueen: false, sharpEye: false,
+        birdWatcher: false, goodMemory: false,
+        greenThumb: false, shutterBug: false, fashionista: false, dedicated: false,
+        socialButterfly: false, fullHouse: false, wellFed: false, collector: false
       }),
       decor: loadJSON("decor", {
-        fairyLights: false,
-        plant2: false,
-        petBed: false,
-        rugColor: 0,
-        lampOn: true,
-        roomPreset: 0,
-        timeOfDay: 1,
-        wallArt2: 0,
-        windowPlant: false,
-        cozyBlanket: false,
-        photoWall: false
+        fairyLights: false, plant2: false, petBed: false, rugColor: 0,
+        lampOn: true, roomPreset: 0, timeOfDay: 1, wallArt2: 0,
+        windowPlant: false, cozyBlanket: false, photoWall: false,
+        floorCushion: false, corkBoard: false, bookStack: false, couchPillows: 0,
+        hangingPlant: false, candles: false, wallClock: false, rugPattern: 0,
+        garland: 0, petToys: false, musicBox: false, familyPortrait: false
+      }),
+      backyardDecor: loadJSON("backyardDecor", {
+        windChime: false, gardenGnome: false, picnicBlanket: false,
+        birdBath: false, lanterns: false, birdHouse: false,
+        sundial: false, dogHouse: false, butterflyGarden: false, fountain: false
       }),
       firstVisit: loadBool("firstVisit", true),
       pet_obi_joy: loadNumber("pet_obi_joy", 54),
@@ -272,10 +363,14 @@
       coins: loadNumber("coins", 50),
       wardrobe: loadJSON("wardrobe", { owned: [], equipped: { obi: null, luna: null } }),
       backyardFlowers: loadNumber("backyardFlowers", 0),
-      scrapbook: loadJSON("scrapbook", { entries: [], photosViewed: 0 })
+      scrapbook: loadJSON("scrapbook", { entries: [], photosViewed: 0 }),
+      weeklyChallenge: loadJSON("weeklyChallenge", { weekId: null, challengeId: null, progress: 0, target: 0, completed: false, reward: 0 }),
+      starMilestonesClaimed: loadJSON("starMilestonesClaimed", []),
+      decorPurchased: loadJSON("decorPurchased", [])
     };
 
-    /* backfill decor keys for existing saves */
+    /* ── Backfill migrations for existing saves ── */
+    /* decor keys */
     if (store.decor.lampOn === undefined) store.decor.lampOn = true;
     if (store.decor.roomPreset === undefined) store.decor.roomPreset = 0;
     if (store.decor.timeOfDay === undefined) store.decor.timeOfDay = 1;
@@ -283,20 +378,49 @@
     if (store.decor.windowPlant === undefined) store.decor.windowPlant = false;
     if (store.decor.cozyBlanket === undefined) store.decor.cozyBlanket = false;
     if (store.decor.photoWall === undefined) store.decor.photoWall = false;
-    if (store.achievements.squeakyClean === undefined) store.achievements.squeakyClean = false;
-    if (store.achievements.sortingPro === undefined) store.achievements.sortingPro = false;
-    if (store.achievements.whackQueen === undefined) store.achievements.whackQueen = false;
-    if (store.achievements.sharpEye === undefined) store.achievements.sharpEye = false;
-    if (store.achievements.birdWatcher === undefined) store.achievements.birdWatcher = false;
-    if (store.achievements.goodMemory === undefined) store.achievements.goodMemory = false;
-    /* stats migration for Phase 3 */
+    /* new decor keys */
+    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait"];
+    for (var ndi = 0; ndi < newDecorKeys.length; ndi++) {
+      if (store.decor[newDecorKeys[ndi]] === undefined) store.decor[newDecorKeys[ndi]] = newDecorKeys[ndi] === "couchPillows" || newDecorKeys[ndi] === "rugPattern" || newDecorKeys[ndi] === "garland" ? 0 : false;
+    }
+    /* achievement keys */
+    var allAchKeys = ["obiBestFriend","comboStar","catWhisperer","pouncePerfect","couchPotato","maximumCozy","goodWalker","napMaster","squeakyClean","sortingPro","whackQueen","sharpEye","birdWatcher","goodMemory","greenThumb","shutterBug","fashionista","dedicated","socialButterfly","fullHouse","wellFed","collector"];
+    for (var ai = 0; ai < allAchKeys.length; ai++) {
+      if (store.achievements[allAchKeys[ai]] === undefined) store.achievements[allAchKeys[ai]] = false;
+    }
+    /* stats */
     if (store.stats.totalSessions === undefined) store.stats.totalSessions = 0;
     if (store.stats.totalPhotos === undefined) store.stats.totalPhotos = 0;
     if (store.stats.totalCoinsEarned === undefined) store.stats.totalCoinsEarned = 0;
+    if (store.stats.totalFlowersPlanted === undefined) store.stats.totalFlowersPlanted = 0;
+    if (store.stats.totalBowlsFilled === undefined) store.stats.totalBowlsFilled = 0;
+    if (store.stats.petInteractionsSeen === undefined) store.stats.petInteractionsSeen = 0;
+
+    /* ── Wardrobe migration: single-slot → multi-slot ── */
+    if (typeof store.wardrobe.equipped.obi === "string" || store.wardrobe.equipped.obi === null) {
+      var oldObi = store.wardrobe.equipped.obi;
+      var oldLuna = store.wardrobe.equipped.luna;
+      var obiSlot = "neck";
+      if (oldObi) { for (var oi = 0; oi < ACCESSORIES.obi.length; oi++) { if (ACCESSORIES.obi[oi].key === oldObi) { obiSlot = ACCESSORIES.obi[oi].slot; break; } } }
+      var lunaSlot = "head";
+      if (oldLuna) { for (var li = 0; li < ACCESSORIES.luna.length; li++) { if (ACCESSORIES.luna[li].key === oldLuna) { lunaSlot = ACCESSORIES.luna[li].slot; break; } } }
+      store.wardrobe.equipped = {
+        obi: { head: null, neck: null, body: null },
+        luna: { head: null, neck: null },
+        annie: { head: null, wrist: null }
+      };
+      if (oldObi) store.wardrobe.equipped.obi[obiSlot] = oldObi;
+      if (oldLuna) store.wardrobe.equipped.luna[lunaSlot] = oldLuna;
+      saveWardrobe();
+    }
+    /* ensure annie slot exists */
+    if (!store.wardrobe.equipped.annie) store.wardrobe.equipped.annie = { head: null, wrist: null };
+    if (!store.wardrobe.equipped.obi.head && store.wardrobe.equipped.obi.head !== null) store.wardrobe.equipped.obi = { head: null, neck: store.wardrobe.equipped.obi.neck || null, body: store.wardrobe.equipped.obi.body || null };
 
     function saveStats() { saveJSON("stats", store.stats); }
     function saveAchievements() { saveJSON("achievements", store.achievements); }
     function saveDecor() { saveJSON("decor", store.decor); }
+    function saveBackyardDecor() { saveJSON("backyardDecor", store.backyardDecor); }
     function saveCareStreak() { saveJSON("careStreak", store.careStreak); }
     function setBest(gameId, value) {
       const key = "best_" + gameId;
@@ -323,6 +447,39 @@
       if (store.scrapbook.entries.length > 50) store.scrapbook.entries.shift();
       saveJSON("scrapbook", store.scrapbook);
     }
+
+    /* check if a decor item can be purchased/toggled */
+    function canUnlockDecorItem(item) {
+      if (item.achievementUnlock) return !!store.achievements[item.achievementUnlock];
+      if (item.streakUnlock) return store.careStreak.count >= item.streakUnlock;
+      if (item.stars > 0) return totalStarsEarned() >= item.stars;
+      if (item.tier && !canAccessTier(item.tier)) return false;
+      if (item.price && store.decorPurchased.indexOf(item.key) < 0) return false;
+      return true;
+    }
+
+    /* check if player has purchased a coin-gated decor item */
+    function isDecorPurchased(item) {
+      if (!item.price) return true;
+      return store.decorPurchased.indexOf(item.key) >= 0;
+    }
+
+    /* check if an accessory can be purchased */
+    function canUnlockAccessory(acc) {
+      if (acc.achievementUnlock) {
+        var parts = acc.achievementUnlock.split("+");
+        for (var pi = 0; pi < parts.length; pi++) {
+          if (parts[pi] === "allAchievements") {
+            for (var ak in store.achievements) { if (!store.achievements[ak]) return false; }
+          } else if (!store.achievements[parts[pi]]) return false;
+        }
+        return true;
+      }
+      if (acc.starUnlock) return totalStarsEarned() >= acc.starUnlock;
+      if (acc.tier && !canAccessTier(acc.tier)) return false;
+      return true;
+    }
+
     function totalStarsEarned() {
       const games = [
         { best: store.best_treat, thresholds: [300, 700, 1400] },
@@ -344,6 +501,22 @@
         if (g.best >= g.thresholds[2]) total++;
       }
       return total;
+    }
+
+    /* check and award star milestone coins */
+    function checkStarMilestones() {
+      var stars = totalStarsEarned();
+      var awarded = 0;
+      for (var mi = 0; mi < STAR_MILESTONES.length; mi++) {
+        var m = STAR_MILESTONES[mi];
+        if (stars >= m.stars && store.starMilestonesClaimed.indexOf(m.stars) < 0) {
+          store.starMilestonesClaimed.push(m.stars);
+          saveJSON("starMilestonesClaimed", store.starMilestonesClaimed);
+          addCoins(m.coins);
+          awarded += m.coins;
+        }
+      }
+      return awarded;
     }
 
 
@@ -998,10 +1171,39 @@
       "items.dogTreats": 1.62, "items.catTreats": 1.60
     };
 
+    const ACCESSORY_ATLAS_URI = "assets/cozy-accessories-atlas.webp";
+
+    const ACCESSORY_ATLAS_FRAMES = {
+      "scarfKnit": { "x": 8, "y": 8, "w": 280, "h": 286 },
+      "witchHat": { "x": 296, "y": 8, "w": 280, "h": 272 },
+      "partyHat": { "x": 584, "y": 8, "w": 178, "h": 265 },
+      "raincoatYellow": { "x": 8, "y": 302, "w": 280, "h": 259 },
+      "jerseyBlue": { "x": 296, "y": 302, "w": 280, "h": 256 },
+      "tiara": { "x": 584, "y": 302, "w": 280, "h": 226 },
+      "bowtieBlack": { "x": 8, "y": 569, "w": 280, "h": 215 },
+      "flowerLei": { "x": 296, "y": 569, "w": 280, "h": 207 },
+      "beretPink": { "x": 584, "y": 569, "w": 280, "h": 204 },
+      "crownGold": { "x": 8, "y": 792, "w": 248, "h": 166 },
+      "bellCollar": { "x": 264, "y": 792, "w": 280, "h": 155 },
+      "bowLavender": { "x": 552, "y": 792, "w": 280, "h": 151 },
+      "watchGold": { "x": 8, "y": 966, "w": 280, "h": 149 },
+      "sunHat": { "x": 296, "y": 966, "w": 280, "h": 145 },
+      "hairClipStar": { "x": 584, "y": 966, "w": 280, "h": 144 },
+      "bandanaBlue": { "x": 8, "y": 1123, "w": 280, "h": 135 },
+      "braceletCharm": { "x": 296, "y": 1123, "w": 280, "h": 131 },
+      "sweaterGreen": { "x": 584, "y": 1123, "w": 280, "h": 127 },
+      "braceletBeaded": { "x": 8, "y": 1266, "w": 280, "h": 123 },
+      "pearlNecklace": { "x": 296, "y": 1266, "w": 280, "h": 118 },
+      "headbandFloral": { "x": 584, "y": 1266, "w": 280, "h": 87 },
+      "crownFloral": { "x": 8, "y": 1397, "w": 280, "h": 84 },
+      "crownSilver": { "x": 296, "y": 1397, "w": 280, "h": 54 }
+    };
+
     const spriteArt = {
       ready: false,
       loading: false,
       image: null,
+      accessoryImage: null,
       frames: SPRITE_FRAME_BOXES
     };
 
@@ -1015,17 +1217,20 @@
     function loadCozyArt() {
       if (spriteArt.loading || spriteArt.ready) return;
       spriteArt.loading = true;
-      const img = new Image();
+      var mainLoaded = false, accLoaded = false;
+      function checkDone() {
+        if (mainLoaded && accLoaded) { spriteArt.loading = false; spriteArt.ready = true; }
+      }
+      var img = new Image();
       img.decoding = "async";
-      img.onload = () => {
-        spriteArt.image = img;
-        spriteArt.loading = false;
-        spriteArt.ready = true;
-      };
-      img.onerror = () => {
-        spriteArt.loading = false;
-      };
+      img.onload = function() { spriteArt.image = img; mainLoaded = true; checkDone(); };
+      img.onerror = function() { spriteArt.loading = false; };
       img.src = SPRITE_ATLAS_URI;
+      var accImg = new Image();
+      accImg.decoding = "async";
+      accImg.onload = function() { spriteArt.accessoryImage = accImg; accLoaded = true; checkDone(); };
+      accImg.onerror = function() { accLoaded = true; checkDone(); };
+      accImg.src = ACCESSORY_ATLAS_URI;
     }
 
     function drawZzz(c, x, y, scale = 1, alpha = 0.9) {
@@ -1932,6 +2137,13 @@
       /* Offsets are relative to pet anchor (feet position).
          renderSize = how wide to draw the accessory in pixels. */
       if (pet === "obi") {
+        if (slot === "head") {
+          var dy = -72, dx = 0, sz = 22, rot = 0;
+          if (pose === "run" || pose === "side") { dy = -56; dx = 6; rot = 0.05; }
+          else if (pose === "sniff") { dy = -48; dx = 10; rot = 0.15; sz = 20; }
+          else if (pose === "eat" || pose === "drink") { dy = -46; dx = 8; rot = 0.12; sz = 20; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
         if (slot === "neck") {
           var dy = -58, dx = 2, sz = 30, rot = 0;
           if (pose === "run" || pose === "side") { dy = -42; dx = 8; rot = 0.1; }
@@ -1946,6 +2158,23 @@
           else if (pose === "sniff" || pose === "eat" || pose === "drink") { dy = -32; rot = 0.1; }
           return { dx: dx, dy: dy, size: sz, rot: rot };
         }
+      } else if (pet === "annie") {
+        /* annie */
+        if (slot === "head") {
+          var dy = -120, dx = 0, sz = 22, rot = 0;
+          if (pose === "sit" || pose === "kneel") { dy = -108; }
+          else if (pose === "walk" || pose === "walkSide") { dy = -118; dx = 4; }
+          else if (pose === "cheer") { dy = -124; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+        if (slot === "wrist") {
+          var dy = -60, dx = 18, sz = 14, rot = 0;
+          if (pose === "sit") { dy = -50; dx = 14; }
+          else if (pose === "kneel") { dy = -46; dx = 16; }
+          else if (pose === "cheer") { dy = -70; dx = 22; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+        return null;
       } else {
         /* luna */
         if (slot === "head") {
@@ -1970,26 +2199,37 @@
 
     function drawAccessoryOverlay(c, pet, x, y, scale, pose, facing) {
       var equipped = store.wardrobe.equipped[pet];
-      if (!equipped) return;
-      var off = getAccessoryOffset(pet, equipped, pose);
-      if (!off) return;
+      if (!equipped || typeof equipped !== "object") return;
       if (!spriteArt.ready) return;
-      var accFrames = spriteArt.frames.accessories;
-      var frame = accFrames ? accFrames[equipped] : null;
-      if (!frame) return;
-      var f = facing || 1;
-      var ax = x + off.dx * scale * f;
-      var ay = y + off.dy * scale;
-      var renderW = off.size * scale;
-      var aspect = frame.h / frame.w;
-      var renderH = renderW * aspect;
-      c.save();
-      c.translate(ax, ay);
-      c.rotate(off.rot * f);
-      c.scale(f, 1);
-      c.drawImage(spriteArt.image, frame.x, frame.y, frame.w, frame.h,
-        -renderW / 2, -renderH / 2, renderW, renderH);
-      c.restore();
+      var mainAccFrames = spriteArt.frames.accessories || {};
+      var slots = Object.keys(equipped);
+      for (var si = 0; si < slots.length; si++) {
+        var key = equipped[slots[si]];
+        if (!key) continue;
+        var off = getAccessoryOffset(pet, key, pose);
+        if (!off) continue;
+        /* look up frame from main atlas first, then accessory atlas */
+        var frame = mainAccFrames[key];
+        var atlasImg = spriteArt.image;
+        if (!frame && ACCESSORY_ATLAS_FRAMES[key]) {
+          frame = ACCESSORY_ATLAS_FRAMES[key];
+          atlasImg = spriteArt.accessoryImage;
+        }
+        if (!frame || !atlasImg) continue;
+        var f = facing || 1;
+        var ax = x + off.dx * scale * f;
+        var ay = y + off.dy * scale;
+        var renderW = off.size * scale;
+        var aspect = frame.h / frame.w;
+        var renderH = renderW * aspect;
+        c.save();
+        c.translate(ax, ay);
+        c.rotate(off.rot * f);
+        c.scale(f, 1);
+        c.drawImage(atlasImg, frame.x, frame.y, frame.w, frame.h,
+          -renderW / 2, -renderH / 2, renderW, renderH);
+        c.restore();
+      }
     }
 
 
@@ -2860,6 +3100,124 @@
           c.restore();
         }
       }
+      /* ── Phase 4 decorations ── */
+      if (d.floorCushion) {
+        c.fillStyle = "#E8A898";
+        c.beginPath(); c.ellipse(340, 488, 22, 10, 0.1, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "rgba(255,255,255,0.2)";
+        c.beginPath(); c.ellipse(336, 486, 8, 4, 0, 0, Math.PI * 2); c.fill();
+      }
+      if (d.corkBoard) {
+        c.fillStyle = "#B89060";
+        rr(c, 472, 110, 52, 42, 3); c.fill();
+        c.fillStyle = "#D4A870";
+        rr(c, 475, 113, 46, 36, 2); c.fill();
+        /* pins */
+        c.fillStyle = "#D04040"; c.beginPath(); c.arc(485, 122, 2.5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#4090D0"; c.beginPath(); c.arc(500, 130, 2.5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#40B040"; c.beginPath(); c.arc(510, 120, 2.5, 0, Math.PI * 2); c.fill();
+        /* notes */
+        c.fillStyle = "#FFFAC0"; rr(c, 481, 125, 14, 16, 1); c.fill();
+        c.fillStyle = "#C0E8FF"; rr(c, 498, 133, 16, 12, 1); c.fill();
+      }
+      if (d.bookStack) {
+        var bkColors = ["#8B4040", "#40608B", "#6B8B40", "#8B6B40"];
+        for (var bi = 0; bi < 4; bi++) {
+          c.fillStyle = bkColors[bi];
+          rr(c, 236, 360 - bi * 8, 28, 7, 2); c.fill();
+        }
+      }
+      if (d.hangingPlant) {
+        /* macrame hanger from ceiling */
+        c.strokeStyle = "#C8B8A0"; c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(560, 0); c.lineTo(560, 60); c.stroke();
+        c.beginPath(); c.moveTo(555, 50); c.quadraticCurveTo(560, 65, 565, 50); c.stroke();
+        c.fillStyle = "#6B8B40";
+        c.beginPath(); c.arc(560, 54, 12, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#8BAB50";
+        c.beginPath(); c.arc(556, 48, 6, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(565, 50, 5, 0, Math.PI * 2); c.fill();
+      }
+      if (d.candles) {
+        /* 3 candles on side table — animated glow handled by time */
+        for (var ci = 0; ci < 3; ci++) {
+          var cx = 240 + ci * 12;
+          c.fillStyle = "#FFF0D0"; rr(c, cx - 3, 320, 6, 14, 2); c.fill();
+          c.fillStyle = "#FF9020";
+          var flicker = Math.sin(game.time * 6 + ci * 2) * 1.5;
+          c.beginPath(); c.arc(cx, 318 + flicker, 3, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "rgba(255,180,60,0.15)";
+          c.beginPath(); c.arc(cx, 320, 10 + flicker, 0, Math.PI * 2); c.fill();
+        }
+      }
+      if (d.wallClock) {
+        c.fillStyle = "#E8D8C0";
+        c.beginPath(); c.arc(550, 180, 18, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = "#8B7355"; c.lineWidth = 2;
+        c.beginPath(); c.arc(550, 180, 18, 0, Math.PI * 2); c.stroke();
+        /* hour hand */
+        var hr = (game.time * 0.001) % (Math.PI * 2);
+        c.strokeStyle = "#5C4434"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(hr) * 9, 180 - Math.cos(hr) * 9); c.stroke();
+        /* minute hand */
+        var mn = (game.time * 0.01) % (Math.PI * 2);
+        c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(mn) * 13, 180 - Math.cos(mn) * 13); c.stroke();
+        c.fillStyle = "#5C4434"; c.beginPath(); c.arc(550, 180, 2, 0, Math.PI * 2); c.fill();
+      }
+      if (d.petToys) {
+        /* small basket of toys on the floor */
+        c.fillStyle = "#B89868";
+        rr(c, 300, 478, 36, 18, 6); c.fill();
+        c.fillStyle = "#4A90D9"; c.beginPath(); c.arc(308, 476, 5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#E8A84C"; rr(c, 316, 473, 12, 5, 2); c.fill();
+        c.fillStyle = "#FF69B4"; c.beginPath(); c.arc(324, 476, 4, 0, Math.PI * 2); c.fill();
+      }
+      if (d.garland > 0) {
+        var gColors = [
+          ["#FFB6C1", "#FFD700", "#87CEEB"],
+          ["#FFD700", "#FF8C42", "#FFE4B5"],
+          ["#C87848", "#A87048", "#D4A848"],
+          ["#B8D8F0", "#E8E8F0", "#D0D8E8"]
+        ];
+        var gc = gColors[(d.garland - 1) % gColors.length];
+        c.strokeStyle = "rgba(160,140,120,0.3)"; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(300, 36); c.quadraticCurveTo(400, 50, 500, 36); c.stroke();
+        for (var gi = 0; gi < 8; gi++) {
+          var gx = 310 + gi * 24;
+          var gy = 36 + Math.sin((gi / 7) * Math.PI) * 14;
+          c.fillStyle = gc[gi % gc.length];
+          c.beginPath(); c.arc(gx, gy + 4, 4, 0, Math.PI * 2); c.fill();
+        }
+      }
+      if (d.musicBox) {
+        c.fillStyle = "#B89060";
+        rr(c, 248, 328, 18, 12, 3); c.fill();
+        c.fillStyle = "#FFD700";
+        c.beginPath(); c.arc(257, 326, 2, 0, Math.PI * 2); c.fill();
+        /* occasional sparkle */
+        if (Math.sin(game.time * 1.5) > 0.8) {
+          c.fillStyle = "rgba(255,215,0,0.5)";
+          c.beginPath(); c.arc(257 + Math.sin(game.time * 3) * 5, 322 - Math.abs(Math.sin(game.time * 2)) * 6, 2, 0, Math.PI * 2); c.fill();
+        }
+      }
+      if (d.familyPortrait) {
+        c.fillStyle = "#C8A872";
+        rr(c, 340, 90, 44, 36, 3); c.fill();
+        c.fillStyle = "#FFE8D8";
+        rr(c, 344, 94, 36, 28, 2); c.fill();
+        /* tiny silhouettes */
+        c.fillStyle = "#E8C85A"; c.beginPath(); c.arc(358, 104, 5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#FAFAFA"; c.beginPath(); c.arc(350, 112, 4, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#9B7D3C"; c.beginPath(); c.arc(366, 112, 3.5, 0, Math.PI * 2); c.fill();
+      }
+      var couchPillowColors = [null, "#E88070", "#7ECBB0", "#E8C84A", "#C39BD3"];
+      if (d.couchPillows > 0) {
+        c.fillStyle = couchPillowColors[d.couchPillows] || "#E88070";
+        c.beginPath(); c.ellipse(352, 310, 14, 10, -0.2, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.ellipse(448, 308, 12, 9, 0.15, 0, Math.PI * 2); c.fill();
+      }
+
       const rugColors = ["rgba(216,194,168,1)", "rgba(168,198,148,1)", "rgba(185,170,210,1)", "rgba(210,175,168,1)"];
       if (d.rugColor > 0) {
         c.save();
@@ -3162,6 +3520,7 @@
         this.wardrobeOpen = false;
         this.wardrobeHover = null;
         this.wardrobeFade = 0;
+        this.wardrobeTab = "obi";
         this.modeButtons = [
           { key: "pet", label: "Pet", x: 148, y: 16, w: 88, h: 40 },
           { key: "treat", label: "Treats", x: 242, y: 16, w: 88, h: 40 },
@@ -3333,23 +3692,34 @@
           store.lastVisitDate = today;
           saveJSON("lastVisitDate", today);
         }
-        /* care streak milestones */
+        /* care streak milestones — expanded with escalating rewards */
         const streak = store.careStreak;
         const milestones = [
-          { days: 3, reward: () => { this.obi.joy = clamp(this.obi.joy + 10, 0, 100); this.luna.joy = clamp(this.luna.joy + 10, 0, 100); }, text: "3-day care streak! Both pets are thrilled!" },
-          { days: 7, reward: () => { store.decor.cozyBlanket = true; saveDecor(); }, text: "7-day streak! You earned the Cozy Blanket!" },
-          { days: 14, reward: () => { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); this.luna.joy = clamp(this.luna.joy + 15, 0, 100); if (this.foodBowl) this.foodBowl.fill = 100; if (this.waterBowl) this.waterBowl.fill = 100; }, text: "2-week streak! You're an amazing pet parent!" },
-          { days: 30, reward: () => { store.decor.photoWall = true; saveDecor(); }, text: "30-day streak! A whole month of care!" }
+          { days: 3, coins: 10, reward: () => { this.obi.joy = clamp(this.obi.joy + 10, 0, 100); this.luna.joy = clamp(this.luna.joy + 10, 0, 100); }, text: "3-day care streak! +10 coins" },
+          { days: 7, coins: 15, reward: () => { store.decor.cozyBlanket = true; saveDecor(); }, text: "7-day streak! Cozy Blanket + 15 coins!" },
+          { days: 14, coins: 20, reward: () => { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); this.luna.joy = clamp(this.luna.joy + 15, 0, 100); if (this.foodBowl) this.foodBowl.fill = 100; if (this.waterBowl) this.waterBowl.fill = 100; }, text: "2-week streak! +20 coins!" },
+          { days: 21, coins: 25, reward: () => {}, text: "21-day streak! Tier 2 unlocked! +25 coins!" },
+          { days: 30, coins: 30, reward: () => { store.decor.photoWall = true; saveDecor(); }, text: "30-day streak! Photo Wall + 30 coins!" },
+          { days: 45, coins: 40, reward: () => {}, text: "45-day streak! +40 coins!" },
+          { days: 60, coins: 50, reward: () => {}, text: "60-day streak! Tier 3 unlocked! +50 coins!" },
+          { days: 90, coins: 75, reward: () => {}, text: "90-day streak! +75 coins! Incredible!" }
         ];
         for (const m of milestones) {
           if (streak.count >= m.days && !streak.milestonesClaimed.includes(m.days)) {
             streak.milestonesClaimed.push(m.days);
             saveCareStreak();
             m.reward();
-            this.earnCoins(15);
-            if (m.days === 7) addScrapbookEntry("milestone", "Reached a 7-day care streak!", "heart");
-            else if (m.days === 30) addScrapbookEntry("milestone", "A whole month of daily care!", "heart");
+            this.earnCoins(m.coins);
+            addScrapbookEntry("milestone", m.text, "heart");
             this.decorNotification = { text: m.text, timer: 5 };
+            /* dedicated achievement at 30 days */
+            if (m.days >= 30 && !store.achievements.dedicated) {
+              store.achievements.dedicated = true;
+              saveAchievements();
+              var dedInfo = ACHIEVEMENTS.find(function(a) { return a.key === "dedicated"; });
+              if (dedInfo && dedInfo.coinBonus) addCoins(dedInfo.coinBonus);
+              addScrapbookEntry("achievement", "Dedicated Caretaker unlocked!", "star");
+            }
           }
         }
         /* daily tasks */
@@ -3359,6 +3729,30 @@
           store.dailyTasks = { date: today, tasks: shuffled.slice(0, 3).map(t => t.id), completed: [] };
           saveJSON("dailyTasks", store.dailyTasks);
         }
+        /* weekly challenge — reset each Monday */
+        var weekId = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+        if (store.weeklyChallenge.weekId !== weekId) {
+          var wcSeed = weekId * 13 + 7;
+          var wcIdx = wcSeed % WEEKLY_CHALLENGES.length;
+          var wc = WEEKLY_CHALLENGES[wcIdx];
+          store.weeklyChallenge = { weekId: weekId, challengeId: wc.id, progress: 0, target: wc.target, completed: false, reward: wc.reward, text: wc.text };
+          saveJSON("weeklyChallenge", store.weeklyChallenge);
+        }
+      }
+      trackWeeklyChallenge(trackKey, amount) {
+        var wc = store.weeklyChallenge;
+        if (!wc || wc.completed) return;
+        var challenge = WEEKLY_CHALLENGES.find(function(c) { return c.id === wc.challengeId; });
+        if (!challenge || challenge.trackKey !== trackKey) return;
+        wc.progress = Math.min(wc.target, wc.progress + (amount || 1));
+        if (wc.progress >= wc.target) {
+          wc.completed = true;
+          addCoins(wc.reward);
+          this.decorNotification = { text: "Weekly challenge complete! +" + wc.reward + " coins!", timer: 5 };
+          audio.combo();
+          addScrapbookEntry("milestone", "Completed weekly challenge: " + (wc.text || ""), "star");
+        }
+        saveJSON("weeklyChallenge", wc);
       }
       getPetRect(key) {
         if (key === "obi") return { x: this.obi.x - 72, y: this.obi.y - 112, w: 144, h: 120 };
@@ -3558,8 +3952,11 @@
           this.wardrobeHover = null;
           var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, closeBtn)) { this.wardrobeHover = "close"; return; }
-          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
-          for (var ai = 0; ai < allAcc.length; ai++) {
+          if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabObi"; return; }
+          if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabLuna"; return; }
+          if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabAnnie"; return; }
+          var tabItems = this.getWardrobeTabItems();
+          for (var ai = 0; ai < tabItems.length; ai++) {
             var wr = this.getWardrobeItemRect(ai);
             if (pointInRect(x, y, wr)) { this.wardrobeHover = ai; break; }
           }
@@ -3634,11 +4031,14 @@
           return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
         }
         if (this.wardrobeOpen) {
-          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
-          for (var ai = 0; ai < allAcc.length; ai++) {
+          var tabItems = this.getWardrobeTabItems();
+          for (var ai = 0; ai < tabItems.length; ai++) {
             if (pointInRect(x, y, this.getWardrobeItemRect(ai))) return true;
           }
-          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
+          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 }) ||
+            pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 }) ||
+            pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 }) ||
+            pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 });
         }
         if (this.scrapbookOpen) {
           return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 }) ||
@@ -3681,7 +4081,7 @@
           if (this.dailyGift.phase > 0.5) {
             this.dailyGift.collected = true;
             this.dailyGift.phase = 0;
-            var giftCoins = 10 + Math.floor(Math.random() * 11);
+            var giftCoins = 15 + Math.floor(Math.random() * 11);
             var gifts = [
               { text: "+" + giftCoins + " coins & +10 joy for both pets!", effect: () => { this.obi.joy = clamp(this.obi.joy + 10, 0, 100); this.luna.joy = clamp(this.luna.joy + 10, 0, 100); } },
               { text: "+" + giftCoins + " coins & bowls refilled!", effect: () => { this.foodBowl.fill = 100; this.waterBowl.fill = 100; } },
@@ -3733,10 +4133,29 @@
           for (let i = 0; i < pageItems.length; i++) {
             if (pointInRect(x, y, this.getDecorItemRect(i))) {
               const item = pageItems[i];
-              if (item.streakUnlock && store.careStreak.count < item.streakUnlock) {
-                audio.miss(); this.statusText = "Need a " + item.streakUnlock + "-day care streak to unlock!"; this.statusPulse = 1; return;
+              /* check all unlock conditions */
+              if (!canUnlockDecorItem(item)) {
+                audio.miss();
+                if (item.achievementUnlock) this.statusText = "Unlock the " + item.achievementUnlock + " achievement first!";
+                else if (item.streakUnlock) this.statusText = "Need a " + item.streakUnlock + "-day care streak!";
+                else if (item.stars > 0) this.statusText = "Need " + item.stars + " stars!";
+                else if (item.tier && !canAccessTier(item.tier)) this.statusText = "Tier " + item.tier + " locked!";
+                else if (item.price && !isDecorPurchased(item)) this.statusText = "Purchase this item first!";
+                this.statusPulse = 1; return;
               }
-              if (item.stars > 0 && stars < item.stars) { audio.miss(); this.statusText = "Need " + (item.stars - stars) + " more star" + (item.stars - stars === 1 ? "" : "s") + " to unlock " + item.name + "!"; this.statusPulse = 1; return; }
+              /* coin purchase for new items */
+              if (item.price && !isDecorPurchased(item)) {
+                if (store.coins < item.price) {
+                  audio.miss(); this.statusText = "Need " + item.price + " coins!"; this.statusPulse = 1; return;
+                }
+                addCoins(-item.price);
+                store.decorPurchased.push(item.key);
+                saveJSON("decorPurchased", store.decorPurchased);
+                audio.combo();
+                this.statusText = "Bought " + item.name + "!";
+                this.statusPulse = 1;
+              }
+              /* toggle/cycle the item */
               if (item.type === "toggle") {
                 store.decor[item.key] = !store.decor[item.key];
               } else if (item.type === "cycle") {
@@ -3744,7 +4163,7 @@
               }
               saveDecor();
               audio.tinyChime();
-              if (item.key === "rugColor" || item.key === "roomPreset" || item.key === "wallArt2") { sceneCache.livingRoomBase = null; }
+              if (item.key === "rugColor" || item.key === "roomPreset" || item.key === "wallArt2" || item.key === "rugPattern") { sceneCache.livingRoomBase = null; }
               return;
             }
           }
@@ -3755,35 +4174,58 @@
         if (this.wardrobeOpen) {
           var wCloseBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, wCloseBtn)) { audio.menu(); this.wardrobeOpen = false; return; }
-          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
-          for (var ai = 0; ai < allAcc.length; ai++) {
+          /* tab clicks */
+          if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "obi"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "luna"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "annie"; audio.tinyChime(); return; }
+          /* item clicks */
+          var tabItems = this.getWardrobeTabItems();
+          var pet = this.wardrobeTab;
+          for (var ai = 0; ai < tabItems.length; ai++) {
             var wr = this.getWardrobeItemRect(ai);
             if (pointInRect(x, y, wr)) {
-              var acc = allAcc[ai];
-              var pet = ai < ACCESSORIES.obi.length ? "obi" : "luna";
+              var acc = tabItems[ai];
               var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
               if (!owned) {
-                if (store.coins >= acc.price) {
-                  addCoins(-acc.price);
-                  store.wardrobe.owned.push(acc.key);
-                  store.wardrobe.equipped[pet] = acc.key;
-                  saveWardrobe();
-                  audio.combo();
-                  this.statusText = "Bought " + acc.name + "!";
+                /* check unlock conditions */
+                if (!canUnlockAccessory(acc)) {
+                  audio.miss();
+                  if (acc.tier && !canAccessTier(acc.tier)) this.statusText = "Tier " + acc.tier + " locked — earn more stars or streaks!";
+                  else if (acc.achievementUnlock) this.statusText = "Unlock the required achievements first!";
+                  else if (acc.starUnlock) this.statusText = "Need " + acc.starUnlock + " stars!";
+                  else this.statusText = "Can't unlock " + acc.name + " yet!";
                   this.statusPulse = 1;
-                  if (store.wardrobe.owned.length === 1) {
-                    addScrapbookEntry("milestone", "Bought " + acc.name + " — first accessory!", "star");
-                  }
-                } else {
+                  return;
+                }
+                if (acc.price > 0 && store.coins < acc.price) {
                   audio.miss();
                   this.statusText = "Not enough coins for " + acc.name + "!";
                   this.statusPulse = 1;
+                  return;
                 }
+                if (acc.price > 0) addCoins(-acc.price);
+                store.wardrobe.owned.push(acc.key);
+                store.wardrobe.equipped[pet][acc.slot] = acc.key;
+                saveWardrobe();
+                audio.combo();
+                this.statusText = "Bought " + acc.name + "!";
+                this.statusPulse = 1;
+                if (store.wardrobe.owned.length === 1) {
+                  addScrapbookEntry("milestone", "Bought " + acc.name + " — first accessory!", "star");
+                }
+                if (store.wardrobe.owned.length >= 10 && !store.achievements.fashionista) {
+                  store.achievements.fashionista = true; saveAchievements();
+                  var faInfo = ACHIEVEMENTS.find(function(a) { return a.key === "fashionista"; });
+                  if (faInfo && faInfo.coinBonus) addCoins(faInfo.coinBonus);
+                  addScrapbookEntry("achievement", "Fashionista unlocked!", "star");
+                }
+                this.trackWeeklyChallenge("itemsBought", 1);
               } else {
-                if (store.wardrobe.equipped[pet] === acc.key) {
-                  store.wardrobe.equipped[pet] = null;
+                /* toggle equip */
+                if (store.wardrobe.equipped[pet][acc.slot] === acc.key) {
+                  store.wardrobe.equipped[pet][acc.slot] = null;
                 } else {
-                  store.wardrobe.equipped[pet] = acc.key;
+                  store.wardrobe.equipped[pet][acc.slot] = acc.key;
                 }
                 saveWardrobe();
                 audio.tinyChime();
@@ -3871,6 +4313,14 @@
             audio.tinyChime();
             this.checkBubbleReward("obi", "feed");
             this.checkBubbleReward("luna", "feed");
+            store.stats.totalBowlsFilled++;
+            saveStats();
+            if (store.stats.totalBowlsFilled >= 50 && !store.achievements.wellFed) {
+              store.achievements.wellFed = true; saveAchievements();
+              var wfInfo = ACHIEVEMENTS.find(function(a) { return a.key === "wellFed"; });
+              if (wfInfo && wfInfo.coinBonus) addCoins(wfInfo.coinBonus);
+              addScrapbookEntry("achievement", "Well Fed unlocked!", "star");
+            }
             return;
           }
           if (pointInRect(x, y, this.waterBowlHitbox)) {
@@ -3880,6 +4330,8 @@
             store.pet_water_lastFill = this.waterBowl.lastFill;
             saveNumber("pet_water_fill", 100);
             saveNumber("pet_water_lastFill", this.waterBowl.lastFill);
+            store.stats.totalBowlsFilled++;
+            saveStats();
             this.statusText = "Annie refilled the water!";
             this.statusPulse = 0.6;
             spawnParticleBurst(this.waterBowl.x, this.waterBowl.y - 10, ["#6CB4EE", "#A0D4FF"], 6, ["star"]);
@@ -4650,6 +5102,8 @@
         }
       }
       updatePetInteraction(dt) {
+        /* pet interaction tracking helper */
+        if (!this._interactionTracked) this._interactionTracked = {};
         const pi = this.petInteraction;
         const obiBusy = this.treats.some(t => t.pet === "obi") || (this.toy && this.toy.pet === "obi") || this.obi.sleepy;
         const lunaBusy = this.treats.some(t => t.pet === "luna") || (this.toy && this.toy.pet === "luna") || this.luna.perch !== "floor";
@@ -4674,6 +5128,8 @@
                 this.addFloatingText("Nose boop!", midX, midY - 10, COLORS.softPink);
                 this.obi.joy = clamp(this.obi.joy + 6, 0, 100);
                 this.luna.joy = clamp(this.luna.joy + 4, 0, 100);
+                if (!this._interactionTracked[pi.type]) { this._interactionTracked[pi.type] = true; store.stats.petInteractionsSeen++; saveStats(); }
+                if (store.stats.petInteractionsSeen >= 5 && !store.achievements.socialButterfly) { store.achievements.socialButterfly = true; saveAchievements(); var sbI = ACHIEVEMENTS.find(function(a) { return a.key === "socialButterfly"; }); if (sbI && sbI.coinBonus) addCoins(sbI.coinBonus); addScrapbookEntry("achievement", "Social Butterfly unlocked!", "star"); }
                 pi.active = false; pi.timer = rand(8, 14); pi.phase = 0;
                 this.obi.sniffing = false;
                 this.obi.targetX = this.obi.homeX;
@@ -4921,6 +5377,8 @@
         var lunaSt = this.petSpriteState("luna");
         drawLuna(c, this.luna.x, lunaY, lunaS, lunaSt);
         drawAccessoryOverlay(c, "luna", this.luna.x, lunaY, lunaS, lunaSt.pose, lunaSt.facing);
+        drawAnnie(c, this.annie.x, this.annie.y, 1.34, { pose: this.annie.pose, facing: this.annie.facing });
+        drawAccessoryOverlay(c, "annie", this.annie.x, this.annie.y, 1.34, this.annie.pose, this.annie.facing);
       }
       capturePhoto() {
         if (!spriteArt.ready) {
@@ -4977,11 +5435,19 @@
         if (store.stats.totalPhotos === 1) {
           addScrapbookEntry("milestone", "Took the first photo!", "star");
         }
+        if (store.stats.totalPhotos >= 10 && !store.achievements.shutterBug) {
+          store.achievements.shutterBug = true; saveAchievements();
+          var sbInfo = ACHIEVEMENTS.find(function(a) { return a.key === "shutterBug"; });
+          if (sbInfo && sbInfo.coinBonus) addCoins(sbInfo.coinBonus);
+          addScrapbookEntry("achievement", "Shutter Bug unlocked!", "star");
+        }
+        this.trackWeeklyChallenge("photosTaken", 1);
+      }
+      getWardrobeTabItems() {
+        return ACCESSORIES[this.wardrobeTab] || [];
       }
       getWardrobeItemRect(index) {
-        var col = index < ACCESSORIES.obi.length ? 0 : 1;
-        var row = col === 0 ? index : index - ACCESSORIES.obi.length;
-        return { x: 80 + col * 340, y: 160 + row * 78, w: 320, h: 68 };
+        return { x: 80, y: 175 + index * 62, w: 640, h: 54 };
       }
       drawTreat(c, t) {
         c.save();
@@ -5184,8 +5650,8 @@
           if (store.dailyTasks.completed.length >= 3) {
             this.obi.joy = clamp(this.obi.joy + 5, 0, 100);
             this.luna.joy = clamp(this.luna.joy + 5, 0, 100);
-            this.earnCoins(8);
-            this.decorNotification = { text: "All daily tasks complete! +5 joy for both pets!", timer: 4 };
+            this.earnCoins(12);
+            this.decorNotification = { text: "All daily tasks complete! +12 coins, +5 joy!", timer: 4 };
             audio.combo();
           }
         }
@@ -5467,6 +5933,19 @@
           c.restore();
         }
 
+        /* weekly challenge pill */
+        if (store.weeklyChallenge.challengeId && !store.weeklyChallenge.completed) {
+          c.save();
+          rr(c, 664, 34, 60, 20, 10);
+          c.fillStyle = "rgba(160,130,200,0.65)";
+          c.fill();
+          c.fillStyle = "#FFF8F0";
+          c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText(store.weeklyChallenge.progress + "/" + store.weeklyChallenge.target, 694, 48);
+          c.restore();
+        }
+
         /* compact pet status - small pills */
         c.save();
         rr(c, 14, 62, 140, 42, 12);
@@ -5573,6 +6052,7 @@
           headTilt: this.annie.pose === "walk" ? 0 : 0.1 * Math.sin(game.time * 0.8),
           facing: this.annie.facing
         });
+        drawAccessoryOverlay(c, "annie", this.annie.x, this.annie.y, 1.34, this.annie.pose, this.annie.facing);
 
         /* ambient events — drawn after background, before characters */
         this.drawAmbientEvent(c);
@@ -6044,11 +6524,11 @@
           c.stroke();
           c.fillStyle = "#7A4E36";
           c.textAlign = "center";
-          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Wardrobe", W / 2, 100);
+          c.font = '26px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Wardrobe", W / 2, 98);
           c.fillStyle = "rgba(92,61,46,0.5)";
-          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Coins: " + store.coins + "  •  Buy and equip accessories!", W / 2, 120);
+          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Coins: " + store.coins, W / 2, 116);
           /* close button */
           var wchov = this.wardrobeHover === "close";
           var wcx = W / 2 + 218, wcy = 102;
@@ -6058,55 +6538,80 @@
           c.strokeStyle = "#FFF8F0"; c.lineWidth = wchov ? 3 : 2.5;
           c.beginPath(); c.moveTo(wcx - 6, wcy - 6); c.lineTo(wcx + 6, wcy + 6); c.stroke();
           c.beginPath(); c.moveTo(wcx + 6, wcy - 6); c.lineTo(wcx - 6, wcy + 6); c.stroke();
-          /* column headers */
-          c.fillStyle = "#8B6914";
-          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.textAlign = "center";
-          c.fillText("Obi", 240, 150);
-          c.fillStyle = "#9B7D3C";
-          c.fillText("Luna", 580, 150);
-          /* items */
-          var allAcc = ACCESSORIES.obi.concat(ACCESSORIES.luna);
-          for (var ai = 0; ai < allAcc.length; ai++) {
-            var acc = allAcc[ai];
-            var pet = ai < ACCESSORIES.obi.length ? "obi" : "luna";
+          /* character tabs */
+          var wtabs = [
+            { key: "obi", label: "Obi", x: 80, color: "#8B6914" },
+            { key: "luna", label: "Luna", x: 170, color: "#9B7D3C" },
+            { key: "annie", label: "Annie", x: 260, color: "#C07850" }
+          ];
+          for (var wti = 0; wti < wtabs.length; wti++) {
+            var wt = wtabs[wti];
+            var wtActive = this.wardrobeTab === wt.key;
+            var wtHov = this.wardrobeHover === "tab" + wt.key.charAt(0).toUpperCase() + wt.key.slice(1);
+            rr(c, wt.x, 130, 80, 26, 8);
+            c.fillStyle = wtActive ? wt.color : wtHov ? "rgba(122,78,54,0.2)" : "rgba(122,78,54,0.08)";
+            c.fill();
+            c.fillStyle = wtActive ? "#FFF8F0" : "#7A4E36";
+            c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.textAlign = "center";
+            c.fillText(wt.label, wt.x + 40, 147);
+          }
+          /* items for current tab */
+          var tabItems = this.getWardrobeTabItems();
+          var pet = this.wardrobeTab;
+          var equippedSlots = store.wardrobe.equipped[pet] || {};
+          for (var ai = 0; ai < tabItems.length; ai++) {
+            var acc = tabItems[ai];
             var wr = this.getWardrobeItemRect(ai);
+            if (wr.y + wr.h > 565) break;
             var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
-            var equipped = store.wardrobe.equipped[pet] === acc.key;
+            var equipped = equippedSlots[acc.slot] === acc.key;
             var hover = this.wardrobeHover === ai;
+            var unlockable = canUnlockAccessory(acc);
+            var tierColor = TIER_COLORS[acc.tier] || TIER_COLORS.special;
             c.save();
-            rr(c, wr.x, wr.y, wr.w, wr.h, 14);
+            if (!unlockable && !owned) c.globalAlpha = 0.5;
+            rr(c, wr.x, wr.y, wr.w, wr.h, 10);
             c.fillStyle = hover ? "rgba(255,255,255,1)" : "rgba(255,252,245,0.95)";
             c.fill();
-            c.strokeStyle = equipped ? "#7DB36C" : hover ? "#C07850" : "rgba(146,104,72,0.15)";
-            c.lineWidth = equipped ? 3 : 2;
+            c.strokeStyle = equipped ? "#7DB36C" : hover ? "#C07850" : "rgba(146,104,72,0.12)";
+            c.lineWidth = equipped ? 3 : 1.5;
             c.stroke();
-            /* accessory color dot */
-            var acColors = { bandanaRed: "#D44040", bandanaPlaid: "#8B6914", bandanaCamo: "#5C7A3A", sweaterRed: "#C0392B", bowPink: "#FF69B4", flowerCrown: "#FF9800", starCollar: "#FFD700" };
-            c.fillStyle = acColors[acc.key] || "#888";
-            c.beginPath(); c.arc(wr.x + 28, wr.y + wr.h / 2, 12, 0, Math.PI * 2); c.fill();
-            /* name */
+            /* tier dot */
+            c.fillStyle = tierColor;
+            c.beginPath(); c.arc(wr.x + 22, wr.y + wr.h / 2, 8, 0, Math.PI * 2); c.fill();
+            if (acc.tier) {
+              c.fillStyle = "#FFF8F0";
+              c.font = '10px "Fredoka One", sans-serif';
+              c.textAlign = "center";
+              c.fillText(acc.tier, wr.x + 22, wr.y + wr.h / 2 + 4);
+            }
+            /* name + slot */
             c.textAlign = "left";
             c.fillStyle = "#5C3D2E";
-            c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.fillText(acc.name, wr.x + 50, wr.y + 28);
-            c.fillStyle = "rgba(92,61,46,0.5)";
-            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.fillText(acc.slot, wr.x + 50, wr.y + 48);
-            /* buy/equip status */
+            c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(acc.name, wr.x + 40, wr.y + 22);
+            c.fillStyle = "rgba(92,61,46,0.45)";
+            c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(acc.slot + " slot", wr.x + 40, wr.y + 38);
+            /* status */
             c.textAlign = "right";
-            if (!owned) {
+            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            if (!owned && !unlockable) {
+              c.fillStyle = "rgba(160,140,120,0.5)";
+              c.fillText("Locked", wr.x + wr.w - 14, wr.y + wr.h / 2 + 4);
+            } else if (!owned && acc.price > 0) {
               c.fillStyle = store.coins >= acc.price ? COLORS.gold : "rgba(180,160,140,0.5)";
-              c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-              c.fillText(acc.price + " coins", wr.x + wr.w - 16, wr.y + wr.h / 2 + 5);
+              c.fillText(acc.price + " coins", wr.x + wr.w - 14, wr.y + wr.h / 2 + 4);
+            } else if (!owned) {
+              c.fillStyle = "#7DB36C";
+              c.fillText("Free!", wr.x + wr.w - 14, wr.y + wr.h / 2 + 4);
             } else if (equipped) {
               c.fillStyle = "#7DB36C";
-              c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-              c.fillText("Equipped", wr.x + wr.w - 16, wr.y + wr.h / 2 + 5);
+              c.fillText("Equipped", wr.x + wr.w - 14, wr.y + wr.h / 2 + 4);
             } else {
-              c.fillStyle = "rgba(92,61,46,0.5)";
-              c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-              c.fillText("Equip", wr.x + wr.w - 16, wr.y + wr.h / 2 + 5);
+              c.fillStyle = "rgba(92,61,46,0.45)";
+              c.fillText("Equip", wr.x + wr.w - 14, wr.y + wr.h / 2 + 4);
             }
             c.restore();
           }
@@ -6352,6 +6857,12 @@
         this.tooltip = null;
         /* camera — below mute icon */
         this.cameraButton = { x: W - 54, y: 56, w: 40, h: 40 };
+        /* backyard decor */
+        this.byDecorButton = { x: 10, y: 16, w: 90, h: 36 };
+        this.byDecorOpen = false;
+        this.byDecorHover = null;
+        this.byDecorFade = 0;
+        this.byDecorPage = 0;
         /* joy save timer */
         this.joySaveTimer = 0;
         /* first visit scrapbook */
@@ -6445,6 +6956,8 @@
           if (this.coinPopup.timer <= 0) this.coinPopup = null;
         }
         if (this.cameraFlash > 0) this.cameraFlash = Math.max(0, this.cameraFlash - dt * 2.5);
+        if (this.byDecorOpen) this.byDecorFade = clamp(this.byDecorFade + dt * 5, 0, 1);
+        else this.byDecorFade = clamp(this.byDecorFade - dt * 5, 0, 1);
         /* floating texts */
         for (var fi = this.floatingTexts.length - 1; fi >= 0; fi--) {
           this.floatingTexts[fi].life -= dt;
@@ -6584,7 +7097,47 @@
           }
         }
       }
+      getByDecorPageItems() { return BACKYARD_DECOR_ITEMS.slice(this.byDecorPage * 4, this.byDecorPage * 4 + 4); }
+      byDecorPageCount() { return Math.ceil(BACKYARD_DECOR_ITEMS.length / 4); }
+      getByDecorItemRect(i) { return { x: 130, y: 150 + i * 88, w: 540, h: 78 }; }
       onClick(x, y) {
+        /* backyard decor panel */
+        if (this.byDecorOpen) {
+          var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.byDecorOpen = false; return; }
+          if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 }) && this.byDecorPage > 0) { this.byDecorPage--; audio.menu(); return; }
+          if (pointInRect(x, y, { x: 460, y: 530, w: 40, h: 30 }) && this.byDecorPage < this.byDecorPageCount() - 1) { this.byDecorPage++; audio.menu(); return; }
+          var pageItems = this.getByDecorPageItems();
+          for (var i = 0; i < pageItems.length; i++) {
+            if (pointInRect(x, y, this.getByDecorItemRect(i))) {
+              var item = pageItems[i];
+              if (!canUnlockDecorItem(item)) {
+                audio.miss();
+                if (item.tier && !canAccessTier(item.tier)) this.statusText = "Tier " + item.tier + " locked!";
+                else if (item.achievementUnlock) this.statusText = "Unlock " + item.achievementUnlock + " first!";
+                this.statusPulse = 1; return;
+              }
+              if (item.price && store.decorPurchased.indexOf(item.key) < 0) {
+                if (store.coins < item.price) { audio.miss(); this.statusText = "Need " + item.price + " coins!"; this.statusPulse = 1; return; }
+                addCoins(-item.price);
+                store.decorPurchased.push(item.key);
+                saveJSON("decorPurchased", store.decorPurchased);
+                audio.combo();
+                this.statusText = "Bought " + item.name + "!";
+                this.statusPulse = 1;
+              }
+              store.backyardDecor[item.key] = !store.backyardDecor[item.key];
+              saveBackyardDecor();
+              audio.tinyChime();
+              return;
+            }
+          }
+          audio.menu(); this.byDecorOpen = false; return;
+        }
+        /* decor button */
+        if (pointInRect(x, y, this.byDecorButton)) {
+          audio.menu(); this.byDecorOpen = true; this.byDecorFade = 0; return;
+        }
         /* camera */
         if (pointInRect(x, y, this.cameraButton)) {
           this.capturePhoto();
@@ -6616,6 +7169,16 @@
               addCoins(-3);
               store.backyardFlowers++;
               saveNumber("backyardFlowers", store.backyardFlowers);
+              store.stats.totalFlowersPlanted++;
+              saveStats();
+              if (store.stats.totalFlowersPlanted >= 20 && !store.achievements.greenThumb) {
+                store.achievements.greenThumb = true; saveAchievements();
+                var gtInfo = ACHIEVEMENTS.find(function(a) { return a.key === "greenThumb"; });
+                if (gtInfo && gtInfo.coinBonus) addCoins(gtInfo.coinBonus);
+                addScrapbookEntry("achievement", "Green Thumb unlocked!", "star");
+                this.addFloatingText("Achievement!", this.garden.x, this.garden.y - 50, COLORS.gold);
+              }
+              this.trackWeeklyChallenge && this.trackWeeklyChallenge("flowersPlanted", 1);
               audio.tinyChime();
               this.addFloatingText("Planted!", this.garden.x, this.garden.y - 30, "#5C7A3A");
               this.statusText = "Planted a flower! (" + store.backyardFlowers + "/6)";
@@ -6649,7 +7212,18 @@
       onMouseMove(x, y) {
         this.hoverKey = null;
         this.tooltip = null;
-        if (pointInRect(x, y, this.cameraButton)) this.hoverKey = "camera";
+        if (this.byDecorOpen) {
+          this.byDecorHover = null;
+          var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
+          if (pointInRect(x, y, closeBtn)) this.byDecorHover = "close";
+          var bPageItems = this.getByDecorPageItems();
+          for (var bi = 0; bi < bPageItems.length; bi++) {
+            if (pointInRect(x, y, this.getByDecorItemRect(bi))) { this.byDecorHover = bi; break; }
+          }
+          return;
+        }
+        if (pointInRect(x, y, this.byDecorButton)) this.hoverKey = "byDecor";
+        else if (pointInRect(x, y, this.cameraButton)) this.hoverKey = "camera";
         else if (pointInRect(x, y, this.goInsideButton)) this.hoverKey = "inside";
         else if (Math.abs(x - this.feeder.x) < 40 && Math.abs(y - this.feeder.y) < 40) {
           this.hoverKey = "feeder";
@@ -6666,6 +7240,8 @@
         }
       }
       interactiveAt(x, y) {
+        if (this.byDecorOpen) return true;
+        if (pointInRect(x, y, this.byDecorButton)) return true;
         if (pointInRect(x, y, this.cameraButton)) return true;
         if (pointInRect(x, y, this.goInsideButton)) return true;
         if (Math.abs(x - this.feeder.x) < 40 && Math.abs(y - this.feeder.y) < 40) return true;
@@ -6789,7 +7365,79 @@
         c.globalAlpha = 1;
 
         /* tooltip */
+        /* backyard decor button */
+        drawButton(c, this.byDecorButton, "Decor", this.hoverKey === "byDecor", "#9B7DBD");
+
         if (this.tooltip && this.tooltipAlpha > 0.02) drawTooltip(c, this.tooltip.x, this.tooltip.y, this.tooltip.title, this.tooltip.body, this.tooltipAlpha);
+
+        /* backyard decor panel overlay */
+        if (this.byDecorFade > 0.01) {
+          c.save();
+          c.globalAlpha = this.byDecorFade;
+          c.fillStyle = "rgba(40,28,18,0.55)";
+          c.fillRect(0, 0, W, H);
+          rr(c, 100, 70, 600, 480, 28);
+          c.fillStyle = "rgba(255,248,240,0.97)";
+          c.fill();
+          c.strokeStyle = "rgba(146,104,72,0.2)"; c.lineWidth = 3; c.stroke();
+          c.fillStyle = "#7A4E36"; c.textAlign = "center";
+          c.font = '26px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Backyard Decor", W / 2, 106);
+          c.fillStyle = "rgba(92,61,46,0.5)";
+          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Coins: " + store.coins, W / 2, 124);
+          /* close button */
+          var bchov = this.byDecorHover === "close";
+          var bcx = W / 2 + 218, bcy = 102;
+          c.fillStyle = bchov ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
+          c.beginPath(); c.arc(bcx, bcy, bchov ? 18 : 16, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = "#FFF8F0"; c.lineWidth = bchov ? 3 : 2.5;
+          c.beginPath(); c.moveTo(bcx - 6, bcy - 6); c.lineTo(bcx + 6, bcy + 6); c.stroke();
+          c.beginPath(); c.moveTo(bcx + 6, bcy - 6); c.lineTo(bcx - 6, bcy + 6); c.stroke();
+          /* items */
+          var bPageItems = this.getByDecorPageItems();
+          for (var bdi = 0; bdi < bPageItems.length; bdi++) {
+            var bItem = bPageItems[bdi];
+            var bir = this.getByDecorItemRect(bdi);
+            var bHov = this.byDecorHover === bdi;
+            var bActive = store.backyardDecor[bItem.key];
+            var bUnlockable = canUnlockDecorItem(bItem);
+            var bPurchased = !bItem.price || store.decorPurchased.indexOf(bItem.key) >= 0;
+            c.save();
+            if (!bUnlockable) c.globalAlpha = 0.5;
+            rr(c, bir.x, bir.y, bir.w, bir.h, 14);
+            c.fillStyle = bHov ? "rgba(255,255,255,1)" : "rgba(255,252,245,0.95)";
+            c.fill();
+            c.strokeStyle = bActive ? "#7DB36C" : bHov ? "#9B7DBD" : "rgba(146,104,72,0.12)";
+            c.lineWidth = bActive ? 3 : 1.5;
+            c.stroke();
+            c.textAlign = "left";
+            c.fillStyle = "#5C3D2E";
+            c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(bItem.name, bir.x + 20, bir.y + 30);
+            c.fillStyle = "rgba(92,61,46,0.5)";
+            c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(bItem.desc, bir.x + 20, bir.y + 50);
+            c.textAlign = "right";
+            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            if (!bUnlockable) { c.fillStyle = "rgba(160,140,120,0.5)"; c.fillText("Locked", bir.x + bir.w - 16, bir.y + 40); }
+            else if (!bPurchased) {
+              c.fillStyle = store.coins >= bItem.price ? COLORS.gold : "rgba(160,140,120,0.5)";
+              c.fillText(bItem.price + " coins", bir.x + bir.w - 16, bir.y + 40);
+            } else if (bActive) { c.fillStyle = "#7DB36C"; c.fillText("Active", bir.x + bir.w - 16, bir.y + 40); }
+            else { c.fillStyle = "rgba(92,61,46,0.4)"; c.fillText("Toggle", bir.x + bir.w - 16, bir.y + 40); }
+            c.restore();
+          }
+          /* pagination */
+          if (this.byDecorPageCount() > 1) {
+            c.fillStyle = "#7A4E36"; c.textAlign = "center";
+            c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText("Page " + (this.byDecorPage + 1) + "/" + this.byDecorPageCount(), W / 2, 548);
+            if (this.byDecorPage > 0) { c.fillText("\u25C4", 318, 548); }
+            if (this.byDecorPage < this.byDecorPageCount() - 1) { c.fillText("\u25BA", 482, 548); }
+          }
+          c.restore();
+        }
 
         /* camera flash */
         if (this.cameraFlash > 0) {
@@ -6926,6 +7574,104 @@
         if (this.feeder.filled) {
           c.fillStyle = "#E8C44C";
           c.beginPath(); c.arc(this.feeder.x, this.feeder.y - 4, 7, 0, Math.PI * 2); c.fill();
+        }
+        /* ── Backyard decorations ── */
+        var bd = store.backyardDecor;
+        if (bd.windChime) {
+          var wcSwing = Math.sin(game.time * 1.5) * 0.12;
+          c.save(); c.translate(this.tree.x - 40, this.tree.y + 34); c.rotate(wcSwing);
+          c.strokeStyle = "#A8A0A0"; c.lineWidth = 1;
+          for (var wci = 0; wci < 4; wci++) {
+            c.beginPath(); c.moveTo(-6 + wci * 4, 0); c.lineTo(-6 + wci * 4, 12 + wci * 2); c.stroke();
+          }
+          c.fillStyle = "#C0B8B0";
+          c.beginPath(); c.ellipse(0, -2, 10, 3, 0, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        if (bd.gardenGnome) {
+          c.fillStyle = "#D04040"; /* hat */
+          c.beginPath(); c.moveTo(this.garden.x + 55, 448); c.lineTo(this.garden.x + 60, 430); c.lineTo(this.garden.x + 65, 448); c.closePath(); c.fill();
+          c.fillStyle = "#FFDFC4"; /* face */
+          c.beginPath(); c.arc(this.garden.x + 60, 453, 5, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "#4060C0"; /* body */
+          rr(c, this.garden.x + 55, 458, 10, 12, 3); c.fill();
+        }
+        if (bd.picnicBlanket) {
+          c.save(); c.globalAlpha = 0.7;
+          c.fillStyle = "#DD4444";
+          c.beginPath(); c.ellipse(300, 420, 40, 18, 0.1, 0, Math.PI * 2); c.fill();
+          /* checkered pattern */
+          c.fillStyle = "#FFFFFF"; c.globalAlpha = 0.3;
+          for (var pi = 0; pi < 4; pi++) { c.fillRect(280 + pi * 12, 412, 6, 6); c.fillRect(286 + pi * 12, 418, 6, 6); }
+          c.restore();
+        }
+        if (bd.birdBath) {
+          c.fillStyle = "#A0A0A0";
+          c.fillRect(this.feeder.x - 40, 310, 5, 25);
+          c.beginPath(); c.ellipse(this.feeder.x - 37, 308, 16, 6, 0, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "rgba(100,180,240,0.4)";
+          c.beginPath(); c.ellipse(this.feeder.x - 37, 306, 12, 4, 0, 0, Math.PI * 2); c.fill();
+        }
+        if (bd.lanterns) {
+          var tod = store.decor.timeOfDay || 1;
+          var lanternGlow = tod >= 2 ? 0.6 : 0.2;
+          c.strokeStyle = "rgba(160,140,120,0.4)"; c.lineWidth = 1;
+          c.beginPath(); c.moveTo(40, 262); c.quadraticCurveTo(400, 248, 760, 262); c.stroke();
+          var lanternColors = ["#FF6B6B", "#FFD93D", "#6BCB77", "#4D96FF"];
+          for (var li = 0; li < 10; li++) {
+            var lx = 60 + li * 72;
+            var ly = 258 + Math.sin((li / 9) * Math.PI) * 8;
+            c.fillStyle = lanternColors[li % 4];
+            c.globalAlpha = lanternGlow;
+            rr(c, lx - 5, ly, 10, 14, 4); c.fill();
+            c.globalAlpha = 1;
+          }
+        }
+        if (bd.birdHouse) {
+          c.fillStyle = "#D2A870"; c.fillRect(540, 320, 6, 40);
+          c.fillStyle = "#E8C88C"; rr(c, 528, 302, 30, 22, 4); c.fill();
+          c.fillStyle = "#D04040"; c.beginPath(); c.moveTo(526, 304); c.lineTo(543, 290); c.lineTo(560, 304); c.closePath(); c.fill();
+          c.fillStyle = "#5C4434"; c.beginPath(); c.arc(543, 314, 4, 0, Math.PI * 2); c.fill();
+        }
+        if (bd.sundial) {
+          c.fillStyle = "#A09890";
+          c.beginPath(); c.ellipse(500, 440, 18, 8, 0, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "#8A8078";
+          c.beginPath(); c.moveTo(500, 440); c.lineTo(498, 424); c.lineTo(502, 440); c.closePath(); c.fill();
+        }
+        if (bd.dogHouse) {
+          c.fillStyle = "#B08050"; rr(c, 46, 430, 50, 38, 4); c.fill();
+          c.fillStyle = "#D04040"; c.beginPath(); c.moveTo(42, 432); c.lineTo(71, 415); c.lineTo(100, 432); c.closePath(); c.fill();
+          c.fillStyle = "#5C3020"; c.beginPath(); c.ellipse(71, 458, 10, 12, 0, Math.PI, Math.PI * 2); c.fill();
+        }
+        if (bd.butterflyGarden && store.backyardFlowers > 0) {
+          var bfColors = ["#FF69B4", "#87CEEB", "#FFD700"];
+          for (var bfi = 0; bfi < 3; bfi++) {
+            var bfx = this.garden.x - 20 + bfi * 20 + Math.sin(game.time * 2 + bfi * 2) * 12;
+            var bfy = this.garden.y - 30 + Math.cos(game.time * 1.5 + bfi * 1.7) * 10;
+            c.fillStyle = bfColors[bfi];
+            var wing = Math.abs(Math.sin(game.time * 5 + bfi * 1.3)) * 4 + 2;
+            c.beginPath(); c.ellipse(bfx - 3, bfy, wing, 3, -0.3, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.ellipse(bfx + 3, bfy, wing, 3, 0.3, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#333"; c.beginPath(); c.arc(bfx, bfy, 1.5, 0, Math.PI * 2); c.fill();
+          }
+        }
+        if (bd.fountain) {
+          c.fillStyle = "#909898";
+          c.beginPath(); c.ellipse(500, 380, 28, 12, 0, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "#A0A8A8"; c.fillRect(496, 355, 8, 25);
+          c.fillStyle = "rgba(100,180,240,0.35)";
+          c.beginPath(); c.ellipse(500, 378, 22, 8, 0, 0, Math.PI * 2); c.fill();
+          /* water streams */
+          c.strokeStyle = "rgba(100,180,240,0.5)"; c.lineWidth = 1.5;
+          for (var fsi = 0; fsi < 3; fsi++) {
+            var fsa = (fsi - 1) * 0.4;
+            var fsy = Math.sin(game.time * 3 + fsi) * 2;
+            c.beginPath();
+            c.moveTo(500, 355);
+            c.quadraticCurveTo(500 + fsa * 15, 345 + fsy, 500 + fsa * 20, 370);
+            c.stroke();
+          }
         }
       }
     }
@@ -7153,6 +7899,19 @@
         if (this.resultsStars >= 3 && this.newBest) {
           addScrapbookEntry("milestone", "Earned 3 stars in " + this.displayTitle + "!", "star");
         }
+        /* check star milestone coin rewards */
+        if (this.newBest) {
+          var milestoneCoins = checkStarMilestones();
+          if (milestoneCoins > 0) this.coinReward += milestoneCoins;
+        }
+        /* check fullHouse achievement */
+        if (totalStarsEarned() >= 33 && !store.achievements.fullHouse) {
+          store.achievements.fullHouse = true;
+          saveAchievements();
+          var fhInfo = ACHIEVEMENTS.find(function(a) { return a.key === "fullHouse"; });
+          if (fhInfo && fhInfo.coinBonus) addCoins(fhInfo.coinBonus);
+          addScrapbookEntry("achievement", "Full House — all 33 stars!", "star");
+        }
         this.phase = "results";
         this.phaseTime = 0;
         this.scoreInT = 0;
@@ -7170,8 +7929,9 @@
         const info = ACHIEVEMENTS.find((a) => a.key === key);
         if (info) {
           addScrapbookEntry("achievement", info.name + " unlocked!", "star");
+          if (info.coinBonus) addCoins(info.coinBonus);
           this.achievementFreeze = Math.max(this.achievementFreeze, 0.5);
-          this.achievementBanner = { name: info.name, time: 1.25, maxTime: 1.25 };
+          this.achievementBanner = { name: info.name + (info.coinBonus ? " (+" + info.coinBonus + " coins)" : ""), time: 1.25, maxTime: 1.25 };
           audio.achievement();
           spawnParticleBurst(W / 2, 42, [COLORS.gold, COLORS.softPink], 12, ["star", "heart"]);
         }
