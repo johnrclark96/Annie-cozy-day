@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(node extract.js)",
+      "Read(//c/ProgramData/**)",
+      "Read(//c/Users/johnr/documents/claut/Local/Programs/**)",
+      "Read(//c/Users/johnr/documents/claut/$PROGRAMFILES/**)",
+      "Read(//c/Users/johnr/documents/claut/$HOME/.nvm/alias/**)",
+      "Bash(echo \"PATH=$PATH\")",
+      "Bash(\"/c/Users/johnr/AppData/Local/Programs/Python/Python310/Lib/site-packages/playwright/driver/node.exe\" --version)",
+      "Bash(NODE=\"/c/Users/johnr/AppData/Local/Programs/Python/Python310/Lib/site-packages/playwright/driver/node.exe\")",
+      "Bash(\"$NODE\" extract.js)",
+      "Bash(\"$NODE\" build.js)",
+      "Bash(pip install:*)",
+      "Bash(python3 analyze_sprites.py)",
+      "Bash(python3 process_sprites.py)",
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\(''assets/cozy-sprites-atlas.webp''\\); print\\(f''Atlas size: {img.size}''\\); print\\(f''Height OK: {img.size[1] < 16383}''\\)\")",
+      "Bash(\"$NODE\" migrate_perch.js)",
+      "Bash(ls src/*.js)"
     ]
   }
 }
