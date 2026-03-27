@@ -3,7 +3,7 @@
        ═══════════════════════════════════════════════════════ */
     class LunaNapScene extends BaseMinigameScene {
       constructor() {
-        super("nap", "Luna's Nap Spot", isMobile ? "Tap to place cushions in the sunbeams! Luna will nap on the coziest spot." : "Click to place cushions in the sunbeams! Luna will nap on the coziest spot.", [200, 450, 800], 60);
+        super("nap", "Luna's Nap Spot", isMobile ? "Tap to place cushions in the sunbeams! Luna will nap on the coziest spot." : "Click to place cushions in the sunbeams! Luna will nap on the coziest spot.", [250, 550, 1000], 60);
         this.beams = [];
         this.cushions = [];
         this.luna = { x: 400, y: 350, targetX: 400, targetY: 350, napping: false, napTimer: 0, facing: 1 };
@@ -168,32 +168,40 @@
         for (const b of this.beams) {
           const fadeEdge = clamp(b.life / 2, 0, 1);
           c.save();
-          c.globalAlpha = 0.18 * fadeEdge;
-          const g = c.createRadialGradient(b.x, b.y - b.h * 0.3, 10, b.x, b.y, Math.max(b.w, b.h) * 0.6);
-          g.addColorStop(0, "rgba(255,240,180,1)");
-          g.addColorStop(0.5, "rgba(255,230,150,0.5)");
-          g.addColorStop(1, "rgba(255,220,120,0)");
+          /* warm glow area */
+          c.globalAlpha = 0.40 * fadeEdge;
+          const g = c.createRadialGradient(b.x, b.y - b.h * 0.3, 10, b.x, b.y, Math.max(b.w, b.h) * 0.7);
+          g.addColorStop(0, "rgba(255,235,150,1)");
+          g.addColorStop(0.4, "rgba(255,225,120,0.6)");
+          g.addColorStop(1, "rgba(255,210,80,0)");
           c.fillStyle = g;
           c.fillRect(b.x - b.w, b.y - b.h, b.w * 2, b.h * 2);
 
-          /* beam shaft from top */
-          c.globalAlpha = 0.06 * fadeEdge;
-          c.fillStyle = "rgba(255,240,180,1)";
+          /* beam shaft from top — visible light column */
+          c.globalAlpha = 0.16 * fadeEdge;
+          c.fillStyle = "rgba(255,235,140,1)";
           c.beginPath();
-          c.moveTo(b.x - b.w * 0.3, 0);
-          c.lineTo(b.x + b.w * 0.3, 0);
-          c.lineTo(b.x + b.w * 0.5, b.y + b.h * 0.3);
-          c.lineTo(b.x - b.w * 0.5, b.y + b.h * 0.3);
+          c.moveTo(b.x - b.w * 0.25, 0);
+          c.lineTo(b.x + b.w * 0.25, 0);
+          c.lineTo(b.x + b.w * 0.55, b.y + b.h * 0.4);
+          c.lineTo(b.x - b.w * 0.55, b.y + b.h * 0.4);
           c.closePath();
           c.fill();
 
+          /* bright center spot on floor */
+          c.globalAlpha = 0.25 * fadeEdge;
+          c.fillStyle = "rgba(255,240,160,0.8)";
+          c.beginPath();
+          c.ellipse(b.x, b.y, b.w * 0.45, b.h * 0.25, 0, 0, Math.PI * 2);
+          c.fill();
+
           /* floating dust motes in beam */
-          c.globalAlpha = 0.35 * fadeEdge;
-          c.fillStyle = "rgba(255,245,200,0.9)";
-          for (let m = 0; m < 5; m++) {
-            const mx = b.x + Math.sin(game.time * 0.7 + m * 2.3 + b.phase) * b.w * 0.35;
-            const my = b.y + Math.cos(game.time * 0.5 + m * 1.7 + b.phase) * b.h * 0.3 - b.h * 0.1;
-            const mr = 1.5 + Math.sin(game.time * 1.5 + m) * 0.8;
+          c.globalAlpha = 0.55 * fadeEdge;
+          c.fillStyle = "rgba(255,245,200,0.95)";
+          for (let m = 0; m < 7; m++) {
+            const mx = b.x + Math.sin(game.time * 0.7 + m * 2.3 + b.phase) * b.w * 0.4;
+            const my = b.y + Math.cos(game.time * 0.5 + m * 1.7 + b.phase) * b.h * 0.35 - b.h * 0.15;
+            const mr = 2.0 + Math.sin(game.time * 1.5 + m) * 1.0;
             c.beginPath(); c.arc(mx, my, mr, 0, Math.PI * 2); c.fill();
           }
           c.restore();

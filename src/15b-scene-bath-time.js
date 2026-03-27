@@ -1,6 +1,6 @@
     class BathTimeScene extends BaseMinigameScene {
       constructor() {
-        super("bath", "Bath Time", isMobile ? "Tap and drag to scrub! Tap the tub to rinse! Drag to dry!" : "Click and drag to scrub! Click the tub to rinse! Drag to dry!", [80, 200, 400], 45);
+        super("bath", "Bath Time", isMobile ? "Tap and drag to scrub! Tap the tub to rinse! Drag to dry!" : "Click and drag to scrub! Click the tub to rinse! Drag to dry!", [120, 280, 500], 45);
         this.currentPet = "obi";
         this.washPhase = "scrub"; // scrub → rinse → dry
         this.cleanMeter = 0;
@@ -59,12 +59,12 @@
             audio.tinyChime();
             this.washPhase = "rinse";
             this.phaseStartTime = this.phaseTime;
-            this.playHint = "Rinse! " + (isMobile ? "Tap" : "Click") + " the tub (" + this.rinseCount + "/" + this.rinsesNeeded + ")";
+            this.playHint = { life: 99, text: "Rinse! " + (isMobile ? "Tap" : "Click") + " the tub (" + this.rinseCount + "/" + this.rinsesNeeded + ")" };
           } else {
-            this.playHint = "Scrub! " + Math.round(this.cleanMeter) + "%";
+            this.playHint = { life: 99, text: "Scrub! " + Math.round(this.cleanMeter) + "%" };
           }
         } else if (this.washPhase === "rinse") {
-          this.playHint = "Rinse! " + (isMobile ? "Tap" : "Click") + " the tub (" + this.rinseCount + "/" + this.rinsesNeeded + ")";
+          this.playHint = { life: 99, text: "Rinse! " + (isMobile ? "Tap" : "Click") + " the tub (" + this.rinseCount + "/" + this.rinsesNeeded + ")" };
         } else if (this.washPhase === "dry") {
           if (game.mouse.down && overPet) {
             this.dryMeter = clamp(this.dryMeter + dt * 30, 0, 100);
@@ -77,17 +77,17 @@
             this.petsDone++;
             if (this.petsDone === 1) {
               this.transitionTimer = 1.5;
-              this.playHint = "Great! Now Luna's turn...";
+              this.playHint = { life: 99, text: "Great! Now Luna's turn..." };
             } else {
               // Both done! Combo bonus
               this.addScore(40);
-              this.playHint = "Both pets squeaky clean!";
+              this.playHint = { life: 99, text: "Both pets squeaky clean!" };
               spawnParticleBurst(400, 350, [COLORS.gold, "#87CEEB", COLORS.softPink], 16, ["star", "heart"]);
               screenShake(4, 0.3);
               if (this.score >= 200) this.queueAchievement("squeakyClean");
             }
           } else {
-            this.playHint = "Dry! " + Math.round(this.dryMeter) + "%";
+            this.playHint = { life: 99, text: "Dry! " + Math.round(this.dryMeter) + "%" };
           }
         }
       }

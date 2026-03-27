@@ -1,6 +1,6 @@
     class TreatTossScene extends BaseMinigameScene {
       constructor() {
-        super("treat", "Treat Toss", isMobile ? "Tap to toss treats to Obi! Consecutive catches build combos!" : "Click to toss treats to Obi! Consecutive catches build combos!", [200, 500, 1000], 60);
+        super("treat", "Treat Toss", isMobile ? "Tap to toss treats to Obi! Consecutive catches build combos!" : "Click to toss treats to Obi! Consecutive catches build combos!", [300, 700, 1400], 60);
         this.treat = null;
         this.obiX = 120;
         this.obiPhase = 0;

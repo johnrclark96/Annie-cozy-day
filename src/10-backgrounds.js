@@ -25,38 +25,46 @@
       sceneCache.titleBase = tc;
 
       /* ── Living room background ── */
+      var roomPalettes = [
+        /* 0: Cozy Neutral */ { wallTop: "#F5E6D3", wallBot: "#EDD8C4", stripe: "rgba(220,200,175,0.12)", wainscot: "#E8D4BC", wainLine: "#D8C0A4", floorTop: "#EFD8BE", floorBot: "#E2C6A4", plank: "rgba(180,145,110,0.15)", base: "#D4B896" },
+        /* 1: Pastel Cute */  { wallTop: "#F5E0EE", wallBot: "#EEDAE8", stripe: "rgba(225,190,210,0.12)", wainscot: "#EECEDE", wainLine: "#DDB8CC", floorTop: "#F2DCD0", floorBot: "#E8C8B8", plank: "rgba(190,150,140,0.12)", base: "#DEB8AA" },
+        /* 2: Warm Cottage */ { wallTop: "#F5E2C8", wallBot: "#EDD4B0", stripe: "rgba(210,180,140,0.15)", wainscot: "#E2C8A0", wainLine: "#D0B48C", floorTop: "#E0C4A0", floorBot: "#D4B088", plank: "rgba(170,130,90,0.18)", base: "#C8A478" },
+        /* 3: Moonlight Blue */ { wallTop: "#D8E0F0", wallBot: "#C8D4E8", stripe: "rgba(180,195,220,0.12)", wainscot: "#C0D0E0", wainLine: "#A8B8D0", floorTop: "#D0D4DC", floorBot: "#BCC4D0", plank: "rgba(140,155,175,0.12)", base: "#A8B4C4" },
+        /* 4: Bookish Cozy */ { wallTop: "#E8D8C0", wallBot: "#DCC8A8", stripe: "rgba(195,170,130,0.15)", wainscot: "#D4C0A0", wainLine: "#C0A880", floorTop: "#D8C0A0", floorBot: "#C8AE8C", plank: "rgba(160,130,95,0.18)", base: "#BCA078" }
+      ];
+      var rp = roomPalettes[store.decor.roomPreset || 0];
       const lc = makeBufferCanvas(W, H);
       const lx = lc.getContext("2d");
       /* wall */
       const wg = lx.createLinearGradient(0, 0, 0, 340);
-      wg.addColorStop(0, "#F5E6D3");
-      wg.addColorStop(1, "#EDD8C4");
+      wg.addColorStop(0, rp.wallTop);
+      wg.addColorStop(1, rp.wallBot);
       lx.fillStyle = wg;
       lx.fillRect(0, 0, W, 340);
       /* subtle wall texture stripes */
-      lx.fillStyle = "rgba(220,200,175,0.12)";
+      lx.fillStyle = rp.stripe;
       for (let i = 0; i < 20; i++) lx.fillRect(i * 42, 0, 20, 340);
       /* wainscoting / lower wall panel */
-      lx.fillStyle = "#E8D4BC";
+      lx.fillStyle = rp.wainscot;
       lx.fillRect(0, 240, W, 100);
-      lx.strokeStyle = "#D8C0A4";
+      lx.strokeStyle = rp.wainLine;
       lx.lineWidth = 2;
       lx.beginPath(); lx.moveTo(0, 240); lx.lineTo(W, 240); lx.stroke();
       lx.beginPath(); lx.moveTo(0, 248); lx.lineTo(W, 248); lx.stroke();
       /* floor */
       const fg = lx.createLinearGradient(0, 340, 0, H);
-      fg.addColorStop(0, COLORS.floor);
-      fg.addColorStop(1, "#E2C6A4");
+      fg.addColorStop(0, rp.floorTop);
+      fg.addColorStop(1, rp.floorBot);
       lx.fillStyle = fg;
       lx.fillRect(0, 340, W, H - 340);
       /* floor wood plank lines */
-      lx.strokeStyle = "rgba(180,145,110,0.15)";
+      lx.strokeStyle = rp.plank;
       lx.lineWidth = 1;
       for (let i = 0; i < 10; i++) {
         lx.beginPath(); lx.moveTo(0, 350 + i * 28); lx.lineTo(W, 350 + i * 28); lx.stroke();
       }
       /* baseboard */
-      lx.fillStyle = "#D4B896";
+      lx.fillStyle = rp.base;
       lx.fillRect(0, 336, W, 8);
       lx.fillStyle = "#C8A882";
       lx.fillRect(0, 336, W, 3);
@@ -180,31 +188,31 @@
       lx.fillStyle = "rgba(200,160,180,0.4)";
       rr(lx, 504, 280, 38, 72, 8);
       lx.fill();
-      /* lamp with shade and glow */
+      /* lamp with shade and glow — positioned right of window */
       lx.fillStyle = "#B89868";
-      lx.fillRect(122, 178, 5, 110);
+      lx.fillRect(212, 178, 5, 110);
       /* lamp base */
       lx.fillStyle = "#A08060";
-      rr(lx, 112, 284, 26, 8, 4);
+      rr(lx, 202, 284, 26, 8, 4);
       lx.fill();
       /* lamp shade */
       lx.fillStyle = "#FFEEBB";
       lx.beginPath();
-      lx.moveTo(102, 178);
-      lx.lineTo(148, 178);
-      lx.lineTo(142, 138);
-      lx.lineTo(108, 138);
+      lx.moveTo(192, 178);
+      lx.lineTo(238, 178);
+      lx.lineTo(232, 138);
+      lx.lineTo(198, 138);
       lx.closePath();
       lx.fill();
       lx.strokeStyle = "rgba(200,170,120,0.4)";
       lx.lineWidth = 2;
       lx.stroke();
       /* warm lamp glow on wall */
-      const lampGlow = lx.createRadialGradient(125, 158, 10, 125, 158, 120);
+      var lampGlow = lx.createRadialGradient(215, 158, 10, 215, 158, 120);
       lampGlow.addColorStop(0, "rgba(255,240,200,0.12)");
       lampGlow.addColorStop(1, "rgba(255,240,200,0)");
       lx.fillStyle = lampGlow;
-      lx.fillRect(0, 30, 260, 300);
+      lx.fillRect(80, 30, 300, 300);
       /* side table next to couch */
       lx.fillStyle = "#B89868";
       rr(lx, 230, 330, 40, 46, 6);
@@ -271,26 +279,59 @@
       lx.fillStyle = "#F0E0D0";
       rr(lx, 580, 155, 16, 24, 1);
       lx.fill();
-      /* wall art - larger with more detail */
+      /* wall art - changes with wallArt2 decor setting */
+      var artStyle = store.decor.wallArt2 || 0;
       lx.fillStyle = "#C8A872";
       rr(lx, 350, 60, 100, 72, 5);
       lx.fill();
       lx.fillStyle = "#E8D8C8";
       rr(lx, 356, 66, 88, 60, 4);
       lx.fill();
-      /* sunset scene in frame */
-      const sunsetG = lx.createLinearGradient(356, 66, 356, 126);
-      sunsetG.addColorStop(0, "rgba(255,180,120,0.4)");
-      sunsetG.addColorStop(0.5, "rgba(255,220,180,0.3)");
-      sunsetG.addColorStop(1, "rgba(160,200,140,0.4)");
-      lx.fillStyle = sunsetG;
-      rr(lx, 356, 66, 88, 60, 4);
-      lx.fill();
-      /* mountains in frame */
-      lx.fillStyle = "rgba(120,160,100,0.5)";
-      lx.beginPath();
-      lx.moveTo(356, 116); lx.lineTo(380, 82); lx.lineTo(400, 100); lx.lineTo(420, 78); lx.lineTo(444, 116);
-      lx.fill();
+      if (artStyle === 0) {
+        /* Landscape — sunset mountains */
+        var sunsetG = lx.createLinearGradient(356, 66, 356, 126);
+        sunsetG.addColorStop(0, "rgba(255,180,120,0.4)");
+        sunsetG.addColorStop(0.5, "rgba(255,220,180,0.3)");
+        sunsetG.addColorStop(1, "rgba(160,200,140,0.4)");
+        lx.fillStyle = sunsetG;
+        rr(lx, 356, 66, 88, 60, 4); lx.fill();
+        lx.fillStyle = "rgba(120,160,100,0.5)";
+        lx.beginPath();
+        lx.moveTo(356, 116); lx.lineTo(380, 82); lx.lineTo(400, 100); lx.lineTo(420, 78); lx.lineTo(444, 116);
+        lx.fill();
+      } else if (artStyle === 1) {
+        /* Floral — flowers on green */
+        lx.fillStyle = "rgba(180,220,160,0.5)";
+        rr(lx, 356, 66, 88, 60, 4); lx.fill();
+        var flColors = ["#FF6B9D", "#FFD700", "#87CEEB", "#FF8C42", "#E040FB"];
+        for (var fi = 0; fi < 7; fi++) {
+          var fx = 370 + (fi % 4) * 18, fy = 80 + Math.floor(fi / 4) * 24;
+          lx.fillStyle = "#5C8A3A"; lx.fillRect(fx + 3, fy + 4, 2, 10);
+          lx.fillStyle = flColors[fi % 5];
+          lx.beginPath(); lx.arc(fx + 4, fy + 2, 5, 0, Math.PI * 2); lx.fill();
+        }
+      } else if (artStyle === 2) {
+        /* Portraits — two pet silhouettes */
+        lx.fillStyle = "rgba(200,180,160,0.4)";
+        rr(lx, 356, 66, 88, 60, 4); lx.fill();
+        lx.fillStyle = "rgba(139,105,20,0.5)";
+        lx.beginPath(); lx.arc(382, 96, 14, 0, Math.PI * 2); lx.fill();
+        lx.beginPath(); lx.ellipse(382, 112, 10, 6, 0, 0, Math.PI * 2); lx.fill();
+        lx.fillStyle = "rgba(155,125,60,0.5)";
+        lx.beginPath(); lx.arc(420, 96, 12, 0, Math.PI * 2); lx.fill();
+        lx.beginPath(); lx.moveTo(412, 86); lx.lineTo(408, 78); lx.lineTo(416, 84); lx.fill();
+        lx.beginPath(); lx.moveTo(428, 86); lx.lineTo(432, 78); lx.lineTo(424, 84); lx.fill();
+      } else {
+        /* Abstract — geometric shapes */
+        lx.fillStyle = "rgba(100,150,200,0.3)";
+        rr(lx, 356, 66, 88, 60, 4); lx.fill();
+        lx.fillStyle = "rgba(255,180,100,0.5)";
+        lx.beginPath(); lx.arc(380, 90, 16, 0, Math.PI * 2); lx.fill();
+        lx.fillStyle = "rgba(200,100,150,0.4)";
+        lx.beginPath(); lx.moveTo(410, 72); lx.lineTo(436, 110); lx.lineTo(384, 110); lx.closePath(); lx.fill();
+        lx.fillStyle = "rgba(100,200,180,0.4)";
+        rr(lx, 400, 78, 30, 30, 3); lx.fill();
+      }
       /* second smaller frame */
       lx.fillStyle = "#C8A872";
       rr(lx, 466, 76, 50, 50, 4);
@@ -610,7 +651,7 @@
         c.fillStyle = "#141828"; c.fillRect(0, 0, W, H);
         c.restore();
         if (store.decor.lampOn !== false) {
-          drawGlowCircle(c, 126, 160, 180, "rgba(255,220,140,ALPHA)", 0.16);
+          drawGlowCircle(c, 216, 160, 180, "rgba(255,220,140,ALPHA)", 0.16);
         }
       }
 
@@ -626,14 +667,14 @@
         ["rgba(200,215,255,ALPHA)", "rgba(190,205,245,ALPHA)"],
         ["rgba(255,225,170,ALPHA)", "rgba(245,215,155,ALPHA)"]
       ][store.decor.roomPreset || 0] || ["rgba(255,232,160,ALPHA)", "rgba(255,220,140,ALPHA)"];
-      drawGlowCircle(c, 126, 146, 96, glowColors[0], lampAlpha);
-      drawGlowCircle(c, 126, 160, 50, glowColors[1], lampAlpha * 0.6);
+      drawGlowCircle(c, 216, 146, 96, glowColors[0], lampAlpha);
+      drawGlowCircle(c, 216, 160, 50, glowColors[1], lampAlpha * 0.6);
       if (!lampOn) {
         c.save();
         c.globalAlpha = 0.35;
         c.fillStyle = "#000";
         c.beginPath();
-        c.ellipse(126, 160, 20, 30, 0, 0, Math.PI * 2);
+        c.ellipse(216, 160, 20, 30, 0, 0, Math.PI * 2);
         c.fill();
         c.globalAlpha = 0.06;
         c.fillRect(0, 0, W / 2, H);

@@ -1,9 +1,9 @@
     class SnackSortScene extends BaseMinigameScene {
       constructor() {
-        super("sort", "Snack Sort", isMobile ? "Drag dog treats LEFT to Obi, cat treats RIGHT to Luna!" : "Drag dog treats LEFT to Obi, cat treats RIGHT to Luna!", [150, 350, 700], 60);
+        super("sort", "Snack Sort", isMobile ? "Drag dog treats LEFT to Obi, cat treats RIGHT to Luna!" : "Drag dog treats LEFT to Obi, cat treats RIGHT to Luna!", [120, 280, 550], 60);
         this.treats = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 1.8;
+        this.spawnInterval = 2.4;
         this.dragging = null;
         this.obiHappy = 0;
         this.lunaHappy = 0;
@@ -22,7 +22,7 @@
         this.treats.push({
           x: rand(160, 640),
           y: -20,
-          vy: rand(40, 70) * (1 + elapsed * 0.6),
+          vy: rand(35, 55) * (1 + elapsed * 0.4),
           type: isDog ? "dog" : "cat",
           subtype: sub,
           points: sub === "premium" || sub === "training" ? 15 : 10,
@@ -41,7 +41,7 @@
         if (this.spawnTimer <= 0) {
           this.spawnTreat();
           const elapsed = (this.duration - this.timeLeft) / this.duration;
-          this.spawnInterval = lerp(1.8, 0.6, elapsed);
+          this.spawnInterval = lerp(2.4, 1.2, elapsed);
           this.spawnTimer = this.spawnInterval;
         }
 
@@ -122,6 +122,7 @@
         c.save();
         c.translate(t.x, t.y);
         if (t.settled) c.globalAlpha = clamp(t.settleTimer / 0.3, 0, 1);
+        c.scale(1.8, 1.8);
         if (t.subtype === "bone") {
           drawBone(c, 0, 0, 20, 10, "#D4A44C");
         } else if (t.subtype === "round") {

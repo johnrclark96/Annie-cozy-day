@@ -3,7 +3,7 @@
         super("window", "Window Watch",
           isMobile ? "Tap birds and butterflies! Don't tap the leaves!"
                    : "Click birds and butterflies! Don't click the leaves!",
-          [120, 300, 600], 60);
+          [150, 400, 750], 60);
         this.flyers = [];
         this.spawnTimer = 0;
         this.spawnRate = 1.2;

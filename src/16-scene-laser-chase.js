@@ -1,6 +1,6 @@
     class LaserChaseScene extends BaseMinigameScene {
       constructor() {
-        super("laser", "Luna's Laser Chase", isMobile ? "Drag your finger to control the laser dot! Lead Luna through the glowing targets!" : "Move your mouse to control the laser dot! Lead Luna through the glowing targets!", [150, 400, 800], 60);
+        super("laser", "Luna's Laser Chase", isMobile ? "Drag your finger to control the laser dot! Lead Luna through the glowing targets!" : "Move your mouse to control the laser dot! Lead Luna through the glowing targets!", [200, 500, 1000], 60);
         this.luna = { x: 220, y: 320, vx: 0, vy: 0, wiggle: 0, pounceTimer: 0, pounceTarget: null, pawBat: 0, facing: 1 };
         this.targets = [];
         this.spawnedTargetCap = 1;

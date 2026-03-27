@@ -32,17 +32,17 @@
         this.menuFade = 0;
         this.dedication = store.firstVisit ? { phase: 0, alpha: 0 } : null;
         this.gameCards = [
-          { key: "treat", title: "Treat Toss", desc: "Toss treats to Obi and build catch combos!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_treat; const st = (s>=1000?3:s>=500?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "laser", title: "Laser Chase", desc: "Guide Luna's laser dot through glowing targets!", color: "#D44040", icon: "catEye", best: () => { const s = store.best_laser; const st = (s>=800?3:s>=400?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "treat", title: "Treat Toss", desc: "Toss treats to Obi and build catch combos!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_treat; const st = (s>=1400?3:s>=700?2:s>=300?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "laser", title: "Laser Chase", desc: "Guide Luna's laser dot through glowing targets!", color: "#D44040", icon: "catEye", best: () => { const s = store.best_laser; const st = (s>=1000?3:s>=500?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
           { key: "cuddle", title: "Cuddle Pile", desc: "Keep the couch balanced while everyone fidgets!", color: "#7FB3D5", icon: "heart", best: () => { const s = store.best_cuddle; const st = (s>=90?3:s>=60?2:s>=30?1:0); return "Best: " + s + "s  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "walk", title: "Obi's Walk", desc: "Walk Obi through the neighborhood and find treasures!", color: "#8D6E4C", icon: "bone", best: () => { const s = store.best_walk; const st = (s>=600?3:s>=300?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "nap", title: "Luna's Nap Spot", desc: "Place cushions in sunbeams to help Luna nap!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_nap; const st = (s>=800?3:s>=450?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "bath", title: "Bath Time", desc: "Scrub, rinse, and dry Obi and Luna!", color: "#87CEEB", icon: "heart", best: () => { const s = store.best_bath; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "sort", title: "Snack Sort", desc: "Sort treats into the right bowls!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_sort; const st = (s>=700?3:s>=350?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "pillow", title: "Pillow Pop", desc: "Boop Luna before she hides again!", color: "#F48FB1", icon: "paw", best: () => { const s = store.best_pillow; const st = (s>=500?3:s>=250?2:s>=100?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "findluna", title: "Where's Luna?", desc: "Track Luna under the shuffling cushions!", color: "#7CB342", icon: "catEye", best: () => { const s = store.best_findluna; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "window", title: "Window Watch", desc: "Help Luna catch birds and butterflies!", color: "#87CEEB", icon: "star", best: () => { const s = store.best_window; const st = (s>=600?3:s>=300?2:s>=120?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "pawstep", title: "Pawstep Patterns", desc: "Repeat the pet action sequences!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_pawstep; const st = (s>=300?3:s>=150?2:s>=60?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
+          { key: "walk", title: "Obi's Walk", desc: "Walk Obi through the neighborhood and find treasures!", color: "#8D6E4C", icon: "bone", best: () => { const s = store.best_walk; const st = (s>=800?3:s>=450?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "nap", title: "Luna's Nap Spot", desc: "Place cushions in sunbeams to help Luna nap!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_nap; const st = (s>=1000?3:s>=550?2:s>=250?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "bath", title: "Bath Time", desc: "Scrub, rinse, and dry Obi and Luna!", color: "#87CEEB", icon: "heart", best: () => { const s = store.best_bath; const st = (s>=500?3:s>=280?2:s>=120?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "sort", title: "Snack Sort", desc: "Sort treats into the right bowls!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_sort; const st = (s>=550?3:s>=280?2:s>=120?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "pillow", title: "Pillow Pop", desc: "Boop Luna before she hides again!", color: "#F48FB1", icon: "paw", best: () => { const s = store.best_pillow; const st = (s>=650?3:s>=350?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "findluna", title: "Where's Luna?", desc: "Track Luna under the shuffling cushions!", color: "#7CB342", icon: "catEye", best: () => { const s = store.best_findluna; const st = (s>=500?3:s>=250?2:s>=100?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "window", title: "Window Watch", desc: "Help Luna catch birds and butterflies!", color: "#87CEEB", icon: "star", best: () => { const s = store.best_window; const st = (s>=750?3:s>=400?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "pawstep", title: "Pawstep Patterns", desc: "Repeat the pet action sequences!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_pawstep; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
         ];
         this.menuScroll = 0;
         this.statusText = "Welcome home! Obi and Luna are happy to see you.";
@@ -68,7 +68,7 @@
           x: 694, y: 258, floorX: 598, floorY: 430,
           targetX: 694, targetY: 258, joy: store.pet_luna_joy, perch: "tower", facing: 1,
           petTimer: 0, happyTimer: 0, wiggle: 0, pounce: 0, pawBat: 0,
-          groomTimer: 0, grooming: false, bellyUp: false, stretching: false, idleBehaviorTimer: rand(5, 8)
+          grooming: false, bellyUp: false, stretching: false, idleBehaviorTimer: rand(5, 8)
         };
         /* pet-to-pet interaction */
         this.petInteraction = { active: false, type: null, timer: rand(12, 18), phase: 0 };
@@ -102,9 +102,17 @@
           fill: clamp(store.pet_water_fill - waterElapsed / 108, 0, 100),
           lastFill: store.pet_water_lastFill
         };
-        this.foodBowlHitbox = { x: this.foodBowl.x - 28, y: this.foodBowl.y - 20, w: 56, h: 36 };
-        this.waterBowlHitbox = { x: this.waterBowl.x - 28, y: this.waterBowl.y - 20, w: 56, h: 36 };
+        this.foodBowlHitbox = { x: this.foodBowl.x - 36, y: this.foodBowl.y - 28, w: 72, h: 48 };
+        this.waterBowlHitbox = { x: this.waterBowl.x - 36, y: this.waterBowl.y - 28, w: 72, h: 48 };
         this.bowlSaveTimer = 0;
+        /* offline joy decay — pets get lonely while you're away (1 joy per 3 min) */
+        var lastJoySave = loadNumber("lastJoySave", now);
+        var awaySeconds = (now - lastJoySave) / 1000;
+        if (awaySeconds > 60) {
+          var joyLoss = Math.min(40, awaySeconds / 180);
+          this.obi.joy = clamp(this.obi.joy - joyLoss, 15, 100);
+          this.luna.joy = clamp(this.luna.joy - joyLoss, 15, 100);
+        }
         /* pet eating/drinking state */
         this.obi.eating = false;
         this.obi.drinking = false;
@@ -113,7 +121,7 @@
         this.luna.drinking = false;
         this.luna.eatDrinkTimer = 0;
         /* lamp & toy basket hitboxes */
-        this.lampHitbox = { x: 96, y: 128, w: 58, h: 62 };
+        this.lampHitbox = { x: 186, y: 128, w: 58, h: 62 };
         this.toyBasketHitbox = { x: 248, y: 375, w: 38, h: 30 };
         /* daily gift */
         this.dailyGift = null;
@@ -232,8 +240,9 @@
         const joy = pet.joy;
         const food = this.foodBowl ? this.foodBowl.fill : 100;
         const water = this.waterBowl ? this.waterBowl.fill : 100;
-        if (food < 30) return "hungry";
-        if (water < 30) return "thirsty";
+        if (food < 25) return "hungry";
+        if (water < 25) return "thirsty";
+        if (joy < 20) return "sad";
         if (pet.sleepy) return "sleepy";
         if (joy > 70 && this.idleTime > 12) return "sleepy";
         if (joy >= 35 && joy <= 70 && this.idleTime < 30) return "playful";
@@ -244,6 +253,7 @@
         const labels = {
           hungry:  { obi: "hungry",  luna: "hungry" },
           thirsty: { obi: "thirsty", luna: "thirsty" },
+          sad:     { obi: "lonely",  luna: "grumpy" },
           sleepy:  { obi: "sleepy",  luna: "drowsy" },
           playful: { obi: "waggy",   luna: "curious" },
           cuddly:  { obi: "cuddly",  luna: "aloof" }
@@ -298,7 +308,12 @@
       }
       rewardPet(key, amount, source, x, y) {
         const pet = key === "obi" ? this.obi : this.luna;
-        pet.joy = clamp(pet.joy + amount, 0, 100);
+        /* diminishing returns for rapid interactions */
+        if (!this._rewardCooldown) this._rewardCooldown = { obi: 0, luna: 0 };
+        var cooldown = this._rewardCooldown[key] || 0;
+        var effectiveAmount = amount * clamp(1 - cooldown * 0.6, 0.1, 1);
+        this._rewardCooldown[key] = Math.min(1.5, cooldown + 0.35);
+        pet.joy = clamp(pet.joy + effectiveAmount, 0, 100);
         store[key === "obi" ? "pet_obi_joy" : "pet_luna_joy"] = pet.joy;
         saveNumber(key === "obi" ? "pet_obi_joy" : "pet_luna_joy", pet.joy);
         pet.petTimer = source === "pet" ? 0.32 : 0.18;
@@ -519,21 +534,24 @@
         if (this.dailyGift && !this.dailyGift.collected) {
           if (this.dailyGift.phase > 0.5) {
             this.dailyGift.collected = true;
-            const gifts = [
-              { text: "+5 joy for Obi and Luna!", effect: () => { this.obi.joy = clamp(this.obi.joy + 5, 0, 100); this.luna.joy = clamp(this.luna.joy + 5, 0, 100); } },
-              { text: "Bowls refilled!", effect: () => { this.foodBowl.fill = 100; this.waterBowl.fill = 100; } },
-              { text: "+8 joy for Obi!", effect: () => { this.obi.joy = clamp(this.obi.joy + 8, 0, 100); } },
-              { text: "+8 joy for Luna!", effect: () => { this.luna.joy = clamp(this.luna.joy + 8, 0, 100); } },
-              { text: "Both pets are happy to see you!", effect: () => { this.obi.joy = clamp(this.obi.joy + 3, 0, 100); this.luna.joy = clamp(this.luna.joy + 3, 0, 100); } }
+            this.dailyGift.phase = 0;
+            var giftCoins = 10 + Math.floor(Math.random() * 11);
+            var gifts = [
+              { text: "+" + giftCoins + " coins & +10 joy for both pets!", effect: () => { this.obi.joy = clamp(this.obi.joy + 10, 0, 100); this.luna.joy = clamp(this.luna.joy + 10, 0, 100); } },
+              { text: "+" + giftCoins + " coins & bowls refilled!", effect: () => { this.foodBowl.fill = 100; this.waterBowl.fill = 100; } },
+              { text: "+" + giftCoins + " coins & +15 joy for Obi!", effect: () => { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); } },
+              { text: "+" + giftCoins + " coins & +15 joy for Luna!", effect: () => { this.luna.joy = clamp(this.luna.joy + 15, 0, 100); } },
+              { text: "+" + giftCoins + " coins & +8 joy for everyone!", effect: () => { this.obi.joy = clamp(this.obi.joy + 8, 0, 100); this.luna.joy = clamp(this.luna.joy + 8, 0, 100); } }
             ];
-            const gift = gifts[Math.floor(Math.random() * gifts.length)];
+            var gift = gifts[Math.floor(Math.random() * gifts.length)];
             gift.effect();
-            this.earnCoins(5);
+            addCoins(giftCoins);
+            this.dailyGift.rewardText = gift.text;
             this.statusText = gift.text;
             this.statusPulse = 1;
-            spawnParticleBurst(W / 2, 260, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 18, ["star", "heart"]);
+            spawnParticleBurst(W / 2, 260, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 24, ["star", "heart"]);
             audio.combo();
-            screenShake(4, 0.25);
+            screenShake(5, 0.3);
           }
           return;
         }
@@ -733,17 +751,21 @@
             this.statusPulse = 0.4;
             return;
           }
-          /* window click */
+          /* window click — observe outside, give small joy + hint at backyard */
           if (pointInRect(x, y, this.windowHitbox)) {
             const tod = store.decor.timeOfDay || 1;
-            let msg = "Nice view today.";
+            let msg = "The pets perk up looking outside.";
             if (this.ambientEvent && this.ambientEvent.type === "butterfly") msg = "Luna is fascinated by the butterflies!";
-            else if (this.ambientEvent && this.ambientEvent.type === "rain") msg = "Listen to the rain... so cozy.";
+            else if (this.ambientEvent && this.ambientEvent.type === "bird") msg = "Obi watches the birds intently!";
+            else if (this.ambientEvent && this.ambientEvent.type === "rain") msg = "Listen to the rain... so cozy in here.";
             else if (tod === 3) msg = "The stars are beautiful tonight.";
-            else if (tod === 0) msg = "What a lovely sunrise.";
+            else if (tod === 0) msg = "What a lovely sunrise! The pets want to go outside.";
+            else msg = "The backyard looks nice today! Try the door on the right.";
+            this.obi.joy = clamp(this.obi.joy + 1, 0, 100);
+            this.luna.joy = clamp(this.luna.joy + 1, 0, 100);
             this.statusText = msg;
-            this.statusPulse = 0.3;
-            spawnParticleBurst(126, 130, ["#FFF4C0", COLORS.gold], 3, ["star"]);
+            this.statusPulse = 0.5;
+            spawnParticleBurst(126, 130, ["#FFF4C0", COLORS.gold, "#87CEEB"], 5, ["star"]);
             audio.tinyChime();
             return;
           }
@@ -1107,11 +1129,13 @@
         const busy = this.treats.some((t) => t.pet === "obi") || (this.toy && this.toy.pet === "obi");
         const interacting = this.petInteraction.active;
         if (!busy && !interacting) {
-          if (this.idleTime > 10 && this.obi.joy > 72) {
-            /* sleepy time after long idle */
-            this.obi.targetX = this.obi.matX;
-            this.obi.targetY = this.obi.matY;
-            if (dist(this.obi.x, this.obi.y, this.obi.matX, this.obi.matY) < 18) {
+          if (this.idleTime > 8 && this.obi.joy > 55) {
+            /* sleepy time after idle — go to pet bed if available, otherwise mat */
+            var napX = store.decor.petBed ? 180 : this.obi.matX;
+            var napY = store.decor.petBed ? 456 : this.obi.matY;
+            this.obi.targetX = napX;
+            this.obi.targetY = napY;
+            if (dist(this.obi.x, this.obi.y, napX, napY) < 18) {
               if (!this.obi.sleepy) {
                 this.obi.sleepy = true;
                 const napMsgs = ["Obi found his favorite nap spot.", "Obi curls up for a snooze.", "Obi is dreaming of treats.", "Obi settles in for a cozy nap."];
@@ -1154,7 +1178,15 @@
           if (Math.abs(dx) > 2) this.obi.facing = dx >= 0 ? 1 : -1;
         }
         this.obi.bounce = busy ? 0.07 * Math.abs(Math.sin(game.time * 11)) : this.obi.petTimer > 0 ? 0.03 : 0;
-        this.obi.joy = clamp(this.obi.joy - dt * 0.3, 0, 100);
+        /* decay reward cooldown */
+        if (this._rewardCooldown) {
+          this._rewardCooldown.obi = Math.max(0, (this._rewardCooldown.obi || 0) - dt * 0.5);
+          this._rewardCooldown.luna = Math.max(0, (this._rewardCooldown.luna || 0) - dt * 0.5);
+        }
+        var obiDecay = 0.5;
+        if (this.foodBowl.fill < 20) obiDecay += 0.8;
+        if (this.waterBowl.fill < 20) obiDecay += 0.6;
+        this.obi.joy = clamp(this.obi.joy - dt * obiDecay, 0, 100);
         /* carryToy idle behavior */
         if (this.obi.carryingToy) {
           this.obi.carryTimer -= dt;
@@ -1272,7 +1304,10 @@
         if (this.luna.perch === "floor" && (busy || this.hoverKey === "luna")) {
           this.luna.x += Math.sin(game.time * 7 + this.luna.x * 0.03) * 8 * dt;
         }
-        this.luna.joy = clamp(this.luna.joy - dt * 0.28, 0, 100);
+        var lunaDecay = 0.45;
+        if (this.foodBowl.fill < 20) lunaDecay += 0.7;
+        if (this.waterBowl.fill < 20) lunaDecay += 0.5;
+        this.luna.joy = clamp(this.luna.joy - dt * lunaDecay, 0, 100);
         /* eating / drinking behavior */
         if (this.luna.eating || this.luna.drinking) {
           this.luna.eatDrinkTimer -= dt;
@@ -1368,15 +1403,18 @@
         if (this.hoverKey === "games") this.tooltip = { x: 82, y: 66, title: "Minigames", body: "Play cozy games with Obi and Luna!" };
         else if (this.hoverKey === "decor") this.tooltip = { x: 570, y: 66, title: "Decorate", body: "Customize the living room with unlockable items!" };
         else if (this.hoverKey === "wardrobe") this.tooltip = { x: 670, y: 66, title: "Wardrobe", body: "Buy and equip accessories for Obi and Luna!" };
+        else if (this.hoverKey === "backyardDoor") this.tooltip = { x: 740, y: 290, title: "Backyard", body: "Go outside to the backyard!" };
+        else if (this.hoverKey === "camera") this.tooltip = { x: W - 74, y: 100, title: "Camera", body: "Take a screenshot!" };
+        else if (this.hoverKey === "scrapbook") this.tooltip = { x: W - 74, y: 144, title: "Scrapbook", body: "View photos, milestones, and stats!" };
         else if (this.hoverKey === "pet") this.tooltip = { x: 198, y: 66, title: "Pet Mode", body: "Stroke directly over Obi or Luna for happy reactions." };
         else if (this.hoverKey === "treat") this.tooltip = { x: 310, y: 66, title: "Treat Mode", body: "Click to toss snacks from Annie toward either pet." };
         else if (this.hoverKey === "toy") this.tooltip = { x: 422, y: 66, title: "Play Mode", body: "Obi chases a ball; Luna stalks a yarn ball." };
         else if (this.hoverKey === "brush") this.tooltip = { x: 534, y: 66, title: "Brush Mode", body: "Brush Obi or Luna until they sparkle!" };
         else if (this.hoverKey === "foodBowl") this.tooltip = { x: this.foodBowl.x, y: this.foodBowl.y - 36, title: "Food Bowl", body: "Fill: " + Math.round(this.foodBowl.fill) + "%. Click to refill!" };
         else if (this.hoverKey === "waterBowl") this.tooltip = { x: this.waterBowl.x, y: this.waterBowl.y - 36, title: "Water Bowl", body: "Fill: " + Math.round(this.waterBowl.fill) + "%. Click to refill!" };
-        else if (this.hoverKey === "lamp") this.tooltip = { x: 126, y: 122, title: "Lamp", body: "Click to toggle the lamp." };
+        else if (this.hoverKey === "lamp") this.tooltip = { x: 216, y: 122, title: "Lamp", body: "Click to toggle the lamp." };
         else if (this.hoverKey === "toyBasket") this.tooltip = { x: 265, y: 368, title: "Toy Basket", body: "Click to toss a toy!" };
-        else if (this.hoverKey === "window") this.tooltip = { x: 126, y: 44, title: "Window", body: "Click to look outside." };
+        else if (this.hoverKey === "window") this.tooltip = { x: 126, y: 44, title: "Window", body: "Look outside! (+1 joy)" };
         else if (this.hoverKey === "petBed") this.tooltip = { x: 180, y: 442, title: "Pet Bed", body: "Click to call a pet to nap." };
         else if (this.hoverKey === "obi") this.tooltip = { x: this.obi.x, y: this.obi.y - 104, title: "Obi", body: "Mood: " + this.moodLabel("obi") };
         else if (this.hoverKey === "luna") this.tooltip = { x: this.luna.x, y: (this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y) - 104, title: "Luna", body: "Mood: " + this.moodLabel("luna") };
@@ -1391,7 +1429,7 @@
         }
         if (this.dailyGift && this.dailyGift.collected) {
           this.dailyGift.phase += dt;
-          if (this.dailyGift.phase > 3) this.dailyGift = null;
+          if (this.dailyGift.phase > 4) this.dailyGift = null;
         }
         /* coin popup decay */
         if (this.coinPopup) {
@@ -1445,6 +1483,7 @@
           store.pet_luna_joy = this.luna.joy;
           saveNumber("pet_obi_joy", this.obi.joy);
           saveNumber("pet_luna_joy", this.luna.joy);
+          saveNumber("lastJoySave", Date.now());
         }
         /* decoration notification tick */
         if (this.decorNotification) {
@@ -1753,7 +1792,14 @@
         cc.textAlign = "right";
         cc.fillText("Annie's Cozy Day", W - 12, H - 8);
         /* download */
-        var dataURL = captureCanvas.toDataURL("image/png");
+        var dataURL;
+        try {
+          dataURL = captureCanvas.toDataURL("image/png");
+        } catch (e) {
+          this.statusText = "Couldn't capture photo (try opening from a web server).";
+          this.statusPulse = 1;
+          return;
+        }
         if (isMobile) {
           window.open(dataURL, "_blank");
         } else {
@@ -1772,11 +1818,13 @@
         /* save thumbnail */
         var thumbCanvas = makeBufferCanvas(160, 120);
         thumbCanvas.getContext("2d").drawImage(captureCanvas, 0, 0, 160, 120);
-        var thumbData = thumbCanvas.toDataURL("image/jpeg", 0.6);
+        var thumbData;
+        try { thumbData = thumbCanvas.toDataURL("image/jpeg", 0.6); } catch(e) { return; }
         var photos = loadJSON("photos", []);
         photos.push({ data: thumbData, date: new Date().toDateString(), room: this.name });
         if (photos.length > 20) photos.shift();
         saveJSON("photos", photos);
+        this._photoCache = null;
         store.stats.totalPhotos++;
         saveStats();
         /* scrapbook entry for first photo */
@@ -1788,29 +1836,6 @@
         var col = index < ACCESSORIES.obi.length ? 0 : 1;
         var row = col === 0 ? index : index - ACCESSORIES.obi.length;
         return { x: 80 + col * 340, y: 160 + row * 78, w: 320, h: 68 };
-      }
-      drawPetCard(c, x, y, title, joy, accent, body) {
-        c.save();
-        rr(c, x, y, 208, 74, 18);
-        c.fillStyle = "rgba(255,255,255,0.78)";
-        c.fill();
-        c.strokeStyle = "rgba(146,104,72,0.18)";
-        c.lineWidth = 2;
-        c.stroke();
-        c.fillStyle = "#7A4E36";
-        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "left";
-        c.fillText(title, x + 16, y + 24);
-        c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillStyle = "rgba(122,78,54,0.78)";
-        c.fillText(body, x + 16, y + 42);
-        rr(c, x + 16, y + 50, 176, 10, 8);
-        c.fillStyle = "rgba(122,78,54,0.14)";
-        c.fill();
-        rr(c, x + 16, y + 50, 176 * clamp(joy / 100, 0, 1), 10, 8);
-        c.fillStyle = accent;
-        c.fill();
-        c.restore();
       }
       drawTreat(c, t) {
         c.save();
@@ -1857,11 +1882,12 @@
       }
       drawBowl(c, bowl, frameKey, hovered) {
         const frame = spriteArt.frames.items[frameKey];
-        if (hovered) drawGlowCircle(c, bowl.x, bowl.y - 8, 36, "rgba(255,215,0,ALPHA)", 0.25);
-        drawShadowEllipse(c, bowl.x, bowl.y + 8, 24, 6, 0.12);
+        if (hovered) drawGlowCircle(c, bowl.x, bowl.y - 8, 42, "rgba(255,215,0,ALPHA)", 0.25);
+        drawShadowEllipse(c, bowl.x, bowl.y + 10, 30, 8, 0.12);
         if (spriteArt.ready && frame) {
           c.save();
-          const scale = 0.08;
+          const fix = FRAME_SCALE_FIX["items." + frameKey] || 1;
+          const scale = 0.12 * fix;
           const w = frame.w * scale;
           const h = frame.h * scale;
           c.drawImage(spriteArt.image, frame.x, frame.y, frame.w, frame.h, bowl.x - w / 2, bowl.y - h, w, h);
@@ -1958,11 +1984,16 @@
           c.restore();
         }
         if (this.dailyGift.collected) {
-          /* post-collect: show reward text */
-          c.fillStyle = COLORS.dark;
+          /* post-collect: show reward text prominently */
+          var fadeOut = clamp((4 - this.dailyGift.phase) / 0.8, 0, 1);
+          c.globalAlpha = panelAlpha * fadeOut;
+          c.fillStyle = COLORS.gold;
           c.textAlign = "center";
-          c.font = '22px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText(this.statusText, W / 2, 280);
+          c.font = '24px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(this.dailyGift.rewardText || "", W / 2, 270);
+          c.fillStyle = COLORS.dark;
+          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Come back tomorrow for another gift!", W / 2, 310);
         }
         /* title */
         c.fillStyle = COLORS.dark;
@@ -2988,27 +3019,40 @@
               c.textAlign = "center";
               c.fillText("No photos yet! Use the camera button to take photos.", W / 2, 300);
             } else {
-              for (var pi = 0; pi < photos.length; pi++) {
+              /* pre-cache photo Image objects */
+              if (!this._photoCache || this._photoCacheLen !== photos.length) {
+                this._photoCache = [];
+                this._photoCacheLen = photos.length;
+                for (var ci = 0; ci < photos.length; ci++) {
+                  var cimg = new Image();
+                  cimg.src = photos[ci].data;
+                  this._photoCache.push({ img: cimg, date: photos[ci].date, room: photos[ci].room });
+                }
+              }
+              for (var pi = 0; pi < this._photoCache.length; pi++) {
                 var px = 80 + (pi % 4) * 170;
                 var py = 150 + Math.floor(pi / 4) * 140;
                 if (py > 510) break;
-                /* draw thumbnail */
-                var img = new Image();
-                img.src = photos[pi].data;
+                var cached = this._photoCache[pi];
+                /* draw thumbnail frame */
                 c.save();
                 rr(c, px, py, 160, 120, 8);
+                c.fillStyle = "rgba(200,190,180,0.3)";
+                c.fill();
                 c.clip();
-                c.drawImage(img, px, py, 160, 120);
+                if (cached.img.complete && cached.img.naturalWidth > 0) {
+                  c.drawImage(cached.img, px, py, 160, 120);
+                }
                 c.restore();
                 c.strokeStyle = "rgba(146,104,72,0.2)";
                 c.lineWidth = 2;
                 rr(c, px, py, 160, 120, 8);
                 c.stroke();
-                /* date label */
+                /* date + room label */
                 c.fillStyle = "rgba(92,61,46,0.5)";
                 c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
                 c.textAlign = "center";
-                c.fillText(photos[pi].date, px + 80, py + 135);
+                c.fillText((cached.room || "") + " — " + (cached.date || ""), px + 80, py + 135);
               }
             }
           } else if (this.scrapbookTab === "milestones") {

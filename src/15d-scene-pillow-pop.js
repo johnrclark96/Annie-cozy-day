@@ -11,7 +11,7 @@
         super("pillow", "Pillow Pop",
           isMobile ? "Tap Luna when she pops up! Don't tap Obi!"
                    : "Click Luna when she pops up! Don't click Obi!",
-          [100, 250, 500], 45);
+          [150, 350, 650], 45);
         this.popups = [];
         this.spawnTimer = 0;
         this.spawnRate = 1.4;

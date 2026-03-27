@@ -1,7 +1,6 @@
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
     function lerp(a, b, t) { return a + (b - a) * t; }
     function rand(min, max) { return min + Math.random() * (max - min); }
-    function sign(v) { return v < 0 ? -1 : 1; }
     function easeOutBack(t) {
       const c1 = 1.70158;
       const c3 = c1 + 1;
@@ -15,9 +14,6 @@
     }
     function pointInRect(px, py, r) {
       return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h;
-    }
-    function pointInCircle(px, py, cx, cy, r) {
-      return dist(px, py, cx, cy) <= r;
     }
     function rr(c, x, y, w, h, r) {
       const radius = Math.min(r, w * 0.5, h * 0.5);

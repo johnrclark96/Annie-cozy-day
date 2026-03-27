@@ -17,7 +17,7 @@
         super("pawstep", "Pawstep Patterns",
           isMobile ? "Watch the pets, then tap the actions in the same order!"
                    : "Watch the pets, then click the actions in the same order!",
-          [60, 150, 300], 90);
+          [80, 200, 400], 90);
         this.sequence = [];
         this.playbackIndex = 0;
         this.inputIndex = 0;

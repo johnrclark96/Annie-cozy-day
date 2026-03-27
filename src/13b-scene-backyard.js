@@ -11,7 +11,7 @@
         this.luna = {
           x: 600, y: 480, homeX: 600, homeY: 480,
           targetX: 600, targetY: 480, joy: store.pet_luna_joy, facing: -1,
-          wiggle: 0, pawBat: 0, earTwitch: 0,
+          wiggle: 0, earTwitch: 0,
           pose: "sit", actionTimer: rand(3, 6), action: "idle",
           inTree: false, stalking: false
         };
@@ -83,7 +83,9 @@
         cc.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         cc.textAlign = "right";
         cc.fillText("Annie's Cozy Day", W - 12, H - 8);
-        var dataURL = captureCanvas.toDataURL("image/png");
+        var dataURL;
+        try { dataURL = captureCanvas.toDataURL("image/png"); }
+        catch(e) { this.statusText = "Couldn't capture photo."; this.statusPulse = 1; return; }
         if (isMobile) { window.open(dataURL, "_blank"); }
         else {
           var link = document.createElement("a");
@@ -99,7 +101,8 @@
         this.statusPulse = 1;
         var thumbCanvas = makeBufferCanvas(160, 120);
         thumbCanvas.getContext("2d").drawImage(captureCanvas, 0, 0, 160, 120);
-        var thumbData = thumbCanvas.toDataURL("image/jpeg", 0.6);
+        var thumbData;
+        try { thumbData = thumbCanvas.toDataURL("image/jpeg", 0.6); } catch(e) { return; }
         var photos = loadJSON("photos", []);
         photos.push({ data: thumbData, date: new Date().toDateString(), room: this.name });
         if (photos.length > 20) photos.shift();
@@ -339,6 +342,9 @@
         } else if (Math.abs(x - this.pool.x) < 50 && Math.abs(y - this.pool.y) < 40) {
           this.hoverKey = "pool";
           this.tooltip = { x: this.pool.x, y: this.pool.y - 40, title: "Kiddie Pool", body: "Click to call Obi for a splash!" };
+        } else if (Math.abs(x - this.tree.x) < 50 && y > this.tree.y - 60 && y < this.tree.y + 100) {
+          this.hoverKey = "tree";
+          this.tooltip = { x: this.tree.x, y: this.tree.y - 60, title: "Oak Tree", body: this.luna.inTree ? "Luna is relaxing up there!" : "Luna loves to climb here." };
         }
       }
       interactiveAt(x, y) {
@@ -347,6 +353,7 @@
         if (Math.abs(x - this.feeder.x) < 40 && Math.abs(y - this.feeder.y) < 40) return true;
         if (Math.abs(x - this.garden.x) < 50 && Math.abs(y - this.garden.y) < 40) return true;
         if (Math.abs(x - this.pool.x) < 50 && Math.abs(y - this.pool.y) < 40) return true;
+        if (Math.abs(x - this.tree.x) < 50 && y > this.tree.y - 60 && y < this.tree.y + 100) return true;
         return false;
       }
       onKeyDown(key) {
@@ -542,63 +549,65 @@
         var tod = store.decor.timeOfDay || 1;
         var byFrames = spriteArt.ready ? spriteArt.frames.backyard : null;
 
+        /* bench — decorative, drawn behind other objects */
+        if (byFrames && byFrames.bench) {
+          drawFrameImage(c, byFrames.bench, 100, 380, 0.8, { baseScale: 1, shadowAlpha: 0.10 });
+        } else {
+          c.fillStyle = tod === 3 ? "#3A3020" : "#8B7A58";
+          rr(c, 60, 368, 80, 30, 6); c.fill();
+          c.fillRect(66, 398, 6, 20); c.fillRect(128, 398, 6, 20);
+        }
+
         /* garden patch */
         if (byFrames && byFrames.gardenPatch) {
-          drawFrameImage(c, byFrames.gardenPatch, this.garden.x, this.garden.y, 0.35, { baseScale: 1, shadowAlpha: 0.08 });
+          drawFrameImage(c, byFrames.gardenPatch, this.garden.x, this.garden.y, 0.8, { baseScale: 1, shadowAlpha: 0.10 });
         } else {
           c.fillStyle = tod === 3 ? "#3A2818" : "#7A5428";
-          rr(c, this.garden.x - 45, this.garden.y - 15, 90, 35, 8);
+          rr(c, this.garden.x - 50, this.garden.y - 18, 100, 40, 8);
           c.fill();
         }
-        /* flowers */
+        /* flowers on top of garden */
         var flowerColors = ["#FF6B9D", "#FFD700", "#FF8C42", "#E040FB", "#4FC3F7", "#AED581"];
         for (var fi = 0; fi < store.backyardFlowers; fi++) {
-          var fx = this.garden.x - 30 + fi * 12;
-          var fy = this.garden.y - 12;
+          var fx = this.garden.x - 35 + fi * 14;
+          var fy = this.garden.y - 16;
           c.fillStyle = "#5C7A3A";
-          c.fillRect(fx, fy, 2, 12);
+          c.fillRect(fx, fy, 2, 14);
           c.fillStyle = flowerColors[fi % flowerColors.length];
-          c.beginPath(); c.arc(fx + 1, fy - 3, 4, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(fx + 1, fy - 4, 5, 0, Math.PI * 2); c.fill();
         }
 
         /* kiddie pool */
         if (byFrames && byFrames.kiddiePool) {
-          drawFrameImage(c, byFrames.kiddiePool, this.pool.x, this.pool.y, 0.35, { baseScale: 1, shadowAlpha: 0.06 });
-          /* water ripples */
-          c.strokeStyle = "rgba(255,255,255,0.3)";
-          c.lineWidth = 1;
-          c.beginPath();
-          c.ellipse(this.pool.x + Math.sin(game.time * 2) * 10, this.pool.y, 20, 8, 0, 0, Math.PI * 2);
-          c.stroke();
+          drawFrameImage(c, byFrames.kiddiePool, this.pool.x, this.pool.y, 0.85, { baseScale: 1, shadowAlpha: 0.08 });
         } else {
           c.fillStyle = "#4A90D9";
           c.globalAlpha = 0.5;
-          c.beginPath(); c.ellipse(this.pool.x, this.pool.y, 45, 18, 0, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.ellipse(this.pool.x, this.pool.y, 50, 22, 0, 0, Math.PI * 2); c.fill();
           c.globalAlpha = 1;
-          c.strokeStyle = "#87CEEB";
-          c.lineWidth = 3;
-          c.beginPath(); c.ellipse(this.pool.x, this.pool.y, 45, 18, 0, 0, Math.PI * 2); c.stroke();
-          c.strokeStyle = "rgba(255,255,255,0.3)";
-          c.lineWidth = 1;
-          c.beginPath();
-          c.ellipse(this.pool.x + Math.sin(game.time * 2) * 10, this.pool.y, 20, 8, 0, 0, Math.PI * 2);
-          c.stroke();
+          c.strokeStyle = "#87CEEB"; c.lineWidth = 3;
+          c.beginPath(); c.ellipse(this.pool.x, this.pool.y, 50, 22, 0, 0, Math.PI * 2); c.stroke();
         }
+        /* water ripples on pool */
+        c.strokeStyle = "rgba(255,255,255,0.3)"; c.lineWidth = 1;
+        c.beginPath();
+        c.ellipse(this.pool.x + Math.sin(game.time * 2) * 12, this.pool.y, 22, 9, 0, 0, Math.PI * 2);
+        c.stroke();
 
         /* bird feeder */
         if (byFrames && byFrames.birdFeeder) {
-          drawFrameImage(c, byFrames.birdFeeder, this.feeder.x, this.feeder.y, 0.35, { baseScale: 1, shadowAlpha: 0.08 });
+          drawFrameImage(c, byFrames.birdFeeder, this.feeder.x, this.feeder.y, 0.8, { baseScale: 1, shadowAlpha: 0.10 });
         } else {
           c.fillStyle = tod === 3 ? "#3A2818" : "#8B6914";
-          c.fillRect(this.feeder.x - 3, this.feeder.y, 6, 50);
+          c.fillRect(this.feeder.x - 4, this.feeder.y, 8, 55);
           c.fillStyle = tod === 3 ? "#4A3828" : "#D2B48C";
-          rr(c, this.feeder.x - 18, this.feeder.y - 10, 36, 16, 4);
+          rr(c, this.feeder.x - 22, this.feeder.y - 12, 44, 18, 5);
           c.fill();
         }
         /* seed indicator */
         if (this.feeder.filled) {
           c.fillStyle = "#E8C44C";
-          c.beginPath(); c.arc(this.feeder.x, this.feeder.y - 2, 6, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(this.feeder.x, this.feeder.y - 4, 7, 0, Math.PI * 2); c.fill();
         }
       }
     }

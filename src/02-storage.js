@@ -75,7 +75,6 @@
         plant2: false,
         petBed: false,
         rugColor: 0,
-        wallArt: 0,
         lampOn: true,
         roomPreset: 0,
         timeOfDay: 1,
@@ -99,7 +98,6 @@
       coins: loadNumber("coins", 50),
       wardrobe: loadJSON("wardrobe", { owned: [], equipped: { obi: null, luna: null } }),
       backyardFlowers: loadNumber("backyardFlowers", 0),
-      photos: loadJSON("photos", []),
       scrapbook: loadJSON("scrapbook", { entries: [], photosViewed: 0 })
     };
 
@@ -119,7 +117,6 @@
     if (store.achievements.goodMemory === undefined) store.achievements.goodMemory = false;
     /* stats migration for Phase 3 */
     if (store.stats.totalSessions === undefined) store.stats.totalSessions = 0;
-    if (store.stats.totalJoyGiven === undefined) store.stats.totalJoyGiven = 0;
     if (store.stats.totalPhotos === undefined) store.stats.totalPhotos = 0;
     if (store.stats.totalCoinsEarned === undefined) store.stats.totalCoinsEarned = 0;
 
@@ -154,17 +151,17 @@
     }
     function totalStarsEarned() {
       const games = [
-        { best: store.best_treat, thresholds: [200, 500, 1000] },
-        { best: store.best_laser, thresholds: [150, 400, 800] },
+        { best: store.best_treat, thresholds: [300, 700, 1400] },
+        { best: store.best_laser, thresholds: [200, 500, 1000] },
         { best: store.best_cuddle, thresholds: [30, 60, 90] },
-        { best: store.best_walk, thresholds: [150, 300, 600] },
-        { best: store.best_nap, thresholds: [200, 450, 800] },
-        { best: store.best_bath, thresholds: [80, 200, 400] },
-        { best: store.best_sort, thresholds: [150, 350, 700] },
-        { best: store.best_pillow, thresholds: [100, 250, 500] },
-        { best: store.best_findluna, thresholds: [80, 200, 400] },
-        { best: store.best_window, thresholds: [120, 300, 600] },
-        { best: store.best_pawstep, thresholds: [60, 150, 300] }
+        { best: store.best_walk, thresholds: [200, 450, 800] },
+        { best: store.best_nap, thresholds: [250, 550, 1000] },
+        { best: store.best_bath, thresholds: [120, 280, 500] },
+        { best: store.best_sort, thresholds: [120, 280, 550] },
+        { best: store.best_pillow, thresholds: [150, 350, 650] },
+        { best: store.best_findluna, thresholds: [100, 250, 500] },
+        { best: store.best_window, thresholds: [150, 400, 750] },
+        { best: store.best_pawstep, thresholds: [80, 200, 400] }
       ];
       let total = 0;
       for (const g of games) {

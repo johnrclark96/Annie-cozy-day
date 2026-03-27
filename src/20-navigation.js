@@ -8,25 +8,6 @@
       return 0;
     }
 
-    function maybeSparkle(x, y, dt) {
-      if (game.particles.length > 260) return;
-      if (Math.random() < dt * 6) {
-        game.particles.push({
-          x: x + rand(-30, 30),
-          y: y + rand(-30, 24),
-          vx: rand(-10, 10),
-          vy: rand(-30, -10),
-          life: 0.6,
-          maxLife: 0.6,
-          size: rand(4, 6),
-          rot: rand(0, Math.PI * 2),
-          vr: rand(-3, 3),
-          shape: "star",
-          color: COLORS.gold
-        });
-      }
-    }
-
     function spawnTrail(x, y, color) {
       if (game.particles.length > 280) return;
       if (Math.random() < 0.55) {
@@ -56,6 +37,3 @@
       };
     }
 
-    function currentScene() {
-      return game.transition ? game.transition.from : game.scene;
-    }

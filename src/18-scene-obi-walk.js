@@ -3,7 +3,7 @@
        ═══════════════════════════════════════════════════════ */
     class ObiWalkScene extends BaseMinigameScene {
       constructor() {
-        super("walk", "Obi's Walk", isMobile ? "Tap items along the path to let Obi sniff them! Tap squirrels before Obi chases them!" : "Click items along the path to let Obi sniff them! Click squirrels before Obi chases them!", [150, 300, 600], 45);
+        super("walk", "Obi's Walk", isMobile ? "Tap items along the path to let Obi sniff them! Tap squirrels before Obi chases them!" : "Click items along the path to let Obi sniff them! Click squirrels before Obi chases them!", [200, 450, 800], 45);
         this.scrollX = 0;
         this.obiY = 440;
         this.obiPose = "run";

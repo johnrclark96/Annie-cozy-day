@@ -13,11 +13,11 @@
       "items": {
             "yarnBall": { "x": 8, "y": 10190, "w": 352, "h": 257 },
             "brush": { "x": 8, "y": 10455, "w": 381, "h": 294 },
-            "giftBox": { "x": 516, "y": 11515, "w": 307, "h": 308 },
-            "dogTreats": { "x": 8, "y": 11861, "w": 362, "h": 307 },
-            "waterBowl": { "x": 378, "y": 11861, "w": 400, "h": 305 },
-            "foodBowl": { "x": 8, "y": 13026, "w": 400, "h": 230 },
-            "catTreats": { "x": 266, "y": 14067, "w": 315, "h": 89 }
+            "giftBox": { "x": 482, "y": 11986, "w": 307, "h": 308 },
+            "waterBowl": { "x": 8, "y": 12329, "w": 397, "h": 307 },
+            "dogTreats": { "x": 413, "y": 12329, "w": 358, "h": 307 },
+            "foodBowl": { "x": 249, "y": 13488, "w": 407, "h": 230 },
+            "catTreats": { "x": 8, "y": 14380, "w": 306, "h": 93 }
       },
       "obi": {
             "sitHappy": { "x": 8, "y": 2558, "w": 360, "h": 512 },
@@ -27,12 +27,12 @@
             "sleep": { "x": 8, "y": 4666, "w": 653, "h": 342 },
             "sniff": { "x": 8, "y": 5016, "w": 757, "h": 509 },
             "shake": { "x": 8, "y": 5533, "w": 644, "h": 520 },
-            "dig": { "x": 8, "y": 12176, "w": 500, "h": 304 },
-            "splash": { "x": 8, "y": 11150, "w": 500, "h": 357 },
-            "eat": { "x": 8, "y": 12488, "w": 396, "h": 277 },
-            "drink": { "x": 412, "y": 12488, "w": 414, "h": 268 },
-            "carryToy": { "x": 516, "y": 11150, "w": 367, "h": 339 },
-            "bath": { "x": 516, "y": 12176, "w": 344, "h": 287 }
+            "dig": { "x": 8, "y": 11625, "w": 580, "h": 353 },
+            "splash": { "x": 450, "y": 11247, "w": 510, "h": 366 },
+            "eat": { "x": 316, "y": 12936, "w": 390, "h": 271 },
+            "drink": { "x": 289, "y": 13217, "w": 409, "h": 262 },
+            "carryToy": { "x": 596, "y": 11625, "w": 363, "h": 336 },
+            "bath": { "x": 8, "y": 12644, "w": 340, "h": 284 }
       },
       "luna": {
             "sit": { "x": 8, "y": 1968, "w": 428, "h": 582 },
@@ -42,28 +42,28 @@
             "sleep": { "x": 8, "y": 6069, "w": 719, "h": 372 },
             "groom": { "x": 8, "y": 6449, "w": 581, "h": 576 },
             "bellyUp": { "x": 8, "y": 7033, "w": 868, "h": 418 },
-            "treeSit": { "x": 8, "y": 10757, "w": 500, "h": 385 },
-            "stalk": { "x": 8, "y": 13909, "w": 500, "h": 150 },
-            "eat": { "x": 8, "y": 13498, "w": 498, "h": 206 },
-            "drink": { "x": 8, "y": 11515, "w": 500, "h": 338 },
-            "stretch": { "x": 516, "y": 10757, "w": 466, "h": 376 },
-            "bath": { "x": 514, "y": 13498, "w": 371, "h": 204 }
+            "treeSit": { "x": 8, "y": 10765, "w": 614, "h": 474 },
+            "stalk": { "x": 316, "y": 13741, "w": 680, "h": 206 },
+            "eat": { "x": 316, "y": 13963, "w": 466, "h": 201 },
+            "drink": { "x": 8, "y": 11986, "w": 466, "h": 335 },
+            "stretch": { "x": 8, "y": 11247, "w": 434, "h": 370 },
+            "bath": { "x": 8, "y": 14172, "w": 367, "h": 200 }
       },
       "accessories": {
-            "bandanaRed": { "x": 524, "y": 13712, "w": 250, "h": 162 },
-            "bandanaPlaid": { "x": 266, "y": 13264, "w": 250, "h": 210 },
-            "bandanaCamo": { "x": 516, "y": 13909, "w": 250, "h": 145 },
-            "sweaterRed": { "x": 416, "y": 13026, "w": 250, "h": 227 },
-            "bowPink": { "x": 266, "y": 13712, "w": 250, "h": 178 },
-            "flowerCrown": { "x": 8, "y": 13712, "w": 250, "h": 189 },
-            "starCollar": { "x": 8, "y": 14067, "w": 250, "h": 126 }
+            "bandanaRed": { "x": 8, "y": 13963, "w": 300, "h": 201 },
+            "bandanaPlaid": { "x": 706, "y": 13217, "w": 300, "h": 253 },
+            "bandanaCamo": { "x": 383, "y": 14172, "w": 300, "h": 181 },
+            "sweaterRed": { "x": 664, "y": 12644, "w": 300, "h": 278 },
+            "bowPink": { "x": 8, "y": 13741, "w": 300, "h": 214 },
+            "flowerCrown": { "x": 664, "y": 13488, "w": 300, "h": 226 },
+            "starCollar": { "x": 691, "y": 14172, "w": 300, "h": 155 }
       },
       "backyard": {
-            "birdFeeder": { "x": 249, "y": 12773, "w": 250, "h": 241 },
-            "kiddiePool": { "x": 507, "y": 12773, "w": 250, "h": 234 },
-            "gardenPatch": { "x": 674, "y": 13026, "w": 250, "h": 227 },
-            "bench": { "x": 8, "y": 13264, "w": 250, "h": 226 },
-            "butterflyNet": { "x": 8, "y": 12773, "w": 233, "h": 245 }
+            "birdFeeder": { "x": 8, "y": 13217, "w": 273, "h": 263 },
+            "kiddiePool": { "x": 356, "y": 12644, "w": 300, "h": 281 },
+            "gardenPatch": { "x": 8, "y": 12936, "w": 300, "h": 273 },
+            "bench": { "x": 714, "y": 12936, "w": 300, "h": 270 },
+            "butterflyNet": { "x": 8, "y": 13488, "w": 233, "h": 245 }
       }
 };
 
@@ -71,6 +71,17 @@
       annie: 0.158,
       obi: 0.205,
       luna: 0.198
+    };
+
+    /* Scale corrections for replacement sprites (new atlas frames differ in px from originals).
+       Maps "category.key" -> multiplier so rendered size matches the original visual size. */
+    const FRAME_SCALE_FIX = {
+      "obi.eat": 1.63, "obi.drink": 1.62, "obi.carryToy": 1.54, "obi.bath": 1.65,
+      "obi.dig": 1.10, "obi.splash": 1.10,
+      "luna.eat": 1.68, "luna.drink": 1.68, "luna.stretch": 1.64, "luna.bath": 1.53,
+      "luna.treeSit": 1.10, "luna.stalk": 1.05,
+      "items.foodBowl": 1.58, "items.waterBowl": 1.62, "items.giftBox": 1.58,
+      "items.dogTreats": 1.62, "items.catTreats": 1.60
     };
 
     const spriteArt = {
@@ -217,7 +228,9 @@
       else if (pose === "splash") frame = frames.splash;
       else if (expression === "sad") frame = frames.sitSad;
       else if (happyMotion) frame = Math.sin(game.time * 14) > 0 ? frames.leap : frames.sitHappy;
-      drawFrameImage(c, frame, x, y, scale, {
+      var obiFrameKey = "obi." + pose;
+      var obiFix = FRAME_SCALE_FIX[obiFrameKey] || 1;
+      drawFrameImage(c, frame, x, y, scale * obiFix, {
         baseScale: SPRITE_BASE_SCALE.obi,
         flip: s.facing || 1,
         bob: -(s.bounce || 0) * 20,
@@ -250,7 +263,9 @@
       else if ((s.blink && pose !== "topdown") || (s.pounceStretch || 0) > 0.25) frame = frames.pounce;
       const topdownRot = pose === "topdown" ? clamp(Math.atan2(game.mouse.y - y, game.mouse.x - x) * 0.18, -0.42, 0.42) : 0;
       const bellyRock = pose === "bellyUp" ? Math.sin(game.time * 3) * 0.04 : 0;
-      drawFrameImage(c, frame, x, y, scale, {
+      var lunaFrameKey = "luna." + pose;
+      var lunaFix = FRAME_SCALE_FIX[lunaFrameKey] || 1;
+      drawFrameImage(c, frame, x, y, scale * lunaFix, {
         baseScale: SPRITE_BASE_SCALE.luna,
         flip: (pose === "topdown" ? (game.mouse.x >= x ? 1 : -1) : (s.facing || 1)),
         bob: -Math.abs(s.wiggle || 0) * 2 - (s.pawBat || 0) * 4 + (pose === "bellyUp" ? Math.sin(game.time * 2) * 2 : 0),
@@ -994,21 +1009,49 @@
     }
 
     function getAccessoryOffset(pet, key, pose) {
-      var hidden = ["sleeping", "bath", "shake"];
+      var hidden = ["sleeping", "bath", "shake", "splash", "dig"];
       if (hidden.indexOf(pose) >= 0) return null;
       var slot = null;
       var list = ACCESSORIES[pet];
       for (var i = 0; i < list.length; i++) { if (list[i].key === key) { slot = list[i].slot; break; } }
       if (!slot) return null;
-      if (slot === "body" && (pose === "sleeping" || pose === "bath")) return null;
-      var dx = 0, dy = -52, sc = 0.05, rot = 0;
-      if (slot === "head") { dy = -62; sc = 0.04; }
-      else if (slot === "neck") { dy = -50; sc = 0.05; }
-      else if (slot === "body") { dy = -40; sc = 0.07; }
-      if (pose === "run" || pose === "side") { dy += 2; rot = 0.05; }
-      else if (pose === "sniff") { dy += 6; rot = 0.1; }
-      else if (pose === "eat" || pose === "drink") { dy += 8; rot = 0.08; }
-      return { dx: dx, dy: dy, scale: sc, rot: rot };
+      /* Offsets are relative to pet anchor (feet position).
+         renderSize = how wide to draw the accessory in pixels. */
+      if (pet === "obi") {
+        if (slot === "neck") {
+          var dy = -58, dx = 2, sz = 30, rot = 0;
+          if (pose === "run" || pose === "side") { dy = -42; dx = 8; rot = 0.1; }
+          else if (pose === "sniff") { dy = -38; dx = 12; rot = 0.2; sz = 28; }
+          else if (pose === "eat" || pose === "drink") { dy = -36; dx = 10; rot = 0.15; sz = 28; }
+          else if (pose === "carryToy") { dy = -44; dx = 6; rot = 0.05; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+        if (slot === "body") {
+          var dy = -48, dx = 0, sz = 50, rot = 0;
+          if (pose === "run" || pose === "side") { dy = -36; dx = 4; }
+          else if (pose === "sniff" || pose === "eat" || pose === "drink") { dy = -32; rot = 0.1; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+      } else {
+        /* luna */
+        if (slot === "head") {
+          var dy = -68, dx = 0, sz = 24, rot = 0;
+          if (pose === "lounge") { dy = -48; dx = 4; sz = 22; }
+          else if (pose === "groom") { dy = -56; dx = -4; rot = -0.1; }
+          else if (pose === "treeSit") { dy = -54; dx = 2; }
+          else if (pose === "stalk") { dy = -28; dx = 8; rot = 0.15; sz = 20; }
+          else if (pose === "eat" || pose === "drink") { dy = -34; dx = 8; rot = 0.2; sz = 20; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+        if (slot === "neck") {
+          var dy = -54, dx = 0, sz = 26, rot = 0;
+          if (pose === "lounge") { dy = -38; dx = 4; }
+          else if (pose === "stalk") { dy = -22; dx = 6; rot = 0.1; sz = 22; }
+          else if (pose === "eat" || pose === "drink") { dy = -28; dx = 8; rot = 0.15; sz = 22; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+      }
+      return null;
     }
 
     function drawAccessoryOverlay(c, pet, x, y, scale, pose, facing) {
@@ -1020,12 +1063,17 @@
       var accFrames = spriteArt.frames.accessories;
       var frame = accFrames ? accFrames[equipped] : null;
       if (!frame) return;
-      var ax = x + off.dx * scale * (facing || 1);
+      var f = facing || 1;
+      var ax = x + off.dx * scale * f;
       var ay = y + off.dy * scale;
-      drawFrameImage(c, frame, ax, ay, off.scale, {
-        baseScale: 1,
-        flip: facing || 1,
-        rotation: off.rot * (facing || 1),
-        shadowAlpha: 0
-      });
+      var renderW = off.size * scale;
+      var aspect = frame.h / frame.w;
+      var renderH = renderW * aspect;
+      c.save();
+      c.translate(ax, ay);
+      c.rotate(off.rot * f);
+      c.scale(f, 1);
+      c.drawImage(spriteArt.image, frame.x, frame.y, frame.w, frame.h,
+        -renderW / 2, -renderH / 2, renderW, renderH);
+      c.restore();
     }

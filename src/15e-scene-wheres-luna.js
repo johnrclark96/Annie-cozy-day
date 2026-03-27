@@ -3,7 +3,7 @@
         super("findluna", "Where's Luna?",
           isMobile ? "Watch where Luna hides, then tap the right cushion!"
                    : "Watch where Luna hides, then click the right cushion!",
-          [80, 200, 400], 60);
+          [100, 250, 500], 60);
         this.cushions = [
           { x: 200, y: 380, targetX: 200 },
           { x: 400, y: 380, targetX: 400 },

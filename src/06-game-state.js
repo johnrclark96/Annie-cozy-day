@@ -8,9 +8,9 @@
       hovered: false,
       particles: [],
       ambient: [],
-      starsAmbient: [],
       visible: true,
       shake: 0,
+      shakeIntensity: 4,
       shakeX: 0,
       shakeY: 0
     };
