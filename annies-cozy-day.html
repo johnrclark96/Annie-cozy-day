@@ -50,8 +50,9 @@
       height: 100%;
     }
     canvas {
-      width: 800px;
-      height: 600px;
+      width: min(800px, calc(100vw - 24px), calc((100vh - 24px) * 4 / 3));
+      height: auto;
+      aspect-ratio: 4 / 3;
       max-width: calc(100vw - 24px);
       max-height: calc(100vh - 24px);
       image-rendering: auto;
@@ -5333,7 +5334,12 @@
           if (this.strokeTrail.length > 20) this.strokeTrail.shift();
         }
         if (this.strokeTick <= 0) {
-          this.strokeTick = 0.1;
+          this.strokeTick = 0.35;
+          /* skip reward if cooldown is maxed (prevents hold-to-fill) */
+          if (this._rewardCooldown && (this._rewardCooldown[target] || 0) >= 1.4) {
+            if (Math.random() < 0.15) this.statusText = target === "obi" ? "Obi needs a break from pets!" : "Luna is over it. Typical cat.";
+            return;
+          }
           const zone = this.getPetZone(target, x, y);
           const amount = this.mode === "brush" ? 3.5 : 2.5;
           if (target === "obi") {
@@ -9728,9 +9734,10 @@
           this.spawnTimer = this.spawnInterval;
         }
 
-        // Drop detection: if dragging and mouse released
-        if (this.dragging && !game.mouse.down) {
-          this.dropTreat();
+        // Drop detection: if dragging and mouse released (with grace period)
+        if (this.dragging) {
+          if (this.dragging.dragGrace > 0) this.dragging.dragGrace -= dt;
+          else if (!game.mouse.down) this.dropTreat();
         }
 
         // Update treat positions
@@ -9790,7 +9797,9 @@
           if (t.settled || t.dragging) continue;
           if (dist(x, y, t.x, t.y) < 32) {
             t.dragging = true;
+            t.dragGrace = 0.2;
             this.dragging = t;
+            game.mouse.down = true;
             return;
           }
         }
@@ -12249,7 +12258,10 @@
     window.addEventListener("mouseup", () => { game.mouse.down = false; });
     canvas.addEventListener("mouseleave", () => { game.mouse.down = false; });
 
+    var lastTouchTime = 0;
     canvas.addEventListener("click", (e) => {
+      /* skip click if it was triggered by a recent touch (prevents double-fire on mobile) */
+      if (Date.now() - lastTouchTime < 500) return;
       const r = canvas.getBoundingClientRect();
       const x = (e.clientX - r.left) * (canvas.width / r.width);
       const y = (e.clientY - r.top) * (canvas.height / r.height);
@@ -12273,6 +12285,7 @@
     }
     canvas.addEventListener("touchstart", (e) => {
       e.preventDefault();
+      lastTouchTime = Date.now();
       const { x, y } = touchCoords(e);
       game.mouse.x = x;
       game.mouse.y = y;
