@@ -138,7 +138,8 @@
       { key: "fullHouse", name: "Full House", desc: "Earn all 33 minigame stars.", color: "#FFD700", icon: "star", coinBonus: 50 },
       { key: "wellFed", name: "Well Fed", desc: "Fill food and water bowls 50 total times.", color: "#7CB342", icon: "heart", coinBonus: 10 },
       { key: "collector", name: "Master Collector", desc: "Own every item in the game.", color: "#E8A020", icon: "star", coinBonus: 100 },
-      { key: "challengeChampion", name: "Challenge Champion", desc: "Earn 5 challenge stars.", color: "#FFD700", icon: "star", coinBonus: 50 }
+      { key: "challengeChampion", name: "Challenge Champion", desc: "Earn 5 challenge stars.", color: "#FFD700", icon: "star", coinBonus: 50 },
+      { key: "wandMaster", name: "Wand Master", desc: "Score 500+ in Luna's Wild Wand.", color: "#E88090", icon: "catEye", coinBonus: 10 }
     ];
 
     const TITLE_SUBTITLES = [
@@ -429,7 +430,8 @@
         squeakyClean: false, sortingPro: false, whackQueen: false, sharpEye: false,
         birdWatcher: false, goodMemory: false,
         greenThumb: false, shutterBug: false, fashionista: false, dedicated: false,
-        socialButterfly: false, fullHouse: false, wellFed: false, collector: false
+        socialButterfly: false, fullHouse: false, wellFed: false, collector: false,
+        challengeChampion: false, wandMaster: false
       }),
       decor: loadJSON("decor", {
         fairyLights: false, plant2: false, petBed: false, rugColor: 0,
@@ -487,7 +489,7 @@
       if (store.decor[newDecorKeys[ndi]] === undefined) store.decor[newDecorKeys[ndi]] = newDecorKeys[ndi] === "couchPillows" || newDecorKeys[ndi] === "rugPattern" || newDecorKeys[ndi] === "garland" ? 0 : false;
     }
     /* achievement keys */
-    var allAchKeys = ["obiBestFriend","comboStar","catWhisperer","pouncePerfect","couchPotato","maximumCozy","goodWalker","napMaster","squeakyClean","sortingPro","whackQueen","sharpEye","birdWatcher","goodMemory","greenThumb","shutterBug","fashionista","dedicated","socialButterfly","fullHouse","wellFed","collector","challengeChampion"];
+    var allAchKeys = ["obiBestFriend","comboStar","catWhisperer","pouncePerfect","couchPotato","maximumCozy","goodWalker","napMaster","squeakyClean","sortingPro","whackQueen","sharpEye","birdWatcher","goodMemory","greenThumb","shutterBug","fashionista","dedicated","socialButterfly","fullHouse","wellFed","collector","challengeChampion","wandMaster"];
     for (var ai = 0; ai < allAchKeys.length; ai++) {
       if (store.achievements[allAchKeys[ai]] === undefined) store.achievements[allAchKeys[ai]] = false;
     }
@@ -12388,8 +12390,49 @@
         this.luna = { x: 180, y: 340, vx: 0, vy: 0, facing: 1, excitement: 0 };
         this.nearMissTimer = 0;
         this.scrollX = 0;
+        this.scorePopups = [];
+        this.lure.fuzz = [];
+        for (var fi = 0; fi < 6; fi++) this.lure.fuzz.push({ x: rand(-7, 7), y: rand(-5, 5), r: rand(1.5, 2.5) });
       }
       extraInteractiveAt() { return true; }
+      drawTopHud(c) {
+        c.save();
+        c.fillStyle = "rgba(92,68,52,0.82)";
+        rr(c, 14, 12, 130, 42, 16); c.fill();
+        rr(c, W - 146, 12, 132, 70, 16); c.fill();
+        /* pause button */
+        var pb = this.pauseButtonRect();
+        var pbH = pointInRect(game.mouse.x, game.mouse.y, pb);
+        c.fillStyle = pbH ? "rgba(92,68,52,0.92)" : "rgba(92,68,52,0.68)";
+        rr(c, pb.x, pb.y, pb.w, pb.h, 12); c.fill();
+        c.fillStyle = COLORS.cream;
+        c.fillRect(pb.x + 13, pb.y + 10, 4, 16);
+        c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
+        /* elapsed time instead of countdown */
+        var elapsed = Math.floor(300 - this.timeLeft);
+        c.fillStyle = COLORS.cream;
+        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "left";
+        c.fillText("Time: " + elapsed + "s", 28, 39);
+        /* score */
+        c.save();
+        var ss = 1 + this.scorePop * 0.2;
+        c.translate(W - 80, 35);
+        c.scale(ss, ss);
+        c.fillStyle = COLORS.cream;
+        c.textAlign = "center";
+        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("Score " + Math.round(this.score), 0, 0);
+        c.restore();
+        /* combo */
+        if (this.phase === "play" && this.combo > 1) {
+          c.fillStyle = "#FFEAA7";
+          c.textAlign = "center";
+          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Combo x" + this.combo, W - 80, 59);
+        }
+        c.restore();
+      }
       onGameClick() {}
       onMouseMove(x, y) {
         super.onMouseMove(x, y);
@@ -12408,6 +12451,7 @@
         /* difficulty ramp */
         this.scrollSpeed = 120 + elapsed * 0.8;
         var gapSize = Math.max(140, 210 - elapsed * 0.8);
+        if (this.challengeMode) gapSize = Math.max(100, gapSize * 0.7);
         /* scroll world */
         this.scrollX += this.scrollSpeed * dt;
         /* spawn obstacles */
@@ -12437,15 +12481,19 @@
             var pts = 10 * this.combo;
             this.addScore(pts);
             this.combo++;
-            if (this.combo > 1 && this.combo % 5 === 0) audio.combo();
+            if (this.combo > 1 && this.combo % 5 === 0) { audio.combo(); this.scorePopups.push({ x: this.luna.x, y: this.luna.y - 55, text: "x" + this.combo + " Combo!", life: 1.2 }); }
+            if (this.score >= 500) this.queueAchievement("wandMaster");
             audio.tinyChime();
             spawnParticleBurst(ob.x + ob.w, ob.gapY, [COLORS.gold, "#FFF4C0"], 6, ["star"]);
+            this.scorePopups.push({ x: ob.x + ob.w, y: ob.gapY, text: "+" + pts, life: 1.0 });
             /* near miss bonus */
             var lunaDistFromEdge = Math.min(Math.abs(this.luna.y - (ob.gapY - gapSize / 2)), Math.abs(this.luna.y - (ob.gapY + gapSize / 2)));
             if (lunaDistFromEdge < 20) {
               this.addScore(5 * this.combo);
               this.nearMissTimer = 0.6;
               spawnParticleBurst(this.luna.x, this.luna.y, ["#FF69B4"], 4, ["heart"]);
+              this.scorePopups.push({ x: this.luna.x + 20, y: this.luna.y - 20, text: "Close! +" + (5 * this.combo), life: 0.8 });
+              audio.pounce();
             }
           }
           /* remove off-screen */
@@ -12512,6 +12560,12 @@
         this.luna.facing = this.luna.vx >= 0 ? 1 : -1;
         this.luna.excitement = clamp(cd / 80, 0, 1);
         this.nearMissTimer = Math.max(0, this.nearMissTimer - dt);
+        /* update score popups */
+        for (var spi = this.scorePopups.length - 1; spi >= 0; spi--) {
+          this.scorePopups[spi].life -= dt;
+          this.scorePopups[spi].y -= 35 * dt;
+          if (this.scorePopups[spi].life <= 0) this.scorePopups.splice(spi, 1);
+        }
         /* collision detection — Luna vs obstacles */
         for (var oi = 0; oi < this.obstacles.length; oi++) {
           var ob = this.obstacles[oi];
@@ -12677,24 +12731,27 @@
         c.rotate(swing);
         /* body */
         c.fillStyle = "#E8A0B0";
-        c.beginPath(); c.ellipse(0, 0, 10, 7, 0, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.ellipse(0, 0, 14, 10, 0, 0, Math.PI * 2); c.fill();
         /* fuzzy texture */
         c.fillStyle = "rgba(255,255,255,0.3)";
-        for (var fi = 0; fi < 5; fi++) {
-          c.beginPath(); c.arc(rand(-6, 6), rand(-4, 4), 2, 0, Math.PI * 2); c.fill();
+        if (this.lure.fuzz) {
+          for (var fi = 0; fi < this.lure.fuzz.length; fi++) {
+            var fz = this.lure.fuzz[fi];
+            c.beginPath(); c.arc(fz.x + Math.sin(game.time * 2 + fi) * 0.5, fz.y + Math.cos(game.time * 1.5 + fi) * 0.3, fz.r, 0, Math.PI * 2); c.fill();
+          }
         }
         /* ears */
         c.fillStyle = "#D08090";
-        c.beginPath(); c.arc(-5, -6, 3, 0, Math.PI * 2); c.fill();
-        c.beginPath(); c.arc(5, -6, 3, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(-7, -8, 4, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(7, -8, 4, 0, Math.PI * 2); c.fill();
         /* eyes */
         c.fillStyle = "#333";
-        c.beginPath(); c.arc(-3, -1, 1.5, 0, Math.PI * 2); c.fill();
-        c.beginPath(); c.arc(3, -1, 1.5, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(-4, -1, 2, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(4, -1, 2, 0, Math.PI * 2); c.fill();
         /* tail string */
         c.strokeStyle = "#D08090";
-        c.lineWidth = 1.5;
-        c.beginPath(); c.moveTo(0, 7); c.quadraticCurveTo(8, 14 + Math.sin(game.time * 8) * 3, 4, 18); c.stroke();
+        c.lineWidth = 2;
+        c.beginPath(); c.moveTo(0, 10); c.quadraticCurveTo(10, 20 + Math.sin(game.time * 8) * 4, 5, 26); c.stroke();
         c.restore();
         /* ── draw Luna ── */
         var lunaScale = 0.85 + this.luna.excitement * 0.15;
@@ -12715,6 +12772,20 @@
           c.font = '14px "Fredoka One", sans-serif';
           c.textAlign = "center";
           c.fillText("Close!", this.luna.x, this.luna.y - 40);
+          c.restore();
+        }
+        /* score popups */
+        for (var spi = 0; spi < this.scorePopups.length; spi++) {
+          var sp = this.scorePopups[spi];
+          c.save();
+          c.globalAlpha = clamp(sp.life / 0.3, 0, 1);
+          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.strokeStyle = "rgba(60,40,20,0.6)";
+          c.lineWidth = 3;
+          c.strokeText(sp.text, sp.x, sp.y);
+          c.fillStyle = sp.text.includes("Close") ? "#FF69B4" : COLORS.gold;
+          c.fillText(sp.text, sp.x, sp.y);
           c.restore();
         }
         /* game over overlay */
