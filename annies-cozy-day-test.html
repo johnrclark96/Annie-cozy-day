@@ -7627,6 +7627,12 @@
         this.checkedFirstVisit = false;
         /* backyard expansion */
         this.fishingState = null;
+        this.fetchState = null;
+        this.fetchCooldown = 0;
+        this.sprinklerOn = false;
+        this.sprinklerTimer = 0;
+        this.bugs = [];
+        this.bugSpawnTimer = rand(8, 15);
         this.byButterflies = [];
         this.byButterflyTimer = rand(20, 40);
         this.picnicState = null;
@@ -7782,6 +7788,80 @@
             bf.y += Math.cos(game.time * 1.5 + bf.phase) * 10 * dt;
             bf.timer -= dt;
             if (bf.timer <= 0) this.byButterflies.splice(bi, 1);
+          }
+        }
+        /* fetch with Obi */
+        if (this.fetchState) {
+          this.fetchState.timer -= dt;
+          if (this.fetchState.phase === "thrown") {
+            this.fetchState.ballX += this.fetchState.ballVX * dt;
+            this.fetchState.ballY += this.fetchState.ballVY * dt;
+            this.fetchState.ballVY += 400 * dt;
+            if (this.fetchState.ballY > 470) {
+              this.fetchState.phase = "landed";
+              this.fetchState.ballY = 470;
+              this.obi.targetX = this.fetchState.ballX;
+            }
+          } else if (this.fetchState.phase === "landed") {
+            if (Math.abs(this.obi.x - this.fetchState.ballX) < 25) {
+              this.fetchState.phase = "returning";
+              this.obi.targetX = this.obi.homeX;
+              this.obi.joy = clamp(this.obi.joy + 4, 0, 100);
+              var fetchCoins = Math.random() < 0.3 ? 2 : 1;
+              addCoins(fetchCoins);
+              this.addFloatingText("+" + fetchCoins + " coins! Good boy!", this.obi.x, this.obi.y - 50, COLORS.gold);
+              this.statusText = "Obi brought the ball back!";
+              this.statusPulse = 1;
+              audio.tinyChime();
+              spawnParticleBurst(this.obi.x, this.obi.y - 20, [COLORS.gold, COLORS.softPink], 6, ["star", "heart"]);
+            }
+          } else if (this.fetchState.phase === "returning") {
+            if (Math.abs(this.obi.x - this.obi.homeX) < 20) {
+              this.fetchState = null;
+              this.fetchCooldown = 3;
+            }
+          }
+        }
+        if (this.fetchCooldown > 0) this.fetchCooldown -= dt;
+        /* sprinkler */
+        if (this.sprinklerOn) {
+          this.sprinklerTimer -= dt;
+          if (this.sprinklerTimer <= 0) {
+            this.sprinklerOn = false;
+            this.statusText = "Sprinkler turned off.";
+          }
+          /* Obi runs through sprinkler — joy boost */
+          if (Math.abs(this.obi.x - 350) < 60 && !this.obi.splashing) {
+            if (Math.random() < dt * 0.5) {
+              this.obi.joy = clamp(this.obi.joy + 1, 0, 100);
+              spawnParticleBurst(this.obi.x, this.obi.y - 20, ["#87CEEB", "#B3D9FF"], 2, ["star"]);
+            }
+          }
+          /* Luna avoids sprinkler */
+          if (Math.abs(this.luna.x - 350) < 80 && !this.luna.inTree) {
+            this.luna.targetX = this.luna.x < 350 ? 200 : 550;
+          }
+        }
+        /* bug spawning and movement */
+        this.bugSpawnTimer -= dt;
+        if (this.bugSpawnTimer <= 0 && this.bugs.length < 4) {
+          this.bugs.push({ x: rand(140, 600), y: rand(400, 470), vx: rand(-20, 20), vy: rand(-10, 10), timer: rand(5, 10), type: ["ladybug", "beetle", "ant"][Math.floor(Math.random() * 3)] });
+          this.bugSpawnTimer = rand(6, 12);
+        }
+        for (var bugi = this.bugs.length - 1; bugi >= 0; bugi--) {
+          var bug = this.bugs[bugi];
+          bug.x += bug.vx * dt;
+          bug.y += bug.vy * dt;
+          bug.x = clamp(bug.x, 80, 720);
+          bug.y = clamp(bug.y, 380, 490);
+          if (Math.random() < dt * 0.5) { bug.vx = rand(-25, 25); bug.vy = rand(-12, 12); }
+          bug.timer -= dt;
+          if (bug.timer <= 0) this.bugs.splice(bugi, 1);
+          /* Luna pounces at nearby bugs */
+          if (!this.luna.inTree && !this.luna.stalking && Math.abs(this.luna.x - bug.x) < 40 && Math.abs(this.luna.y - bug.y) < 30 && Math.random() < dt * 0.3) {
+            this.luna.stalking = true;
+            this.luna.targetX = bug.x;
+            this.luna.actionTimer = 1.5;
           }
         }
         /* harvest cooldown */
@@ -8066,6 +8146,38 @@
           }
           return;
         }
+        /* fetch with Obi — click open ground to throw ball */
+        if (!this.fetchState && this.fetchCooldown <= 0 && y > 350 && y < 490 && x > 100 && x < 650 && !this.obi.splashing && !this.obi.digging) {
+          this.fetchState = { phase: "thrown", timer: 8, ballX: 150, ballY: 380, ballVX: (x - 150) * 1.5, ballVY: -200 };
+          this.obi.facing = x > this.obi.x ? 1 : -1;
+          this.statusText = "Fetch, Obi!";
+          this.statusPulse = 0.5;
+          audio.tinyChime();
+        }
+        /* sprinkler toggle — click near center grass */
+        if (Math.abs(x - 350) < 30 && Math.abs(y - 440) < 25 && !this.sprinklerOn) {
+          this.sprinklerOn = true;
+          this.sprinklerTimer = 15;
+          this.statusText = "Sprinkler on! Obi loves it!";
+          this.statusPulse = 1;
+          audio.combo();
+          spawnParticleBurst(350, 430, ["#87CEEB", "#B3D9FF", "#FFFFFF"], 10, ["star"]);
+        }
+        /* bug catching — click near bugs */
+        for (var bugi = this.bugs.length - 1; bugi >= 0; bugi--) {
+          var bug = this.bugs[bugi];
+          if (dist(x, y, bug.x, bug.y) < 25) {
+            this.bugs.splice(bugi, 1);
+            var bugCoins = bug.type === "ladybug" ? 3 : bug.type === "beetle" ? 2 : 1;
+            addCoins(bugCoins);
+            this.addFloatingText("+" + bugCoins + " coins!", bug.x, bug.y - 20, COLORS.gold);
+            this.statusText = "Caught a " + bug.type + "!";
+            this.statusPulse = 0.5;
+            audio.tinyChime();
+            spawnParticleBurst(bug.x, bug.y, ["#5C7A3A", "#8B6914"], 4, ["star"]);
+            break;
+          }
+        }
         /* butterfly catching */
         for (var bi = this.byButterflies.length - 1; bi >= 0; bi--) {
           var bf = this.byButterflies[bi];
@@ -8211,6 +8323,58 @@
           c.save(); c.rotate(bWing); c.beginPath(); c.ellipse(-4, 0, 6, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
           c.save(); c.rotate(-bWing); c.beginPath(); c.ellipse(4, 0, 6, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
           c.fillStyle = "#333"; c.beginPath(); c.arc(0, 0, 1.5, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        /* fetch ball */
+        if (this.fetchState) {
+          c.save();
+          c.fillStyle = "#D04040";
+          c.beginPath(); c.arc(this.fetchState.ballX, this.fetchState.ballY, 6, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "#FFFFFF";
+          c.beginPath(); c.arc(this.fetchState.ballX - 1, this.fetchState.ballY - 2, 2, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        /* sprinkler */
+        if (this.sprinklerOn) {
+          c.save();
+          /* sprinkler head */
+          c.fillStyle = "#808080";
+          c.fillRect(347, 440, 6, 12);
+          /* water arcs */
+          c.strokeStyle = "rgba(100,180,240,0.4)"; c.lineWidth = 2;
+          for (var si = 0; si < 5; si++) {
+            var sAngle = (si - 2) * 0.5 + Math.sin(game.time * 3) * 0.3;
+            var sLen = 40 + Math.sin(game.time * 4 + si) * 15;
+            c.beginPath();
+            c.moveTo(350, 440);
+            c.quadraticCurveTo(350 + Math.sin(sAngle) * sLen * 0.5, 440 - sLen * 0.6, 350 + Math.sin(sAngle) * sLen, 440 - 5);
+            c.stroke();
+          }
+          /* water droplets */
+          c.fillStyle = "rgba(100,180,240,0.5)";
+          for (var sdi = 0; sdi < 8; sdi++) {
+            var sdx = 350 + Math.sin(game.time * 2.5 + sdi * 1.3) * (30 + sdi * 8);
+            var sdy = 420 + Math.abs(Math.sin(game.time * 3 + sdi * 0.9)) * 25;
+            c.beginPath(); c.arc(sdx, sdy, 2, 0, Math.PI * 2); c.fill();
+          }
+          c.restore();
+        }
+        /* bugs */
+        for (var bugi = 0; bugi < this.bugs.length; bugi++) {
+          var bug = this.bugs[bugi];
+          c.save();
+          c.translate(bug.x, bug.y);
+          if (bug.type === "ladybug") {
+            c.fillStyle = "#D04040"; c.beginPath(); c.arc(0, 0, 4, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1A1A1A"; c.beginPath(); c.arc(0, -3, 2, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1A1A1A"; c.beginPath(); c.arc(-1.5, 1, 1, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(1.5, 1, 1, 0, Math.PI * 2); c.fill();
+          } else if (bug.type === "beetle") {
+            c.fillStyle = "#2A4A2A"; c.beginPath(); c.ellipse(0, 0, 4, 3, 0, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1A3A1A"; c.beginPath(); c.arc(0, -3, 1.5, 0, Math.PI * 2); c.fill();
+          } else {
+            c.fillStyle = "#3A2A1A"; c.beginPath(); c.ellipse(0, 0, 3, 2, 0, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#2A1A0A"; c.beginPath(); c.arc(0, -2.5, 1.5, 0, Math.PI * 2); c.fill();
+          }
           c.restore();
         }
         /* picnic scene */
@@ -8492,6 +8656,11 @@
           c.strokeStyle = "#87CEEB"; c.lineWidth = 3;
           c.beginPath(); c.ellipse(this.pool.x, this.pool.y, 50, 22, 0, 0, Math.PI * 2); c.stroke();
         }
+        /* sprinkler base (always visible) */
+        c.fillStyle = "#707070";
+        c.fillRect(348, 448, 4, 8);
+        c.fillStyle = "#909090";
+        c.beginPath(); c.arc(350, 448, 4, 0, Math.PI * 2); c.fill();
         /* water ripples on pool */
         c.strokeStyle = "rgba(255,255,255,0.3)"; c.lineWidth = 1;
         c.beginPath();
@@ -11808,7 +11977,7 @@
        ═══════════════════════════════════════════════════════ */
     class LunaNapScene extends BaseMinigameScene {
       constructor() {
-        super("nap", "Luna's Nap Spot", isMobile ? "Tap to place cushions in the sunbeams! Luna will nap on the coziest spot." : "Click to place cushions in the sunbeams! Luna will nap on the coziest spot.", [250, 550, 1000], 60);
+        super("nap", "Luna's Nap Spot", isMobile ? "Tap the golden sunbeams to place cushions! Luna earns points while napping. Move cushions to follow the light!" : "Place cushions in the golden sunbeams! Luna earns points while napping on warm spots. Move cushions to follow the light!", [250, 550, 1000], 60);
         this.beams = [];
         this.cushions = [];
         this.luna = { x: 400, y: 350, targetX: 400, targetY: 350, napping: false, napTimer: 0, facing: 1 };
@@ -12084,6 +12253,25 @@
           const cozyLabel = this.scoreRate > 2 ? "Maximum Cozy!" : this.scoreRate > 1 ? "Very Cozy!" : "Cozy!";
           c.strokeText(cozyLabel, this.luna.x, this.luna.y - 60);
           c.fillText(cozyLabel, this.luna.x, this.luna.y - 60);
+          c.restore();
+        }
+
+        /* active score rate display */
+        if (this.phase === "play") {
+          c.save();
+          c.fillStyle = "rgba(255,248,240,0.85)";
+          rr(c, W/2 - 80, 70, 160, 28, 10);
+          c.fill();
+          c.fillStyle = this.scoreRate > 2 ? "#E8A020" : this.scoreRate > 0.5 ? "#7DB36C" : "#A09080";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          if (this.luna.napping) {
+            c.fillText("+" + (this.scoreRate * 10).toFixed(0) + " pts/sec", W/2, 89);
+          } else if (this.cushions.length > 0) {
+            c.fillText("Luna is looking...", W/2, 89);
+          } else {
+            c.fillText("Place a cushion!", W/2, 89);
+          }
           c.restore();
         }
 
