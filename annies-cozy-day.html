@@ -3217,26 +3217,37 @@
       }
       if (d.petBed) {
         c.save();
-        c.translate(180, 460);
+        c.translate(520, 466);
         /* shadow */
-        c.fillStyle = "rgba(0,0,0,0.08)";
-        c.beginPath(); c.ellipse(0, 8, 42, 14, 0, 0, Math.PI * 2); c.fill();
-        /* outer rim */
-        c.fillStyle = "#B88888";
-        c.beginPath(); c.ellipse(0, 0, 38, 16, 0, 0, Math.PI * 2); c.fill();
-        /* inner cushion */
+        c.fillStyle = "rgba(0,0,0,0.10)";
+        c.beginPath(); c.ellipse(0, 12, 46, 12, 0, 0, Math.PI * 2); c.fill();
+        /* sofa back */
+        c.fillStyle = "#9C6B6B";
+        rr(c, -40, -18, 80, 14, 6); c.fill();
+        /* sofa arms */
+        c.fillStyle = "#A87878";
+        rr(c, -44, -14, 12, 24, 5); c.fill();
+        rr(c, 32, -14, 12, 24, 5); c.fill();
+        /* sofa seat cushion */
         c.fillStyle = "#D4A0A0";
-        c.beginPath(); c.ellipse(0, -1, 32, 12, 0, 0, Math.PI * 2); c.fill();
-        /* pillow center */
-        c.fillStyle = "#E0B4B4";
-        c.beginPath(); c.ellipse(0, -3, 24, 9, 0, 0, Math.PI * 2); c.fill();
-        /* highlight shine */
-        c.fillStyle = "rgba(255,255,255,0.25)";
-        c.beginPath(); c.ellipse(-6, -6, 14, 5, -0.2, 0, Math.PI * 2); c.fill();
-        /* subtle rim stroke */
-        c.strokeStyle = "rgba(160,100,100,0.2)";
+        rr(c, -36, -4, 72, 16, 8); c.fill();
+        /* cushion gradient */
+        var bedGrad = c.createLinearGradient(0, -4, 0, 12);
+        bedGrad.addColorStop(0, "rgba(255,255,255,0.2)");
+        bedGrad.addColorStop(1, "rgba(0,0,0,0.05)");
+        c.fillStyle = bedGrad;
+        rr(c, -36, -4, 72, 16, 8); c.fill();
+        /* pillow */
+        c.fillStyle = "#E8C0B8";
+        c.beginPath(); c.ellipse(-16, 0, 14, 8, -0.1, 0, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.ellipse(16, 0, 14, 8, 0.1, 0, 0, Math.PI * 2); c.fill();
+        /* highlight */
+        c.fillStyle = "rgba(255,255,255,0.2)";
+        rr(c, -32, -3, 30, 6, 4); c.fill();
+        /* sofa border */
+        c.strokeStyle = "rgba(120,70,70,0.2)";
         c.lineWidth = 1;
-        c.beginPath(); c.ellipse(0, 0, 38, 16, 0, 0, Math.PI * 2); c.stroke();
+        rr(c, -44, -18, 88, 30, 6); c.stroke();
         c.restore();
       }
       /* cozy blanket on couch back */
@@ -3885,7 +3896,7 @@
         this.scrapbookMilestoneScroll = 0;
         /* window + pet bed hitboxes */
         this.windowHitbox = { x: 62, y: 48, w: 128, h: 160 };
-        this.petBedHitbox = { x: 142, y: 448, w: 76, h: 28 };
+        this.petBedHitbox = { x: 476, y: 450, w: 88, h: 32 };
         /* decoration reactions */
         this.decorReactionCooldown = rand(20, 40);
         this.decorReaction = null;
@@ -4475,7 +4486,7 @@
               }
               saveDecor();
               audio.tinyChime();
-              if (item.key === "rugColor" || item.key === "roomPreset" || item.key === "wallArt2" || item.key === "rugPattern") { sceneCache.livingRoomBase = null; }
+              sceneCache.livingRoomBase = null;
               return;
             }
           }
@@ -4734,15 +4745,16 @@
             const nearest = x < W / 2 ? "obi" : "luna";
             const pet = nearest === "obi" ? this.obi : this.luna;
             if (nearest === "obi") {
-              pet.targetX = 180; pet.targetY = 456;
+              pet.targetX = 520; pet.targetY = 468;
               pet.sleepy = true;
-              pet.joy = clamp(pet.joy + 3, 0, 100);
-              this.statusText = "Obi curled up in his bed!";
+              pet.joy = clamp(pet.joy + 5, 0, 100);
+              this.statusText = "Obi settled into his cozy sofa!";
+              spawnParticleBurst(520, 458, [COLORS.softPink], 3, ["heart"]);
             } else {
               this.luna.perch = "floor";
-              pet.targetX = 180; pet.targetY = 456;
-              pet.joy = clamp(pet.joy + 3, 0, 100);
-              this.statusText = "Luna claimed the pet bed.";
+              pet.targetX = 520; pet.targetY = 468;
+              pet.joy = clamp(pet.joy + 5, 0, 100);
+              this.statusText = "Luna claimed the sofa. Obviously.";
             }
             this.statusPulse = 0.4;
             audio.tinyChime();
@@ -6994,13 +7006,13 @@
             c.fillStyle = "#5C3D2E";
             c.textAlign = "left";
             c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.fillText(card.title, cr.x + 88, cr.y + 30);
+            c.fillText(card.title, cr.x + 88, cr.y + 26);
             c.fillStyle = "rgba(92,61,46,0.65)";
-            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.fillText(card.desc, cr.x + 88, cr.y + 50);
+            c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(card.desc, cr.x + 88, cr.y + 46);
             c.fillStyle = "rgba(92,61,46,0.5)";
-            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.fillText(card.best(), cr.x + 88, cr.y + 67);
+            c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(card.best(), cr.x + 88, cr.y + 62);
 
             /* play arrow */
             c.fillStyle = hover ? card.color : "rgba(92,61,46,0.4)";
@@ -7770,6 +7782,8 @@
             if (bf.timer <= 0) this.byButterflies.splice(bi, 1);
           }
         }
+        /* harvest cooldown */
+        if (this.harvestCooldown > 0) this.harvestCooldown -= dt;
         /* picnic cooldown */
         if (this.picnicCooldown > 0) this.picnicCooldown -= dt;
         if (this.picnicState) {
@@ -7994,14 +8008,20 @@
               this.statusPulse = 1;
             }
           } else {
-            /* harvest full garden */
-            addCoins(5);
-            store.backyardFlowers = 0;
-            saveNumber("backyardFlowers", 0);
-            this.statusText = "Harvested flowers! +5 coins";
-            this.statusPulse = 1;
-            this.addFloatingText("+5 coins", this.garden.x, this.garden.y - 30, COLORS.gold);
-            if (audio.combo) audio.combo();
+            /* harvest full garden (with cooldown) */
+            if (this.harvestCooldown && this.harvestCooldown > 0) {
+              this.statusText = "Garden needs time to regrow! (" + Math.ceil(this.harvestCooldown) + "s)";
+              this.statusPulse = 0.5;
+            } else {
+              addCoins(5);
+              store.backyardFlowers = 0;
+              saveNumber("backyardFlowers", 0);
+              this.harvestCooldown = 30;
+              this.statusText = "Harvested flowers! +5 coins";
+              this.statusPulse = 1;
+              this.addFloatingText("+5 coins", this.garden.x, this.garden.y - 30, COLORS.gold);
+              if (audio.combo) audio.combo();
+            }
           }
           return;
         }
@@ -8544,10 +8564,11 @@
           }
         }
         if (bd.birdHouse) {
-          c.fillStyle = "#D2A870"; c.fillRect(540, 320, 6, 40);
-          c.fillStyle = "#E8C88C"; rr(c, 528, 302, 30, 22, 4); c.fill();
-          c.fillStyle = "#D04040"; c.beginPath(); c.moveTo(526, 304); c.lineTo(543, 290); c.lineTo(560, 304); c.closePath(); c.fill();
-          c.fillStyle = "#5C4434"; c.beginPath(); c.arc(543, 314, 4, 0, Math.PI * 2); c.fill();
+          /* birdhouse mounted on tree trunk */
+          c.fillStyle = "#D2A870"; c.fillRect(660, 300, 6, 30);
+          c.fillStyle = "#E8C88C"; rr(c, 648, 284, 30, 20, 4); c.fill();
+          c.fillStyle = "#D04040"; c.beginPath(); c.moveTo(646, 286); c.lineTo(663, 272); c.lineTo(680, 286); c.closePath(); c.fill();
+          c.fillStyle = "#5C4434"; c.beginPath(); c.arc(663, 294, 3.5, 0, Math.PI * 2); c.fill();
         }
         if (bd.sundial) {
           c.fillStyle = "#A09890";
@@ -11841,7 +11862,7 @@
       }
       updatePlay(dt) {
         if (this.playHintTimer <= 0 && !this.playHint && this.cushions.length === 0) {
-          this.playHint = { text: isMobile ? "Tap in the bright spots to place cushions!" : "Click in the bright spots to place cushions!", life: 5 };
+          this.playHint = { text: isMobile ? "Tap the golden sunbeams on the floor to place cushions for Luna!" : "Click the golden sunbeams on the floor to place cushions for Luna!", life: 8 };
           this.playHintTimer = -1;
         }
         /* update sunbeams */
@@ -11987,6 +12008,19 @@
             const mr = 2.0 + Math.sin(game.time * 1.5 + m) * 1.0;
             c.beginPath(); c.arc(mx, my, mr, 0, Math.PI * 2); c.fill();
           }
+          c.restore();
+        }
+
+        /* pulsing "place here" hint on brightest beam when no cushions */
+        if (this.cushions.length === 0 && this.beams.length > 0) {
+          var brightest = this.beams[0];
+          for (var bi = 1; bi < this.beams.length; bi++) { if (this.beams[bi].life > brightest.life) brightest = this.beams[bi]; }
+          c.save();
+          c.globalAlpha = 0.5 + Math.sin(game.time * 4) * 0.3;
+          c.fillStyle = "#FFF8F0";
+          c.font = '14px "Fredoka One", sans-serif';
+          c.textAlign = "center";
+          c.fillText(isMobile ? "\u25BC Tap here!" : "\u25BC Click here!", brightest.x, brightest.y - 20);
           c.restore();
         }
 
