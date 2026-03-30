@@ -7805,6 +7805,7 @@
           } else if (this.fetchState.phase === "landed") {
             if (Math.abs(this.obi.x - this.fetchState.ballX) < 25) {
               this.fetchState.phase = "returning";
+              this.fetchState.timer = 6;
               this.obi.targetX = this.obi.homeX;
               this.obi.joy = clamp(this.obi.joy + 4, 0, 100);
               var fetchCoins = Math.random() < 0.3 ? 2 : 1;
@@ -7816,9 +7817,10 @@
               spawnParticleBurst(this.obi.x, this.obi.y - 20, [COLORS.gold, COLORS.softPink], 6, ["star", "heart"]);
             }
           } else if (this.fetchState.phase === "returning") {
-            if (Math.abs(this.obi.x - this.obi.homeX) < 20) {
+            if (Math.abs(this.obi.x - this.obi.homeX) < 30 || this.fetchState.timer <= 0) {
               this.fetchState = null;
               this.fetchCooldown = 3;
+              this.obi.targetX = this.obi.homeX;
             }
           }
         }
@@ -7863,6 +7865,14 @@
             this.luna.targetX = bug.x;
             this.luna.actionTimer = 1.5;
           }
+        }
+        /* ambient status messages */
+        if (!this._ambientMsgTimer) this._ambientMsgTimer = rand(8, 14);
+        this._ambientMsgTimer -= dt;
+        if (this._ambientMsgTimer <= 0 && this.statusPulse < 0.1) {
+          var ambientMsgs = ["The breeze rustles through the garden.", "A bird chirps in the tree.", "Obi sniffs the afternoon air.", "Luna watches a cloud drift by.", "The yard smells like fresh grass.", "Sunshine warms the patio."];
+          this.statusText = ambientMsgs[Math.floor(Math.random() * ambientMsgs.length)];
+          this._ambientMsgTimer = rand(8, 14);
         }
         /* harvest cooldown */
         if (this.harvestCooldown > 0) this.harvestCooldown -= dt;
@@ -8146,13 +8156,38 @@
           }
           return;
         }
-        /* fetch with Obi — click open ground to throw ball */
-        if (!this.fetchState && this.fetchCooldown <= 0 && y > 350 && y < 490 && x > 100 && x < 650 && !this.obi.splashing && !this.obi.digging) {
+        /* tree click — Luna climbs or comes down */
+        if (Math.abs(x - this.tree.x) < 40 && y < 350 && y > 100) {
+          if (this.luna.inTree) {
+            this.luna.inTree = false;
+            this.luna.y = 480;
+            this.luna.targetY = 480;
+            this.luna.targetX = rand(200, 500);
+            this.luna.actionTimer = rand(5, 10);
+            this.statusText = "Luna hops down from the tree.";
+            this.statusPulse = 0.5;
+          } else if (!this.luna.stalking) {
+            this.luna.inTree = true;
+            this.luna.actionTimer = rand(10, 20);
+            this.luna.joy = clamp(this.luna.joy + 3, 0, 100);
+            this.statusText = "Luna claims the high ground!";
+            this.statusPulse = 0.5;
+            this.addFloatingText("+3 joy", this.tree.x - 30, this.tree.y + 30, COLORS.softPink);
+            spawnParticleBurst(this.tree.x - 30, this.tree.y + 40, [COLORS.softPink], 3, ["heart"]);
+          }
+          return;
+        }
+        /* fetch with Obi — click open ground to throw ball (avoid other interactive zones) */
+        if (!this.fetchState && this.fetchCooldown <= 0 && y > 380 && y < 490 && x > 150 && x < 600
+            && Math.abs(x - this.pool.x) > 60 && Math.abs(x - this.garden.x) > 60
+            && Math.abs(x - this.feeder.x) > 50 && Math.abs(x - 350) > 35
+            && !this.obi.splashing && !this.obi.digging) {
           this.fetchState = { phase: "thrown", timer: 8, ballX: 150, ballY: 380, ballVX: (x - 150) * 1.5, ballVY: -200 };
           this.obi.facing = x > this.obi.x ? 1 : -1;
           this.statusText = "Fetch, Obi!";
           this.statusPulse = 0.5;
           audio.tinyChime();
+          return;
         }
         /* sprinkler toggle — click near center grass */
         if (Math.abs(x - 350) < 30 && Math.abs(y - 440) < 25 && !this.sprinklerOn) {
@@ -8237,10 +8272,13 @@
           this.tooltip = { x: this.garden.x, y: this.garden.y - 40, title: "Garden", body: store.backyardFlowers + "/6 flowers." + (store.backyardFlowers >= 6 ? " Click to harvest! +5 coins" : " 3 coins to plant.") };
         } else if (Math.abs(x - this.pool.x) < 50 && Math.abs(y - this.pool.y) < 40) {
           this.hoverKey = "pool";
-          this.tooltip = { x: this.pool.x, y: this.pool.y - 40, title: "Kiddie Pool", body: "Click to call Obi for a splash!" };
+          this.tooltip = { x: this.pool.x, y: this.pool.y - 40, title: "Kiddie Pool", body: this.fishingState ? "Something's in the water!" : "Click for a splash or fishing!" };
+        } else if (Math.abs(x - 350) < 20 && Math.abs(y - 440) < 20) {
+          this.hoverKey = "sprinkler";
+          this.tooltip = { x: 350, y: 420, title: "Sprinkler", body: this.sprinklerOn ? "Sprinkler is running! (" + Math.ceil(this.sprinklerTimer) + "s)" : "Click to turn on!" };
         } else if (Math.abs(x - this.tree.x) < 50 && y > this.tree.y - 60 && y < this.tree.y + 100) {
           this.hoverKey = "tree";
-          this.tooltip = { x: this.tree.x, y: this.tree.y - 60, title: "Oak Tree", body: this.luna.inTree ? "Luna is relaxing up there!" : "Luna loves to climb here." };
+          this.tooltip = { x: this.tree.x, y: this.tree.y - 60, title: "Oak Tree", body: this.luna.inTree ? "Click to call Luna down" : "Click to call Luna up!" };
         }
       }
       interactiveAt(x, y) {
@@ -8337,25 +8375,32 @@
         /* sprinkler */
         if (this.sprinklerOn) {
           c.save();
-          /* sprinkler head */
-          c.fillStyle = "#808080";
-          c.fillRect(347, 440, 6, 12);
-          /* water arcs */
-          c.strokeStyle = "rgba(100,180,240,0.4)"; c.lineWidth = 2;
-          for (var si = 0; si < 5; si++) {
-            var sAngle = (si - 2) * 0.5 + Math.sin(game.time * 3) * 0.3;
-            var sLen = 40 + Math.sin(game.time * 4 + si) * 15;
+          /* ground wet zone */
+          c.fillStyle = "rgba(80,160,220,0.08)";
+          c.beginPath(); c.ellipse(350, 445, 70, 25, 0, 0, Math.PI * 2); c.fill();
+          /* water arcs — rotating fan pattern */
+          c.strokeStyle = "rgba(100,180,240,0.5)"; c.lineWidth = 2.5;
+          for (var si = 0; si < 7; si++) {
+            var sAngle = (si - 3) * 0.4 + Math.sin(game.time * 2.5) * 0.6;
+            var sLen = 50 + Math.sin(game.time * 3.5 + si) * 20;
             c.beginPath();
-            c.moveTo(350, 440);
-            c.quadraticCurveTo(350 + Math.sin(sAngle) * sLen * 0.5, 440 - sLen * 0.6, 350 + Math.sin(sAngle) * sLen, 440 - 5);
+            c.moveTo(350, 438);
+            c.quadraticCurveTo(350 + Math.sin(sAngle) * sLen * 0.5, 438 - sLen * 0.7, 350 + Math.sin(sAngle) * sLen, 445);
             c.stroke();
           }
-          /* water droplets */
-          c.fillStyle = "rgba(100,180,240,0.5)";
-          for (var sdi = 0; sdi < 8; sdi++) {
-            var sdx = 350 + Math.sin(game.time * 2.5 + sdi * 1.3) * (30 + sdi * 8);
-            var sdy = 420 + Math.abs(Math.sin(game.time * 3 + sdi * 0.9)) * 25;
-            c.beginPath(); c.arc(sdx, sdy, 2, 0, Math.PI * 2); c.fill();
+          /* water droplets — more and spread wider */
+          c.fillStyle = "rgba(100,180,240,0.55)";
+          for (var sdi = 0; sdi < 14; sdi++) {
+            var sdx = 350 + Math.sin(game.time * 2.2 + sdi * 0.95) * (25 + sdi * 6);
+            var sdy = 425 + Math.abs(Math.sin(game.time * 2.8 + sdi * 0.7)) * 30;
+            c.beginPath(); c.arc(sdx, sdy, 2.5, 0, Math.PI * 2); c.fill();
+          }
+          /* sparkle highlights */
+          c.fillStyle = "rgba(255,255,255,0.5)";
+          for (var ssi = 0; ssi < 4; ssi++) {
+            var ssx = 350 + Math.sin(game.time * 1.8 + ssi * 1.5) * 40;
+            var ssy = 430 + Math.cos(game.time * 2.2 + ssi * 2) * 15;
+            c.beginPath(); c.arc(ssx, ssy, 1.5, 0, Math.PI * 2); c.fill();
           }
           c.restore();
         }
@@ -8365,15 +8410,20 @@
           c.save();
           c.translate(bug.x, bug.y);
           if (bug.type === "ladybug") {
-            c.fillStyle = "#D04040"; c.beginPath(); c.arc(0, 0, 4, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#1A1A1A"; c.beginPath(); c.arc(0, -3, 2, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#1A1A1A"; c.beginPath(); c.arc(-1.5, 1, 1, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(1.5, 1, 1, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#D04040"; c.beginPath(); c.arc(0, 0, 6, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1A1A1A"; c.beginPath(); c.arc(0, -5, 3, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1A1A1A"; c.beginPath(); c.arc(-2, 1.5, 1.5, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(2, 1.5, 1.5, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = "#1A1A1A"; c.lineWidth = 0.8; c.beginPath(); c.moveTo(0, -2); c.lineTo(0, 5); c.stroke();
           } else if (bug.type === "beetle") {
-            c.fillStyle = "#2A4A2A"; c.beginPath(); c.ellipse(0, 0, 4, 3, 0, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#1A3A1A"; c.beginPath(); c.arc(0, -3, 1.5, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#2A5A2A"; c.beginPath(); c.ellipse(0, 0, 6, 4, 0, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1A3A1A"; c.beginPath(); c.arc(0, -4.5, 2.5, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "rgba(255,255,255,0.15)"; c.beginPath(); c.ellipse(-2, -1, 3, 2, -0.2, 0, Math.PI * 2); c.fill();
           } else {
-            c.fillStyle = "#3A2A1A"; c.beginPath(); c.ellipse(0, 0, 3, 2, 0, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#2A1A0A"; c.beginPath(); c.arc(0, -2.5, 1.5, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#3A2A1A"; c.beginPath(); c.ellipse(0, 0, 5, 3, 0, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#2A1A0A"; c.beginPath(); c.arc(0, -3.5, 2, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = "#2A1A0A"; c.lineWidth = 0.5;
+            c.beginPath(); c.moveTo(-3, 1); c.lineTo(-6, 3); c.stroke();
+            c.beginPath(); c.moveTo(3, 1); c.lineTo(6, 3); c.stroke();
           }
           c.restore();
         }
@@ -8656,11 +8706,20 @@
           c.strokeStyle = "#87CEEB"; c.lineWidth = 3;
           c.beginPath(); c.ellipse(this.pool.x, this.pool.y, 50, 22, 0, 0, Math.PI * 2); c.stroke();
         }
-        /* sprinkler base (always visible) */
-        c.fillStyle = "#707070";
-        c.fillRect(348, 448, 4, 8);
-        c.fillStyle = "#909090";
-        c.beginPath(); c.arc(350, 448, 4, 0, Math.PI * 2); c.fill();
+        /* sprinkler base (always visible, pulsing when off) */
+        if (!this.sprinklerOn) {
+          c.save();
+          c.globalAlpha = 0.15 + Math.sin(game.time * 2) * 0.08;
+          c.fillStyle = "#87CEEB";
+          c.beginPath(); c.arc(350, 440, 14, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        c.fillStyle = "#606060";
+        c.fillRect(348, 440, 4, 10);
+        c.fillStyle = "#808080";
+        c.beginPath(); c.arc(350, 440, 6, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#A0A0A0";
+        c.beginPath(); c.arc(350, 440, 3, 0, Math.PI * 2); c.fill();
         /* water ripples on pool */
         c.strokeStyle = "rgba(255,255,255,0.3)"; c.lineWidth = 1;
         c.beginPath();
@@ -8743,14 +8802,15 @@
         }
         if (bd.sundial) {
           c.fillStyle = "#A09890";
-          c.beginPath(); c.ellipse(500, 440, 18, 8, 0, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.ellipse(400, 440, 18, 8, 0, 0, Math.PI * 2); c.fill();
           c.fillStyle = "#8A8078";
-          c.beginPath(); c.moveTo(500, 440); c.lineTo(498, 424); c.lineTo(502, 440); c.closePath(); c.fill();
+          c.beginPath(); c.moveTo(400, 440); c.lineTo(398, 424); c.lineTo(402, 440); c.closePath(); c.fill();
         }
         if (bd.dogHouse) {
-          c.fillStyle = "#B08050"; rr(c, 46, 430, 50, 38, 4); c.fill();
-          c.fillStyle = "#D04040"; c.beginPath(); c.moveTo(42, 432); c.lineTo(71, 415); c.lineTo(100, 432); c.closePath(); c.fill();
-          c.fillStyle = "#5C3020"; c.beginPath(); c.ellipse(71, 458, 10, 12, 0, Math.PI, Math.PI * 2); c.fill();
+          c.fillStyle = "#B08050"; rr(c, 70, 418, 50, 38, 4); c.fill();
+          c.fillStyle = "#D04040"; c.beginPath(); c.moveTo(66, 420); c.lineTo(95, 403); c.lineTo(124, 420); c.closePath(); c.fill();
+          c.fillStyle = "#5C3020"; c.beginPath(); c.ellipse(95, 446, 10, 12, 0, Math.PI, Math.PI * 2); c.fill();
+          c.fillStyle = "#E8D8C0"; c.font = '8px "Fredoka One", sans-serif'; c.textAlign = "center"; c.fillText("OBI", 95, 414);
         }
         if (bd.butterflyGarden && store.backyardFlowers > 0) {
           var bfColors = ["#FF69B4", "#87CEEB", "#FFD700"];
