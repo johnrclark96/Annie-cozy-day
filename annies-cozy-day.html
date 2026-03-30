@@ -334,7 +334,8 @@
       pillow:   { name: "Double Trouble",   desc: "Up to 4 popups at once!" },
       findluna: { name: "Speed Shuffle",    desc: "Cushions shuffle at 2x speed!" },
       window:   { name: "Night Watch",      desc: "Darker window, smaller visible area!" },
-      pawstep:  { name: "Reverse Memory",   desc: "Repeat the sequence backwards!" }
+      pawstep:  { name: "Reverse Memory",   desc: "Repeat the sequence backwards!" },
+      wildwand: { name: "Narrow Gaps",      desc: "All gaps are 30% smaller!" }
     };
 
     /* ── Pet Mood & Personality System ── */
@@ -415,6 +416,7 @@
       best_findluna: loadNumber("best_findluna", 0),
       best_window: loadNumber("best_window", 0),
       best_pawstep: loadNumber("best_pawstep", 0),
+      best_wildwand: loadNumber("best_wildwand", 0),
       stats: loadJSON("stats", {
         totalTreatCatches: 0, bestTreatCombo: 1, bestLaserCombo: 1,
         bestCuddle: 0, cuddleWon: false,
@@ -593,7 +595,8 @@
         { best: store.best_pillow, thresholds: [150, 350, 650] },
         { best: store.best_findluna, thresholds: [100, 250, 500] },
         { best: store.best_window, thresholds: [150, 400, 750] },
-        { best: store.best_pawstep, thresholds: [80, 200, 400] }
+        { best: store.best_pawstep, thresholds: [80, 200, 400] },
+        { best: store.best_wildwand, thresholds: [100, 250, 500] }
       ];
       let total = 0;
       for (const g of games) {
@@ -3789,7 +3792,8 @@
           { key: "pillow", title: "Pillow Pop", desc: "Boop Luna before she hides again!", color: "#F48FB1", icon: "paw", best: () => { const s = store.best_pillow; const st = (s>=650?3:s>=350?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
           { key: "findluna", title: "Where's Luna?", desc: "Track Luna under the shuffling cushions!", color: "#7CB342", icon: "catEye", best: () => { const s = store.best_findluna; const st = (s>=500?3:s>=250?2:s>=100?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
           { key: "window", title: "Window Watch", desc: "Help Luna catch birds and butterflies!", color: "#87CEEB", icon: "star", best: () => { const s = store.best_window; const st = (s>=750?3:s>=400?2:s>=150?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
-          { key: "pawstep", title: "Pawstep Patterns", desc: "Repeat the pet action sequences!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_pawstep; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
+          { key: "pawstep", title: "Pawstep Patterns", desc: "Repeat the pet action sequences!", color: "#C39BD3", icon: "heart", best: () => { const s = store.best_pawstep; const st = (s>=400?3:s>=200?2:s>=80?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
+          { key: "wildwand", title: "Luna's Wild Wand", desc: "Guide Luna with a dangling toy through cozy obstacles!", color: "#E88090", icon: "catEye", best: () => { const s = store.best_wildwand; const st = (s>=500?3:s>=250?2:s>=100?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } }
         ];
         this.menuScroll = 0;
         this.statusText = "Welcome home! Obi and Luna are happy to see you.";
@@ -4424,7 +4428,7 @@
               /* check if player clicked the challenge star area (top-right of card) */
               var cr = this.getCardRect(vi);
               var cardBestScore = store["best_" + cardKey] || 0;
-              var t3Map = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400 };
+              var t3Map = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400, wildwand: 500 };
               var cardHas3Stars = cardBestScore >= (t3Map[cardKey] || 9999);
               if (cardHas3Stars && x > cr.x + cr.w - 75 && y < cr.y + 28) {
                 scene.challengeMode = true;
@@ -5872,7 +5876,7 @@
         if (sg.indexOf("petInteraction") < 0 && this.petInteraction && this.petInteraction.active) this.completeScrapbookGoal("petInteraction");
         /* fiveGames3Star */
         if (sg.indexOf("fiveGames3Star") < 0) {
-          var t3map = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400 };
+          var t3map = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400, wildwand: 500 };
           var count3 = 0;
           for (var gk in t3map) { if ((store["best_" + gk] || 0) >= t3map[gk]) count3++; }
           if (count3 >= 5) this.completeScrapbookGoal("fiveGames3Star");
@@ -7027,7 +7031,7 @@
 
             /* challenge star indicator */
             var cardBest = store["best_" + card.key] || 0;
-            var t3 = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400 };
+            var t3 = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400, wildwand: 500 };
             var has3Stars = cardBest >= (t3[card.key] || 9999);
             if (has3Stars) {
               var hasChalStar = store.challengeStars[card.key];
@@ -12347,6 +12351,423 @@
     }
 
     SceneRegistry.register("nap", () => new LunaNapScene());
+
+
+    // ═══ Luna's Wild Wand — Flappy-Bird-inspired wand toy minigame ═══
+    class WildWandScene extends BaseMinigameScene {
+      constructor() {
+        super("wildwand", "Luna's Wild Wand",
+          isMobile ? "Drag to move the wand! Guide the dangling toy to lead Luna through gaps!"
+                   : "Move your mouse to wave the wand! Guide Luna through the cozy obstacles!",
+          [100, 250, 500], 300);
+        this.scrollSpeed = 120;
+        this.obstacles = [];
+        this.obstacleTimer = 0;
+        this.passed = 0;
+        this.gameOver = false;
+        this.gameOverTimer = 0;
+        /* wand anchor (player-controlled) */
+        this.anchor = { x: 200, y: 200 };
+        /* lure (fuzzy mouse — physics-driven) */
+        this.lure = { x: 200, y: 300, vx: 0, vy: 0 };
+        /* Luna (chases the lure) */
+        this.luna = { x: 180, y: 300, vx: 0, vy: 0, facing: 1, excitement: 0 };
+        this.nearMissTimer = 0;
+        this.scrollX = 0;
+      }
+      enter() {
+        super.enter();
+        this.scrollSpeed = 120;
+        this.obstacles = [];
+        this.obstacleTimer = 2.5;
+        this.passed = 0;
+        this.gameOver = false;
+        this.gameOverTimer = 0;
+        this.anchor = { x: 200, y: 250 };
+        this.lure = { x: 200, y: 340, vx: 0, vy: 0 };
+        this.luna = { x: 180, y: 340, vx: 0, vy: 0, facing: 1, excitement: 0 };
+        this.nearMissTimer = 0;
+        this.scrollX = 0;
+      }
+      extraInteractiveAt() { return true; }
+      onGameClick() {}
+      onMouseMove(x, y) {
+        super.onMouseMove(x, y);
+        if (this.phase === "play" && !this.paused && !this.gameOver) {
+          this.anchor.x = clamp(x, 100, 300);
+          this.anchor.y = clamp(y, 60, H - 60);
+        }
+      }
+      updatePlay(dt) {
+        if (this.gameOver) {
+          this.gameOverTimer += dt;
+          if (this.gameOverTimer > 1.5) this.finishGame();
+          return;
+        }
+        var elapsed = 300 - this.timeLeft;
+        /* difficulty ramp */
+        this.scrollSpeed = 120 + elapsed * 0.8;
+        var gapSize = Math.max(140, 210 - elapsed * 0.8);
+        /* scroll world */
+        this.scrollX += this.scrollSpeed * dt;
+        /* spawn obstacles */
+        this.obstacleTimer -= dt;
+        if (this.obstacleTimer <= 0) {
+          var gapY = rand(100 + gapSize / 2, H - 60 - gapSize / 2);
+          var obstType = ["shelf", "cushions", "scratcher", "blanketfort"][Math.floor(rand(0, 4))];
+          this.obstacles.push({
+            x: W + 40,
+            gapY: gapY,
+            gapSize: gapSize,
+            passed: false,
+            type: obstType,
+            w: 50
+          });
+          var spawnInterval = Math.max(1.8, 3.2 - elapsed * 0.015);
+          this.obstacleTimer = spawnInterval;
+        }
+        /* move obstacles */
+        for (var i = this.obstacles.length - 1; i >= 0; i--) {
+          var ob = this.obstacles[i];
+          ob.x -= this.scrollSpeed * dt;
+          /* check if Luna passed this obstacle */
+          if (!ob.passed && ob.x + ob.w / 2 < this.luna.x) {
+            ob.passed = true;
+            this.passed++;
+            var pts = 10 * this.combo;
+            this.addScore(pts);
+            this.combo++;
+            if (this.combo > 1 && this.combo % 5 === 0) audio.combo();
+            audio.tinyChime();
+            spawnParticleBurst(ob.x + ob.w, ob.gapY, [COLORS.gold, "#FFF4C0"], 6, ["star"]);
+            /* near miss bonus */
+            var lunaDistFromEdge = Math.min(Math.abs(this.luna.y - (ob.gapY - gapSize / 2)), Math.abs(this.luna.y - (ob.gapY + gapSize / 2)));
+            if (lunaDistFromEdge < 20) {
+              this.addScore(5 * this.combo);
+              this.nearMissTimer = 0.6;
+              spawnParticleBurst(this.luna.x, this.luna.y, ["#FF69B4"], 4, ["heart"]);
+            }
+          }
+          /* remove off-screen */
+          if (ob.x < -60) this.obstacles.splice(i, 1);
+        }
+        /* update anchor from mouse */
+        this.anchor.x = clamp(game.mouse.x, 100, 300);
+        this.anchor.y = clamp(game.mouse.y, 60, H - 60);
+        /* lure physics — pendulum/spring from anchor */
+        var stringLen = 90;
+        var springK = 4.5;
+        var damping = 3.0;
+        var gravity = 320;
+        var dx = this.anchor.x - this.lure.x;
+        var dy = (this.anchor.y + stringLen) - this.lure.y;
+        var d = Math.hypot(dx, dy);
+        /* spring force toward rest position below anchor */
+        this.lure.vx += dx * springK * dt;
+        this.lure.vy += dy * springK * dt;
+        /* gravity */
+        this.lure.vy += gravity * dt;
+        /* damping */
+        this.lure.vx *= Math.max(0, 1 - damping * dt);
+        this.lure.vy *= Math.max(0, 1 - damping * dt);
+        /* constrain max distance from anchor */
+        this.lure.x += this.lure.vx * dt;
+        this.lure.y += this.lure.vy * dt;
+        var ldx = this.lure.x - this.anchor.x;
+        var ldy = this.lure.y - this.anchor.y;
+        var ld = Math.hypot(ldx, ldy);
+        var maxLen = stringLen * 1.4;
+        if (ld > maxLen) {
+          this.lure.x = this.anchor.x + ldx / ld * maxLen;
+          this.lure.y = this.anchor.y + ldy / ld * maxLen;
+          /* dampen velocity when string taut */
+          this.lure.vx *= 0.7;
+          this.lure.vy *= 0.7;
+        }
+        this.lure.x = clamp(this.lure.x, 40, W - 40);
+        this.lure.y = clamp(this.lure.y, 40, H - 40);
+        /* Luna chases the lure */
+        var chaseX = this.lure.x;
+        var chaseY = this.lure.y;
+        var cdx = chaseX - this.luna.x;
+        var cdy = chaseY - this.luna.y;
+        var cd = Math.hypot(cdx, cdy);
+        var chaseSpeed = 260;
+        var chaseDamping = 2.8;
+        if (cd > 5) {
+          this.luna.vx += (cdx / cd) * chaseSpeed * dt;
+          this.luna.vy += (cdy / cd) * chaseSpeed * dt;
+        }
+        /* slight gravity on Luna */
+        this.luna.vy += 80 * dt;
+        /* damping */
+        this.luna.vx *= Math.max(0, 1 - chaseDamping * dt);
+        this.luna.vy *= Math.max(0, 1 - chaseDamping * dt);
+        this.luna.x += this.luna.vx * dt;
+        this.luna.y += this.luna.vy * dt;
+        /* keep Luna in bounds */
+        if (this.luna.y < 50) { this.luna.y = 50; this.luna.vy = Math.max(0, this.luna.vy); }
+        if (this.luna.y > H - 30) { this.luna.y = H - 30; this.luna.vy = Math.min(0, this.luna.vy); }
+        this.luna.x = clamp(this.luna.x, 80, 350);
+        this.luna.facing = this.luna.vx >= 0 ? 1 : -1;
+        this.luna.excitement = clamp(cd / 80, 0, 1);
+        this.nearMissTimer = Math.max(0, this.nearMissTimer - dt);
+        /* collision detection — Luna vs obstacles */
+        for (var oi = 0; oi < this.obstacles.length; oi++) {
+          var ob = this.obstacles[oi];
+          var inXRange = this.luna.x > ob.x - 10 && this.luna.x < ob.x + ob.w + 10;
+          if (inXRange) {
+            var inGap = this.luna.y > ob.gapY - ob.gapSize / 2 + 12 && this.luna.y < ob.gapY + ob.gapSize / 2 - 12;
+            if (!inGap) {
+              /* COLLISION */
+              this.gameOver = true;
+              this.gameOverTimer = 0;
+              audio.miss();
+              screenShake(6, 0.3);
+              spawnParticleBurst(this.luna.x, this.luna.y, ["#FF6B6B", "#FFB3B3"], 12, ["star"]);
+              this.luna.vx = 0;
+              this.luna.vy = 0;
+              return;
+            }
+          }
+        }
+      }
+      drawScene(c) {
+        /* cozy room background — scrolling wallpaper */
+        var bgColors = ["#F5E6D3", "#EDE0D0", "#F0E2CE"];
+        c.fillStyle = bgColors[0];
+        c.fillRect(0, 0, W, H);
+        /* scrolling floor pattern */
+        c.fillStyle = "#E8D5BD";
+        c.fillRect(0, H - 40, W, 40);
+        c.strokeStyle = "rgba(180,160,130,0.3)";
+        c.lineWidth = 1;
+        for (var fi = 0; fi < 20; fi++) {
+          var fx = ((fi * 50 - this.scrollX * 0.3) % (W + 100)) - 50;
+          c.beginPath(); c.moveTo(fx, H - 40); c.lineTo(fx, H); c.stroke();
+        }
+        /* scrolling window in background */
+        var winX = ((500 - this.scrollX * 0.15) % (W + 200)) - 100;
+        c.fillStyle = "#B8E0F0";
+        rr(c, winX, 30, 100, 80, 6);
+        c.fill();
+        c.strokeStyle = "#C8A882";
+        c.lineWidth = 4;
+        rr(c, winX, 30, 100, 80, 6);
+        c.stroke();
+        c.strokeStyle = "#C8A882";
+        c.lineWidth = 2;
+        c.beginPath(); c.moveTo(winX + 50, 30); c.lineTo(winX + 50, 110); c.stroke();
+        c.beginPath(); c.moveTo(winX, 70); c.lineTo(winX + 100, 70); c.stroke();
+        /* scrolling shelf in background */
+        var shelfX = ((250 - this.scrollX * 0.1) % (W + 300)) - 150;
+        c.fillStyle = "rgba(180,160,130,0.2)";
+        rr(c, shelfX, 60, 120, 10, 3);
+        c.fill();
+        /* ceiling line */
+        c.strokeStyle = "rgba(180,160,130,0.15)";
+        c.lineWidth = 2;
+        c.beginPath(); c.moveTo(0, 30); c.lineTo(W, 30); c.stroke();
+        /* ── draw obstacles ── */
+        for (var oi = 0; oi < this.obstacles.length; oi++) {
+          var ob = this.obstacles[oi];
+          var topH = ob.gapY - ob.gapSize / 2;
+          var botY = ob.gapY + ob.gapSize / 2;
+          var botH = H - botY;
+          /* top obstacle */
+          if (ob.type === "shelf") {
+            c.fillStyle = "#B08860";
+            rr(c, ob.x, 0, ob.w, topH, 4);
+            c.fill();
+            c.fillStyle = "#C8A070";
+            c.fillRect(ob.x - 4, topH - 6, ob.w + 8, 6);
+            /* books on shelf */
+            var bookColors = ["#D04040", "#4080D0", "#40A040", "#E8A020"];
+            for (var bi = 0; bi < 3; bi++) {
+              c.fillStyle = bookColors[bi];
+              rr(c, ob.x + 8 + bi * 14, topH - 30, 10, 24, 2);
+              c.fill();
+            }
+          } else if (ob.type === "cushions") {
+            c.fillStyle = "#C8A0B0";
+            rr(c, ob.x, 0, ob.w, topH, 6);
+            c.fill();
+            c.fillStyle = "#D8B0C0";
+            c.beginPath(); c.ellipse(ob.x + ob.w / 2, topH - 4, ob.w / 2 + 4, 10, 0, 0, Math.PI * 2); c.fill();
+          } else if (ob.type === "scratcher") {
+            c.fillStyle = "#B89868";
+            c.fillRect(ob.x + 10, 0, ob.w - 20, topH);
+            /* rope wrap texture */
+            c.strokeStyle = "rgba(160,130,80,0.5)";
+            c.lineWidth = 2;
+            for (var ri = 0; ri < Math.floor(topH / 12); ri++) {
+              c.beginPath(); c.moveTo(ob.x + 10, ri * 12); c.lineTo(ob.x + ob.w - 10, ri * 12 + 6); c.stroke();
+            }
+            c.fillStyle = "#D2B48C";
+            c.beginPath(); c.ellipse(ob.x + ob.w / 2, topH, ob.w / 2 + 6, 8, 0, 0, Math.PI * 2); c.fill();
+          } else {
+            /* blanket fort */
+            c.fillStyle = "#A0C0D8";
+            c.beginPath(); c.moveTo(ob.x, 0); c.lineTo(ob.x + ob.w, 0); c.lineTo(ob.x + ob.w / 2, topH); c.closePath(); c.fill();
+            c.fillStyle = "rgba(255,255,255,0.15)";
+            for (var si = 0; si < 3; si++) {
+              c.beginPath(); c.moveTo(ob.x + si * ob.w / 3, 0); c.lineTo(ob.x + ob.w / 2, topH); c.stroke();
+            }
+          }
+          /* bottom obstacle */
+          if (ob.type === "shelf") {
+            c.fillStyle = "#B08860";
+            rr(c, ob.x, botY, ob.w, botH, 4);
+            c.fill();
+            c.fillStyle = "#C8A070";
+            c.fillRect(ob.x - 4, botY, ob.w + 8, 6);
+          } else if (ob.type === "cushions") {
+            c.fillStyle = "#C8A0B0";
+            rr(c, ob.x, botY, ob.w, botH, 6);
+            c.fill();
+            c.fillStyle = "#D8B0C0";
+            c.beginPath(); c.ellipse(ob.x + ob.w / 2, botY + 4, ob.w / 2 + 4, 10, 0, 0, Math.PI * 2); c.fill();
+          } else if (ob.type === "scratcher") {
+            c.fillStyle = "#B89868";
+            c.fillRect(ob.x + 10, botY, ob.w - 20, botH);
+            c.strokeStyle = "rgba(160,130,80,0.5)";
+            c.lineWidth = 2;
+            for (var ri = 0; ri < Math.floor(botH / 12); ri++) {
+              c.beginPath(); c.moveTo(ob.x + 10, botY + ri * 12); c.lineTo(ob.x + ob.w - 10, botY + ri * 12 + 6); c.stroke();
+            }
+            c.fillStyle = "#D2B48C";
+            c.beginPath(); c.ellipse(ob.x + ob.w / 2, botY, ob.w / 2 + 6, 8, 0, 0, Math.PI * 2); c.fill();
+          } else {
+            c.fillStyle = "#A0C0D8";
+            c.beginPath(); c.moveTo(ob.x, H); c.lineTo(ob.x + ob.w, H); c.lineTo(ob.x + ob.w / 2, botY); c.closePath(); c.fill();
+          }
+          /* gap highlight — safe zone glow */
+          c.save();
+          c.globalAlpha = 0.08;
+          c.fillStyle = "#FFD700";
+          c.fillRect(ob.x - 2, ob.gapY - ob.gapSize / 2, ob.w + 4, ob.gapSize);
+          c.restore();
+        }
+        /* ── draw string from anchor to lure ── */
+        c.save();
+        c.strokeStyle = "rgba(140,100,60,0.6)";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(this.anchor.x, this.anchor.y);
+        /* catenary curve approximation */
+        var mx = (this.anchor.x + this.lure.x) / 2;
+        var my = (this.anchor.y + this.lure.y) / 2 + 20;
+        c.quadraticCurveTo(mx, my, this.lure.x, this.lure.y);
+        c.stroke();
+        c.restore();
+        /* ── draw wand handle at anchor ── */
+        c.save();
+        c.translate(this.anchor.x, this.anchor.y);
+        var wandAngle = Math.atan2(this.lure.y - this.anchor.y, this.lure.x - this.anchor.x) * 0.3;
+        c.rotate(wandAngle);
+        c.fillStyle = "#8B6914";
+        c.fillRect(-3, -40, 6, 42);
+        c.fillStyle = "#A08030";
+        c.beginPath(); c.arc(0, -40, 4, 0, Math.PI * 2); c.fill();
+        c.restore();
+        /* ── draw lure (fuzzy mouse toy) ── */
+        c.save();
+        c.translate(this.lure.x, this.lure.y);
+        var swing = Math.sin(game.time * 6) * 0.15;
+        c.rotate(swing);
+        /* body */
+        c.fillStyle = "#E8A0B0";
+        c.beginPath(); c.ellipse(0, 0, 10, 7, 0, 0, Math.PI * 2); c.fill();
+        /* fuzzy texture */
+        c.fillStyle = "rgba(255,255,255,0.3)";
+        for (var fi = 0; fi < 5; fi++) {
+          c.beginPath(); c.arc(rand(-6, 6), rand(-4, 4), 2, 0, Math.PI * 2); c.fill();
+        }
+        /* ears */
+        c.fillStyle = "#D08090";
+        c.beginPath(); c.arc(-5, -6, 3, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(5, -6, 3, 0, Math.PI * 2); c.fill();
+        /* eyes */
+        c.fillStyle = "#333";
+        c.beginPath(); c.arc(-3, -1, 1.5, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(3, -1, 1.5, 0, Math.PI * 2); c.fill();
+        /* tail string */
+        c.strokeStyle = "#D08090";
+        c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(0, 7); c.quadraticCurveTo(8, 14 + Math.sin(game.time * 8) * 3, 4, 18); c.stroke();
+        c.restore();
+        /* ── draw Luna ── */
+        var lunaScale = 0.85 + this.luna.excitement * 0.15;
+        var lunaPose = this.gameOver ? "sit" : (Math.abs(this.luna.vy) > 100 ? "stalk" : "topdown");
+        drawLuna(c, this.luna.x, this.luna.y, lunaScale, {
+          pose: lunaPose,
+          tail: Math.sin(game.time * 3),
+          earTwitch: this.luna.excitement > 0.5 ? 1 : earSignal(game.time),
+          wiggle: this.luna.excitement * 0.08,
+          blink: this.gameOver ? true : blinkSignal(game.time + 0.5, 0.6),
+          facing: this.luna.facing
+        });
+        /* near-miss sparkle */
+        if (this.nearMissTimer > 0) {
+          c.save();
+          c.globalAlpha = this.nearMissTimer;
+          c.fillStyle = "#FF69B4";
+          c.font = '14px "Fredoka One", sans-serif';
+          c.textAlign = "center";
+          c.fillText("Close!", this.luna.x, this.luna.y - 40);
+          c.restore();
+        }
+        /* game over overlay */
+        if (this.gameOver) {
+          c.save();
+          c.globalAlpha = clamp(this.gameOverTimer / 0.5, 0, 0.6);
+          c.fillStyle = "rgba(60,40,30,1)";
+          c.fillRect(0, 0, W, H);
+          c.globalAlpha = clamp(this.gameOverTimer / 0.8, 0, 1);
+          c.fillStyle = "#FFF8F0";
+          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("Bonk!", W / 2, H / 2 - 20);
+          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Obstacles cleared: " + this.passed, W / 2, H / 2 + 20);
+          c.restore();
+        }
+        /* HUD: obstacles passed counter */
+        if (!this.gameOver) {
+          c.fillStyle = "rgba(255,248,240,0.7)";
+          rr(c, W / 2 - 60, H - 36, 120, 26, 10);
+          c.fill();
+          c.fillStyle = "#7A4E36";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("Cleared: " + this.passed, W / 2, H - 18);
+        }
+      }
+      drawInstructionIcon(c, x, y) {
+        c.save(); c.translate(x, y);
+        /* wand stick */
+        c.fillStyle = "#8B6914";
+        c.fillRect(-2, -20, 4, 22);
+        /* string */
+        c.strokeStyle = "rgba(140,100,60,0.6)";
+        c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(0, 2); c.quadraticCurveTo(10, 14, 6, 22); c.stroke();
+        /* fuzzy mouse */
+        c.fillStyle = "#E8A0B0";
+        c.beginPath(); c.ellipse(6, 24, 6, 4, 0, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+      drawResultCharacter(c) {
+        drawLuna(c, 400, 410, 1.5, {
+          pose: "sit",
+          tail: Math.sin(game.time * 2),
+          earTwitch: earSignal(game.time),
+          blink: blinkSignal(game.time + 1, 0.4),
+          facing: 1
+        });
+      }
+    }
+    SceneRegistry.register("wildwand", () => new WildWandScene());
 
 
     // ═══ 20-navigation.js ═══
