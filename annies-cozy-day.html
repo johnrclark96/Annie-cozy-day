@@ -285,7 +285,7 @@
       musicBox:   { pet: "luna", targetX: 257, targetY: 430, message: "Luna paws at the music box!", joyBonus: 2, chance: 0.008 },
       petToys:    { pet: "obi",  targetX: 318, targetY: 480, message: "Obi grabbed a toy from the basket!", joyBonus: 3, chance: 0.006 },
       bookStack:  { pet: "luna", targetX: 350, targetY: 430, message: "Luna sits on the book stack. Of course.", joyBonus: 1, chance: 0.005 },
-      petBed:     { pet: "obi",  targetX: 180, targetY: 460, message: "Obi settled into his cozy bed.", joyBonus: 2, chance: 0.004 },
+      petBed:     { pet: "obi",  targetX: 520, targetY: 468, message: "Obi settled into his cozy sofa!", joyBonus: 2, chance: 0.004 },
       floorCushion: { pet: "obi", targetX: 400, targetY: 475, message: "Obi claimed the floor cushion.", joyBonus: 1, chance: 0.005 },
       candles:    { pet: "luna", targetX: 220, targetY: 430, message: "Luna relaxes by the candlelight.", joyBonus: 1, condition: "nighttime", chance: 0.004 },
       familyPortrait: { pet: "both", targetX: 400, targetY: 350, message: "Both pets look up at the family portrait.", joyBonus: 2, chance: 0.003 }
@@ -5016,6 +5016,7 @@
               a.state = "idle";
               a.stateTimer = rand(3, 5);
               a.pose = Math.abs(a.y - a.homeY) < 10 ? "sit" : "idle";
+              if (a.pose === "sit") a.facing = 1;
               a.poseTimer = a.stateTimer;
             }
           }
@@ -5079,6 +5080,7 @@
               a.state = "idle";
               a.stateTimer = rand(3, 6);
               a.pose = "sit";
+              a.facing = 1;
               a.poseTimer = a.stateTimer;
             }
           }
@@ -5103,8 +5105,8 @@
         if (!busy && !interacting) {
           if (this.idleTime > 8 && this.obi.joy > 55) {
             /* sleepy time after idle — go to pet bed if available, otherwise mat */
-            var napX = store.decor.petBed ? 180 : this.obi.matX;
-            var napY = store.decor.petBed ? 456 : this.obi.matY;
+            var napX = store.decor.petBed ? 520 : this.obi.homeX;
+            var napY = store.decor.petBed ? 468 : this.obi.homeY;
             this.obi.targetX = napX;
             this.obi.targetY = napY;
             if (dist(this.obi.x, this.obi.y, napX, napY) < 18) {
@@ -5418,7 +5420,7 @@
         else if (this.hoverKey === "lamp") this.tooltip = { x: 216, y: 122, title: "Lamp", body: "Click to toggle the lamp." };
         else if (this.hoverKey === "toyBasket") this.tooltip = { x: 265, y: 368, title: "Toy Basket", body: "Click to toss a toy!" };
         else if (this.hoverKey === "window") this.tooltip = { x: 126, y: 44, title: "Window", body: "Look outside! (+1 joy)" };
-        else if (this.hoverKey === "petBed") this.tooltip = { x: 180, y: 442, title: "Pet Bed", body: "Click to call a pet to nap." };
+        else if (this.hoverKey === "petBed") this.tooltip = { x: 520, y: 450, title: "Pet Sofa", body: "Click to call a pet to nap." };
         else if (this.hoverKey === "obi") this.tooltip = { x: this.obi.x, y: this.obi.y - 104, title: "Obi", body: "Mood: " + this.moodLabel("obi") + " (" + getDailyMood("obi") + " today)" };
         else if (this.hoverKey === "luna") this.tooltip = { x: this.luna.x, y: (this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y) - 104, title: "Luna", body: "Mood: " + this.moodLabel("luna") + " (" + getDailyMood("luna") + " today)" };
         /* Annie behavior system */
