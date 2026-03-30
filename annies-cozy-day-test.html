@@ -555,7 +555,7 @@
       if (item.streakUnlock) return store.careStreak.count >= item.streakUnlock;
       if (item.stars > 0) return totalStarsEarned() >= item.stars;
       if (item.tier && !canAccessTier(item.tier)) return false;
-      if (item.price && store.decorPurchased.indexOf(item.key) < 0) return false;
+      /* coin items are unlockable — purchase happens on click */
       return true;
     }
 
