@@ -50,11 +50,10 @@
       height: 100%;
     }
     canvas {
-      width: min(800px, calc(100vw - 24px), calc((100vh - 24px) * 4 / 3));
-      height: auto;
-      aspect-ratio: 4 / 3;
-      max-width: calc(100vw - 24px);
-      max-height: calc(100vh - 24px);
+      width: 800px;
+      height: 600px;
+      max-width: min(calc(100vw - 24px), calc((100vh - 24px) * 4 / 3));
+      max-height: min(calc(100vh - 24px), calc((100vw - 24px) * 3 / 4));
       image-rendering: auto;
       border-radius: 22px;
       box-shadow: 0 20px 60px rgba(80, 50, 30, 0.18);
