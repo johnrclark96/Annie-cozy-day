@@ -136,7 +136,8 @@
       { key: "socialButterfly", name: "Social Butterfly", desc: "Witness 5 different pet-to-pet interactions.", color: "#FF69B4", icon: "heart", coinBonus: 15 },
       { key: "fullHouse", name: "Full House", desc: "Earn all 33 minigame stars.", color: "#FFD700", icon: "star", coinBonus: 50 },
       { key: "wellFed", name: "Well Fed", desc: "Fill food and water bowls 50 total times.", color: "#7CB342", icon: "heart", coinBonus: 10 },
-      { key: "collector", name: "Master Collector", desc: "Own every item in the game.", color: "#E8A020", icon: "star", coinBonus: 100 }
+      { key: "collector", name: "Master Collector", desc: "Own every item in the game.", color: "#E8A020", icon: "star", coinBonus: 100 },
+      { key: "challengeChampion", name: "Challenge Champion", desc: "Earn 5 challenge stars.", color: "#FFD700", icon: "star", coinBonus: 50 }
     ];
 
     const TITLE_SUBTITLES = [
@@ -172,10 +173,16 @@
       { key: "candles", name: "Candle Set", desc: "Three candles that glow at night", stars: 0, type: "toggle", price: 50, tier: 2 },
       { key: "wallClock", name: "Wall Clock", desc: "A cute clock with moving hands", stars: 0, type: "toggle", price: 55, tier: 2 },
       { key: "rugPattern", name: "Fancy Rug", desc: "Upgraded rug patterns", stars: 0, type: "cycle", max: 3, labels: ["Default", "Moroccan", "Floral", "Geometric"], price: 60, tier: 2 },
-      { key: "garland", name: "Seasonal Garland", desc: "Hanging garland decorations", stars: 0, type: "cycle", max: 3, labels: ["Spring", "Summer", "Autumn", "Winter"], price: 100, tier: 3 },
+      { key: "garland", name: "Seasonal Garland", desc: "Hanging garland decorations", stars: 0, type: "cycle", max: 4, labels: ["Off", "Spring", "Summer", "Autumn", "Winter"], price: 100, tier: 3 },
       { key: "petToys", name: "Toy Display", desc: "A basket of visible toys", stars: 0, type: "toggle", price: 120, tier: 3 },
       { key: "musicBox", name: "Music Box", desc: "A sparkling music box", stars: 0, type: "toggle", achievementUnlock: "maximumCozy" },
-      { key: "familyPortrait", name: "Family Portrait", desc: "Annie, Obi, and Luna together", stars: 33, type: "toggle" }
+      { key: "familyPortrait", name: "Family Portrait", desc: "Annie, Obi, and Luna together", stars: 33, type: "toggle" },
+      /* cozy upgrades — gameplay-affecting */
+      { key: "comfyBowls", name: "\u2728 Comfy Bowls", desc: "Bowls deplete 25% slower", stars: 0, type: "toggle", price: 80, tier: 1, isUpgrade: true },
+      { key: "treatsJar", name: "\u2728 Treats Jar", desc: "Treats give +1 bonus joy", stars: 0, type: "toggle", price: 60, tier: 1, isUpgrade: true },
+      { key: "cozyBlankets", name: "\u2728 Extra Blankets", desc: "Pets start each visit +5 joy", stars: 0, type: "toggle", price: 100, tier: 2, isUpgrade: true },
+      { key: "joyfulHome", name: "\u2728 Joyful Home", desc: "Joy decays 20% slower", stars: 0, type: "toggle", price: 120, tier: 2, isUpgrade: true },
+      { key: "luckyCharm", name: "\u2728 Lucky Charm", desc: "+2 coins per minigame play", stars: 0, type: "toggle", price: 150, tier: 2, isUpgrade: true }
     ];
 
     /* ── Backyard decorations ── */
@@ -204,14 +211,14 @@
 
     /* ── Weekly challenge pool ── */
     const WEEKLY_CHALLENGES = [
-      { id: "play5games", text: "Play 5 different minigames", target: 5, reward: 25, trackKey: "gamesPlayed" },
-      { id: "earn8stars", text: "Earn 8 stars total", target: 8, reward: 30, trackKey: "starsEarned" },
-      { id: "pet10", text: "Pet both Obi and Luna 10 times", target: 10, reward: 20, trackKey: "petActions" },
-      { id: "feedBirds5", text: "Fill the bird feeder 5 times", target: 5, reward: 25, trackKey: "feederFills" },
-      { id: "plant4", text: "Plant 4 flowers", target: 4, reward: 20, trackKey: "flowersPlanted" },
-      { id: "photos3", text: "Take 3 photos", target: 3, reward: 25, trackKey: "photosTaken" },
-      { id: "streak5", text: "Maintain a 5-day streak", target: 5, reward: 30, trackKey: "streakDays" },
-      { id: "buy2", text: "Buy 2 items", target: 2, reward: 40, trackKey: "itemsBought" }
+      { id: "play5games", text: "Play 5 different minigames", target: 5, reward: 40, trackKey: "gamesPlayed" },
+      { id: "earn8stars", text: "Earn 8 stars total", target: 8, reward: 50, trackKey: "starsEarned" },
+      { id: "pet10", text: "Pet both Obi and Luna 10 times", target: 10, reward: 30, trackKey: "petActions" },
+      { id: "feedBirds5", text: "Fill the bird feeder 5 times", target: 5, reward: 40, trackKey: "feederFills" },
+      { id: "plant4", text: "Plant 4 flowers", target: 4, reward: 35, trackKey: "flowersPlanted" },
+      { id: "photos3", text: "Take 3 photos", target: 3, reward: 40, trackKey: "photosTaken" },
+      { id: "streak5", text: "Maintain a 5-day streak", target: 5, reward: 50, trackKey: "streakDays" },
+      { id: "buy2", text: "Buy 2 items", target: 2, reward: 60, trackKey: "itemsBought" }
     ];
 
     /* ── Accessories (all 3 characters) ── */
@@ -262,6 +269,92 @@
       { stars: 30, coins: 75 },
       { stars: 33, coins: 100 }
     ];
+
+    /* ── Cozy Upgrades (gameplay-affecting purchases) ── */
+    const COZY_UPGRADES = [
+      { key: "comfyBowls", name: "Comfy Bowls", desc: "Bowls deplete 25% slower", price: 80, icon: "bowl" },
+      { key: "treatsJar", name: "Treats Jar", desc: "Treats give +1 bonus joy", price: 60, icon: "treat" },
+      { key: "cozyBlankets", name: "Extra Blankets", desc: "Pets start each visit +5 joy", price: 100, icon: "blanket" },
+      { key: "joyfulHome", name: "Joyful Home", desc: "Joy decays 20% slower", price: 120, icon: "heart" },
+      { key: "luckyCharm", name: "Lucky Charm", desc: "+2 coins per minigame play", price: 150, icon: "star" }
+    ];
+
+    /* ── Decoration Reactions ── */
+    const DECOR_REACTIONS = {
+      musicBox:   { pet: "luna", targetX: 257, targetY: 430, message: "Luna paws at the music box!", joyBonus: 2, chance: 0.008 },
+      petToys:    { pet: "obi",  targetX: 318, targetY: 480, message: "Obi grabbed a toy from the basket!", joyBonus: 3, chance: 0.006 },
+      bookStack:  { pet: "luna", targetX: 350, targetY: 430, message: "Luna sits on the book stack. Of course.", joyBonus: 1, chance: 0.005 },
+      petBed:     { pet: "obi",  targetX: 180, targetY: 460, message: "Obi settled into his cozy bed.", joyBonus: 2, chance: 0.004 },
+      floorCushion: { pet: "obi", targetX: 400, targetY: 475, message: "Obi claimed the floor cushion.", joyBonus: 1, chance: 0.005 },
+      candles:    { pet: "luna", targetX: 220, targetY: 430, message: "Luna relaxes by the candlelight.", joyBonus: 1, condition: "nighttime", chance: 0.004 },
+      familyPortrait: { pet: "both", targetX: 400, targetY: 350, message: "Both pets look up at the family portrait.", joyBonus: 2, chance: 0.003 }
+    };
+
+    /* ── Scrapbook Goals ── */
+    const SCRAPBOOK_GOALS = [
+      { key: "obiSleepPhoto", name: "Dreaming Obi", desc: "Take a photo while Obi is napping", reward: 10, icon: "star" },
+      { key: "lunaGroomPhoto", name: "Grooming Session", desc: "Take a photo while Luna is grooming", reward: 10, icon: "catEye" },
+      { key: "both80Joy", name: "Double Happiness", desc: "Both pets at 80+ joy at once", reward: 15, icon: "heart" },
+      { key: "rainWindow", name: "Rainy Day", desc: "See rain outside the window", reward: 5, icon: "star" },
+      { key: "fiveGames3Star", name: "Star Student", desc: "Earn 3 stars in 5 different games", reward: 20, icon: "star" },
+      { key: "allDecor5", name: "Interior Designer", desc: "Activate 5 decorations at once", reward: 15, icon: "star" },
+      { key: "petInteraction", name: "Best Friends", desc: "Witness Obi and Luna interact", reward: 10, icon: "heart" },
+      { key: "backyardVisit", name: "Outdoor Explorer", desc: "Visit the backyard", reward: 5, icon: "bone" },
+      { key: "tenPhotos", name: "Shutterbug Deluxe", desc: "Take 10 photos total", reward: 15, icon: "star" },
+      { key: "snowDay", name: "Let It Snow", desc: "See snow outside the window", reward: 10, icon: "star" },
+      { key: "visitorMet", name: "Friendly Neighbor", desc: "Interact with a visitor", reward: 10, icon: "heart" },
+      { key: "challengeAttempt", name: "Brave Heart", desc: "Try a challenge mode minigame", reward: 10, icon: "star" }
+    ];
+
+    /* ── Weather & Visitor System ── */
+    const WEATHER_TYPES = [
+      { key: "sunny",  weight: 0.3, windowTint: null },
+      { key: "cloudy", weight: 0.25, windowTint: "rgba(180,190,200,0.12)" },
+      { key: "rain",   weight: 0.2, windowTint: "rgba(100,120,140,0.15)" },
+      { key: "snow",   weight: 0.1, windowTint: "rgba(200,215,225,0.1)" },
+      { key: "golden", weight: 0.15, windowTint: "rgba(255,220,150,0.1)" }
+    ];
+    const VISITOR_TYPES = [
+      { key: "mailCarrier", message: "A package delivery!", stayTime: 12, coinReward: 5, drawX: 710, drawY: 430 },
+      { key: "neighborCat", message: "A fluffy cat appeared at the window!", stayTime: 15, joyEffect: { luna: 4, obi: 2 }, drawX: 140, drawY: 190 },
+      { key: "squirrel", message: "A squirrel on the window sill!", stayTime: 10, joyEffect: { obi: 5, luna: 3 }, drawX: 160, drawY: 185 },
+      { key: "robin", message: "A robin is singing outside!", stayTime: 14, joyEffect: { obi: 2, luna: 2 }, drawX: 100, drawY: 120 }
+    ];
+
+    /* ── Challenge Star Modifiers (4th star per minigame) ── */
+    const CHALLENGE_MODIFIERS = {
+      treat:    { name: "Speedy Obi",       desc: "Obi moves 50% faster from the start!" },
+      laser:    { name: "Invisible Targets", desc: "Targets fade after appearing briefly!" },
+      cuddle:   { name: "Wiggly Pile",      desc: "Everyone fidgets twice as often!" },
+      walk:     { name: "Rainy Walk",       desc: "Items pass by 40% faster!" },
+      nap:      { name: "Restless Beams",   desc: "Sunbeams move twice as fast!" },
+      bath:     { name: "Bubble Trouble",   desc: "Scrub meter drains if you stop!" },
+      sort:     { name: "Swap Bowls",       desc: "Bowls swap sides every 15 seconds!" },
+      pillow:   { name: "Double Trouble",   desc: "Up to 4 popups at once!" },
+      findluna: { name: "Speed Shuffle",    desc: "Cushions shuffle at 2x speed!" },
+      window:   { name: "Night Watch",      desc: "Darker window, smaller visible area!" },
+      pawstep:  { name: "Reverse Memory",   desc: "Repeat the sequence backwards!" }
+    };
+
+    /* ── Pet Mood & Personality System ── */
+    const PET_MOODS = {
+      obi: {
+        playful: { joyMult: { toy: 1.5, treat: 1.0, pet: 0.8, brush: 0.7 }, idleBias: "wander", decay: 0.55, label: "waggy" },
+        cuddly:  { joyMult: { toy: 0.8, treat: 1.0, pet: 1.5, brush: 1.3 }, idleBias: "sleep", decay: 0.4, label: "cuddly" },
+        lazy:    { joyMult: { toy: 0.6, treat: 1.3, pet: 1.0, brush: 1.4 }, idleBias: "sleep", decay: 0.35, label: "sleepy" },
+        hungry:  { joyMult: { toy: 0.7, treat: 1.6, pet: 0.8, brush: 0.8 }, idleBias: "sniff", decay: 0.6, label: "snacky" }
+      },
+      luna: {
+        curious:      { joyMult: { toy: 1.5, treat: 0.9, pet: 0.9, brush: 1.0 }, idleBias: "wander", decay: 0.5, label: "curious" },
+        aloof:        { joyMult: { toy: 0.7, treat: 1.0, pet: 0.6, brush: 1.3 }, idleBias: "perch", decay: 0.3, label: "aloof" },
+        affectionate: { joyMult: { toy: 1.0, treat: 1.0, pet: 1.6, brush: 1.4 }, idleBias: "floor", decay: 0.45, label: "lovey" },
+        mischievous:  { joyMult: { toy: 1.3, treat: 1.0, pet: 0.8, brush: 0.7 }, idleBias: "pounce", decay: 0.55, label: "feisty" }
+      }
+    };
+    const DAY_OF_WEEK_PREFS = {
+      obi:  ["playful","cuddly","hungry","playful","lazy","cuddly","playful"],
+      luna: ["curious","aloof","affectionate","mischievous","curious","affectionate","aloof"]
+    };
 
     const LUNA_PERCHES = {
       tower:  { x: 694, y: 258 },
@@ -366,7 +459,14 @@
       scrapbook: loadJSON("scrapbook", { entries: [], photosViewed: 0 }),
       weeklyChallenge: loadJSON("weeklyChallenge", { weekId: null, challengeId: null, progress: 0, target: 0, completed: false, reward: 0 }),
       starMilestonesClaimed: loadJSON("starMilestonesClaimed", []),
-      decorPurchased: loadJSON("decorPurchased", [])
+      decorPurchased: loadJSON("decorPurchased", []),
+      cozyUpgrades: loadJSON("cozyUpgrades", []),
+      lastPassiveIncomeDate: loadJSON("lastPassiveIncomeDate", null),
+      petPersonality: loadJSON("petPersonality", { obi: { dailyMood: null, moodSeed: null, prefHistory: [] }, luna: { dailyMood: null, moodSeed: null, prefHistory: [] } }),
+      challengeStars: loadJSON("challengeStars", {}),
+      weather: loadJSON("weather", { current: "sunny", lastUpdate: null }),
+      scrapbookGoals: loadJSON("scrapbookGoals", { completed: [] }),
+      petMemory: loadJSON("petMemory", { lastActions: [], lastJoy: { obi: 50, luna: 50 }, lastDate: null, memories: [] })
     };
 
     /* ── Backfill migrations for existing saves ── */
@@ -379,12 +479,12 @@
     if (store.decor.cozyBlanket === undefined) store.decor.cozyBlanket = false;
     if (store.decor.photoWall === undefined) store.decor.photoWall = false;
     /* new decor keys */
-    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait"];
+    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait","comfyBowls","treatsJar","cozyBlankets","joyfulHome","luckyCharm"];
     for (var ndi = 0; ndi < newDecorKeys.length; ndi++) {
       if (store.decor[newDecorKeys[ndi]] === undefined) store.decor[newDecorKeys[ndi]] = newDecorKeys[ndi] === "couchPillows" || newDecorKeys[ndi] === "rugPattern" || newDecorKeys[ndi] === "garland" ? 0 : false;
     }
     /* achievement keys */
-    var allAchKeys = ["obiBestFriend","comboStar","catWhisperer","pouncePerfect","couchPotato","maximumCozy","goodWalker","napMaster","squeakyClean","sortingPro","whackQueen","sharpEye","birdWatcher","goodMemory","greenThumb","shutterBug","fashionista","dedicated","socialButterfly","fullHouse","wellFed","collector"];
+    var allAchKeys = ["obiBestFriend","comboStar","catWhisperer","pouncePerfect","couchPotato","maximumCozy","goodWalker","napMaster","squeakyClean","sortingPro","whackQueen","sharpEye","birdWatcher","goodMemory","greenThumb","shutterBug","fashionista","dedicated","socialButterfly","fullHouse","wellFed","collector","challengeChampion"];
     for (var ai = 0; ai < allAchKeys.length; ai++) {
       if (store.achievements[allAchKeys[ai]] === undefined) store.achievements[allAchKeys[ai]] = false;
     }
@@ -519,6 +619,92 @@
       return awarded;
     }
 
+    function hasUpgrade(key) {
+      return store.cozyUpgrades.indexOf(key) >= 0;
+    }
+
+    function calculatePassiveIncome() {
+      var income = 0;
+      for (var i = 0; i < DECOR_ITEMS.length; i++) {
+        var item = DECOR_ITEMS[i];
+        if (item.type === "toggle" && store.decor[item.key]) income += (item.tier || 1);
+        else if (item.type === "cycle" && store.decor[item.key] > 0) income += (item.tier || 1);
+      }
+      for (var j = 0; j < BACKYARD_DECOR_ITEMS.length; j++) {
+        var bItem = BACKYARD_DECOR_ITEMS[j];
+        if (bItem.type === "toggle" && store.backyardDecor[bItem.key]) income += (bItem.tier || 1);
+      }
+      return Math.min(25, income);
+    }
+
+
+    function updateWeather() {
+      var now = Date.now();
+      var fourHours = 4 * 60 * 60 * 1000;
+      if (store.weather.lastUpdate && (now - store.weather.lastUpdate) < fourHours) return store.weather.current;
+      /* weighted random selection */
+      var roll = Math.random(), cumulative = 0;
+      for (var wi = 0; wi < WEATHER_TYPES.length; wi++) {
+        cumulative += WEATHER_TYPES[wi].weight;
+        if (roll < cumulative) { store.weather.current = WEATHER_TYPES[wi].key; break; }
+      }
+      store.weather.lastUpdate = now;
+      saveJSON("weather", store.weather);
+      return store.weather.current;
+    }
+
+    function getWeatherData() {
+      var key = store.weather.current || "sunny";
+      for (var i = 0; i < WEATHER_TYPES.length; i++) { if (WEATHER_TYPES[i].key === key) return WEATHER_TYPES[i]; }
+      return WEATHER_TYPES[0];
+    }
+
+    function getCareBonus() {
+      var joyAvg = ((store.pet_obi_joy || 50) + (store.pet_luna_joy || 50)) / 2;
+      var food = store.pet_food_fill || 50;
+      var water = store.pet_water_fill || 50;
+      var careScore = (joyAvg * 0.5 + food * 0.25 + water * 0.25) / 100;
+      return {
+        score: careScore,
+        scoreMultiplier: 1.0 + careScore * 0.15,
+        comboStartBonus: careScore > 0.7 ? 1 : 0,
+        timerBonus: Math.floor(careScore * 5),
+        label: careScore > 0.8 ? "Well-Loved Bonus!" : careScore > 0.5 ? "Happy Pets Bonus" : null
+      };
+    }
+
+    function totalChallengeStars() {
+      var count = 0;
+      for (var k in store.challengeStars) { if (store.challengeStars[k]) count++; }
+      return count;
+    }
+
+    function getDailyMood(pet) {
+      var pp = store.petPersonality[pet];
+      if (!pp) { store.petPersonality[pet] = { dailyMood: null, moodSeed: null, prefHistory: [] }; pp = store.petPersonality[pet]; }
+      var today = new Date().toDateString();
+      if (pp.moodSeed === today && pp.dailyMood) return pp.dailyMood;
+      var dayIdx = new Date().getDay();
+      var baseMood = DAY_OF_WEEK_PREFS[pet][dayIdx];
+      var moods = Object.keys(PET_MOODS[pet]);
+      if (Math.random() < 0.3) {
+        var recent = (pp.prefHistory || []).slice(-2);
+        var alt = moods.filter(function(m) { return m !== baseMood && recent.indexOf(m) < 0; });
+        if (alt.length) baseMood = alt[Math.floor(Math.random() * alt.length)];
+      }
+      pp.dailyMood = baseMood;
+      pp.moodSeed = today;
+      if (!pp.prefHistory) pp.prefHistory = [];
+      pp.prefHistory.push(baseMood);
+      if (pp.prefHistory.length > 7) pp.prefHistory.shift();
+      saveJSON("petPersonality", store.petPersonality);
+      return baseMood;
+    }
+
+    function getMoodData(pet) {
+      var mood = getDailyMood(pet);
+      return PET_MOODS[pet][mood] || PET_MOODS[pet][Object.keys(PET_MOODS[pet])[0]];
+    }
 
     // ═══ 03-math-helpers.js ═══
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -887,6 +1073,25 @@
 
 
     // ═══ 08-ui.js ═══
+    function lightenColor(hex, pct) {
+      var h = hex.replace("#", "");
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+      r = Math.min(255, Math.round(r + (255 - r) * pct));
+      g = Math.min(255, Math.round(g + (255 - g) * pct));
+      b = Math.min(255, Math.round(b + (255 - b) * pct));
+      return "#" + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+    }
+    function darkenColor(hex, pct) {
+      var h = hex.replace("#", "");
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+      r = Math.max(0, Math.round(r * (1 - pct)));
+      g = Math.max(0, Math.round(g * (1 - pct)));
+      b = Math.max(0, Math.round(b * (1 - pct)));
+      return "#" + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+    }
+
     function drawButton(c, r, label, hovered, fill = COLORS.warmRed, textColor = "#fff") {
       c.save();
       const shadowY = hovered ? 4 : 6;
@@ -897,8 +1102,8 @@
         drawGlowCircle(c, r.x + r.w / 2, r.y + r.h / 2, Math.max(r.w, r.h) * 0.95, "rgba(255,215,0,ALPHA)", 0.18);
       }
       const grad = c.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
-      grad.addColorStop(0, hovered ? "#DE5544" : "#D24A3C");
-      grad.addColorStop(1, fill);
+      grad.addColorStop(0, hovered ? lightenColor(fill, 0.2) : fill);
+      grad.addColorStop(1, hovered ? fill : darkenColor(fill, 0.1));
       c.fillStyle = grad;
       rr(c, r.x, r.y, r.w, r.h, 18);
       c.fill();
@@ -919,33 +1124,43 @@
     function drawTooltip(c, x, y, title, body, alpha = 1) {
       c.save();
       c.globalAlpha = alpha;
-      const w = 220;
-      const h = 74;
+      /* dynamic sizing */
+      c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      var titleW = c.measureText(title).width;
+      c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      var bodyW = body ? c.measureText(body).width : 0;
+      var w = Math.max(Math.max(titleW, bodyW) + 40, 120);
+      var h = Math.max(30 + (body ? 18 : 0) + 16, 50);
+      /* clamp box to canvas */
+      var clampedX = clamp(x, w / 2 + 10, 800 - w / 2 - 10);
+      var boxLeft = clampedX - w / 2;
+      var boxTop = y - h;
       /* shadow */
       c.fillStyle = "rgba(60,40,25,0.15)";
-      rr(c, x - w / 2 + 3, y - h + 3, w, h, 14);
+      rr(c, boxLeft + 3, boxTop + 3, w, h, 14);
       c.fill();
       /* main box */
-      rr(c, x - w / 2, y - h, w, h, 14);
+      rr(c, boxLeft, boxTop, w, h, 14);
       c.fillStyle = "rgba(82,58,42,0.94)";
       c.fill();
       /* top highlight */
       c.fillStyle = "rgba(255,255,255,0.06)";
-      rr(c, x - w / 2 + 4, y - h + 4, w - 8, h * 0.35, 12);
+      rr(c, boxLeft + 4, boxTop + 4, w - 8, h * 0.35, 12);
       c.fill();
       /* text */
       c.fillStyle = "#FFF8F0";
       c.textAlign = "center";
       c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-      c.fillText(title, x, y - h + 24);
+      c.fillText(title, clampedX, boxTop + 24);
       c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
       c.fillStyle = "rgba(255,248,240,0.85)";
-      wrapText(c, body, x, y - h + 44, 190, 16);
-      /* pointer */
+      wrapText(c, body, clampedX, boxTop + 44, w - 30, 16);
+      /* pointer — always points at original anchor, clamped to box bounds */
+      var pointerX = clamp(x, boxLeft + 14, boxLeft + w - 14);
       c.fillStyle = "rgba(82,58,42,0.94)";
       c.beginPath();
-      c.moveTo(x - 8, y);
-      c.quadraticCurveTo(x, y + 12, x + 8, y);
+      c.moveTo(pointerX - 8, y);
+      c.quadraticCurveTo(pointerX, y + 12, pointerX + 8, y);
       c.closePath();
       c.fill();
       c.restore();
@@ -2161,36 +2376,43 @@
       } else if (pet === "annie") {
         /* annie */
         if (slot === "head") {
-          var dy = -120, dx = 0, sz = 22, rot = 0;
+          var dy = -120, dx = 0, sz = 30, rot = 0;
           if (pose === "sit" || pose === "kneel") { dy = -108; }
           else if (pose === "walk" || pose === "walkSide") { dy = -118; dx = 4; }
           else if (pose === "cheer") { dy = -124; }
           return { dx: dx, dy: dy, size: sz, rot: rot };
         }
         if (slot === "wrist") {
-          var dy = -60, dx = 18, sz = 14, rot = 0;
-          if (pose === "sit") { dy = -50; dx = 14; }
-          else if (pose === "kneel") { dy = -46; dx = 16; }
-          else if (pose === "cheer") { dy = -70; dx = 22; }
+          var dy = -60, dx = 20, sz = 22, rot = 0;
+          if (pose === "sit") { dy = -50; dx = 18; }
+          else if (pose === "kneel") { dy = -46; dx = 20; }
+          else if (pose === "cheer") { dy = -70; dx = 24; }
           return { dx: dx, dy: dy, size: sz, rot: rot };
         }
         return null;
       } else {
         /* luna */
         if (slot === "head") {
-          var dy = -68, dx = 0, sz = 24, rot = 0;
-          if (pose === "lounge") { dy = -48; dx = 4; sz = 22; }
-          else if (pose === "groom") { dy = -56; dx = -4; rot = -0.1; }
-          else if (pose === "treeSit") { dy = -54; dx = 2; }
-          else if (pose === "stalk") { dy = -28; dx = 8; rot = 0.15; sz = 20; }
-          else if (pose === "eat" || pose === "drink") { dy = -34; dx = 8; rot = 0.2; sz = 20; }
+          var dy = -68, dx = 0, sz = 34, rot = 0;
+          if (pose === "lounge") { dy = -48; dx = 4; sz = 30; }
+          else if (pose === "groom") { dy = -56; dx = -4; rot = -0.1; sz = 30; }
+          else if (pose === "treeSit") { dy = -54; dx = 2; sz = 30; }
+          else if (pose === "stalk") { dy = -28; dx = 8; rot = 0.15; sz = 28; }
+          else if (pose === "eat" || pose === "drink") { dy = -34; dx = 8; rot = 0.2; sz = 28; }
           return { dx: dx, dy: dy, size: sz, rot: rot };
         }
         if (slot === "neck") {
-          var dy = -54, dx = 0, sz = 26, rot = 0;
-          if (pose === "lounge") { dy = -38; dx = 4; }
-          else if (pose === "stalk") { dy = -22; dx = 6; rot = 0.1; sz = 22; }
-          else if (pose === "eat" || pose === "drink") { dy = -28; dx = 8; rot = 0.15; sz = 22; }
+          var dy = -54, dx = 0, sz = 36, rot = 0;
+          if (pose === "lounge") { dy = -38; dx = 4; sz = 32; }
+          else if (pose === "stalk") { dy = -22; dx = 6; rot = 0.1; sz = 30; }
+          else if (pose === "eat" || pose === "drink") { dy = -28; dx = 8; rot = 0.15; sz = 30; }
+          return { dx: dx, dy: dy, size: sz, rot: rot };
+        }
+        if (slot === "body") {
+          var dy = -42, dx = 0, sz = 60, rot = 0;
+          if (pose === "lounge") { dy = -30; dx = 4; sz = 55; }
+          else if (pose === "stalk") { dy = -18; dx = 6; rot = 0.1; sz = 50; }
+          else if (pose === "eat" || pose === "drink") { dy = -24; dx = 8; rot = 0.15; sz = 52; }
           return { dx: dx, dy: dy, size: sz, rot: rot };
         }
       }
@@ -2649,7 +2871,7 @@
       ex.fillStyle = "rgba(80,60,45,0.4)";
       ex.fillRect(0, H * 0.55, W, H * 0.45);
       /* furniture obstacles (match this.obstacles() in LaserChaseScene) */
-      ex.fillStyle = "rgba(90,70,50,0.6)";
+      ex.fillStyle = "rgba(110,85,60,0.8)";
       rr(ex, 44, 118, 160, 80, 12);
       ex.fill();
       rr(ex, 272, 228, 150, 70, 10);
@@ -2659,7 +2881,7 @@
       rr(ex, 588, 370, 96, 96, 12);
       ex.fill();
       /* furniture highlights */
-      ex.fillStyle = "rgba(120,95,70,0.35)";
+      ex.fillStyle = "rgba(140,115,85,0.5)";
       rr(ex, 48, 122, 152, 24, 8);
       ex.fill();
       rr(ex, 276, 232, 142, 20, 7);
@@ -2761,41 +2983,6 @@
       if (!sceneCache.livingRoomBase) buildStaticCaches();
       c.drawImage(sceneCache.livingRoomBase, 0, 0);
 
-      /* room style preset tint */
-      if (store.decor.roomPreset === 1) {
-        c.save();
-        c.globalCompositeOperation = "multiply";
-        c.fillStyle = "rgba(245,225,238,0.15)";
-        c.fillRect(0, 0, W, 340);
-        c.fillStyle = "rgba(240,225,215,0.12)";
-        c.fillRect(0, 340, W, H - 340);
-        c.restore();
-      } else if (store.decor.roomPreset === 2) {
-        c.save();
-        c.globalCompositeOperation = "multiply";
-        c.fillStyle = "rgba(245,228,200,0.18)";
-        c.fillRect(0, 0, W, 340);
-        c.fillStyle = "rgba(235,210,180,0.14)";
-        c.fillRect(0, 340, W, H - 340);
-        c.restore();
-      } else if (store.decor.roomPreset === 3) {
-        c.save();
-        c.globalCompositeOperation = "multiply";
-        c.fillStyle = "rgba(200,215,240,0.15)";
-        c.fillRect(0, 0, W, 340);
-        c.fillStyle = "rgba(190,200,220,0.12)";
-        c.fillRect(0, 340, W, H - 340);
-        c.restore();
-      } else if (store.decor.roomPreset === 4) {
-        c.save();
-        c.globalCompositeOperation = "multiply";
-        c.fillStyle = "rgba(230,215,195,0.16)";
-        c.fillRect(0, 0, W, 340);
-        c.fillStyle = "rgba(220,200,175,0.12)";
-        c.fillRect(0, 340, W, H - 340);
-        c.restore();
-      }
-
       /* animated window sky — time-of-day aware */
       const tod = store.decor.timeOfDay || 1;
       c.save();
@@ -2849,6 +3036,12 @@
           c.fill();
         }
       }
+      /* weather tint overlay on window */
+      var wd = getWeatherData();
+      if (wd.windowTint) {
+        c.fillStyle = wd.windowTint;
+        c.fillRect(66, 52, 120, 152);
+      }
       c.restore();
 
       /* warm light rays from window */
@@ -2883,11 +3076,11 @@
         c.fillStyle = "#E8A050"; c.fillRect(0, 0, W, H);
         c.restore();
       } else if (tod === 3) {
-        c.save(); c.globalAlpha = 0.22;
+        c.save(); c.globalAlpha = 0.38;
         c.fillStyle = "#141828"; c.fillRect(0, 0, W, H);
         c.restore();
         if (store.decor.lampOn !== false) {
-          drawGlowCircle(c, 216, 160, 180, "rgba(255,220,140,ALPHA)", 0.16);
+          drawGlowCircle(c, 216, 160, 200, "rgba(255,220,140,ALPHA)", 0.25);
         }
       }
 
@@ -2976,12 +3169,12 @@
           const bulbColor = ["#FFD700","#FF8FAA","#87CEEB","#A8D870","#FFB347"][i % 5];
           const pulse = Math.sin(game.time * 2.5 + i * 1.1);
           /* outer glow */
-          c.globalAlpha = 0.16 + pulse * 0.1;
+          c.globalAlpha = 0.25 + pulse * 0.12;
           c.fillStyle = bulbColor;
-          c.beginPath(); c.arc(lx, ly + 5, 12, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(lx, ly + 5, 14, 0, Math.PI * 2); c.fill();
           /* bulb body */
-          c.globalAlpha = 0.7 + pulse * 0.25;
-          c.beginPath(); c.arc(lx, ly + 5, 4.5, 0, Math.PI * 2); c.fill();
+          c.globalAlpha = 0.85 + pulse * 0.15;
+          c.beginPath(); c.arc(lx, ly + 5, 5.5, 0, Math.PI * 2); c.fill();
           /* highlight */
           c.globalAlpha = 0.5 + pulse * 0.2;
           c.fillStyle = "rgba(255,255,255,0.7)";
@@ -3152,17 +3345,21 @@
       }
       if (d.wallClock) {
         c.fillStyle = "#E8D8C0";
-        c.beginPath(); c.arc(550, 180, 18, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(550, 180, 24, 0, Math.PI * 2); c.fill();
         c.strokeStyle = "#8B7355"; c.lineWidth = 2;
-        c.beginPath(); c.arc(550, 180, 18, 0, Math.PI * 2); c.stroke();
+        c.beginPath(); c.arc(550, 180, 24, 0, Math.PI * 2); c.stroke();
         /* hour hand */
         var hr = (game.time * 0.001) % (Math.PI * 2);
         c.strokeStyle = "#5C4434"; c.lineWidth = 2;
-        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(hr) * 9, 180 - Math.cos(hr) * 9); c.stroke();
+        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(hr) * 12, 180 - Math.cos(hr) * 12); c.stroke();
         /* minute hand */
         var mn = (game.time * 0.01) % (Math.PI * 2);
         c.lineWidth = 1.5;
-        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(mn) * 13, 180 - Math.cos(mn) * 13); c.stroke();
+        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(mn) * 17, 180 - Math.cos(mn) * 17); c.stroke();
+        /* second hand */
+        var secAngle = (game.time % 60) / 60 * Math.PI * 2;
+        c.strokeStyle = "#C0392B"; c.lineWidth = 0.8;
+        c.beginPath(); c.moveTo(550, 180); c.lineTo(550 + Math.sin(secAngle) * 18, 180 - Math.cos(secAngle) * 18); c.stroke();
         c.fillStyle = "#5C4434"; c.beginPath(); c.arc(550, 180, 2, 0, Math.PI * 2); c.fill();
       }
       if (d.petToys) {
@@ -3187,7 +3384,7 @@
           var gx = 310 + gi * 24;
           var gy = 36 + Math.sin((gi / 7) * Math.PI) * 14;
           c.fillStyle = gc[gi % gc.length];
-          c.beginPath(); c.arc(gx, gy + 4, 4, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(gx, gy + 4, 6, 0, Math.PI * 2); c.fill();
         }
       }
       if (d.musicBox) {
@@ -3195,11 +3392,18 @@
         rr(c, 248, 328, 18, 12, 3); c.fill();
         c.fillStyle = "#FFD700";
         c.beginPath(); c.arc(257, 326, 2, 0, Math.PI * 2); c.fill();
-        /* occasional sparkle */
-        if (Math.sin(game.time * 1.5) > 0.8) {
-          c.fillStyle = "rgba(255,215,0,0.5)";
-          c.beginPath(); c.arc(257 + Math.sin(game.time * 3) * 5, 322 - Math.abs(Math.sin(game.time * 2)) * 6, 2, 0, Math.PI * 2); c.fill();
+        /* sparkle particles */
+        for (var si = 0; si < 3; si++) {
+          var sPhase = game.time * 3 + si * 2.1;
+          var sx = 257 + Math.sin(sPhase) * 8;
+          var sy = 322 - Math.abs(Math.sin(game.time * 2 + si)) * 10;
+          c.globalAlpha = 0.5 + Math.sin(sPhase) * 0.3;
+          c.beginPath();
+          c.arc(sx, sy, 3 + Math.sin(sPhase * 0.5), 0, Math.PI * 2);
+          c.fillStyle = "#FFE4B5";
+          c.fill();
         }
+        c.globalAlpha = 1;
       }
       if (d.familyPortrait) {
         c.fillStyle = "#C8A872";
@@ -3228,6 +3432,29 @@
         c.globalAlpha = 0.06;
         c.fillStyle = "#FFFFFF";
         c.beginPath(); c.ellipse(400, 465, 180, 40, 0, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+
+      /* room style preset tint — applied after all room elements */
+      if (store.decor.roomPreset === 1) {
+        c.save(); c.globalCompositeOperation = "multiply";
+        c.fillStyle = "rgba(245,225,238,0.15)"; c.fillRect(0, 0, W, 340);
+        c.fillStyle = "rgba(240,225,215,0.12)"; c.fillRect(0, 340, W, H - 340);
+        c.restore();
+      } else if (store.decor.roomPreset === 2) {
+        c.save(); c.globalCompositeOperation = "multiply";
+        c.fillStyle = "rgba(245,228,200,0.18)"; c.fillRect(0, 0, W, 340);
+        c.fillStyle = "rgba(235,210,180,0.14)"; c.fillRect(0, 340, W, H - 340);
+        c.restore();
+      } else if (store.decor.roomPreset === 3) {
+        c.save(); c.globalCompositeOperation = "multiply";
+        c.fillStyle = "rgba(200,215,240,0.15)"; c.fillRect(0, 0, W, 340);
+        c.fillStyle = "rgba(190,200,220,0.12)"; c.fillRect(0, 340, W, H - 340);
+        c.restore();
+      } else if (store.decor.roomPreset === 4) {
+        c.save(); c.globalCompositeOperation = "multiply";
+        c.fillStyle = "rgba(230,215,195,0.16)"; c.fillRect(0, 0, W, 340);
+        c.fillStyle = "rgba(220,200,175,0.12)"; c.fillRect(0, 340, W, H - 340);
         c.restore();
       }
 
@@ -3483,8 +3710,10 @@
         c.save();
         c.translate(W / 2, 528);
         c.scale(pulse, pulse);
-        const loadDots = ".".repeat(Math.floor(game.time * 2) % 4);
-        drawButton(c, { x: -140, y: -28, w: 280, h: 56 }, spriteArt.ready ? (isMobile ? "Tap to Start" : "Click to Start") : "Loading Cozy Art" + loadDots, this.hoverStart, "#B84B3A");
+        var startLabel;
+        if (spriteArt.ready) { startLabel = isMobile ? "Tap to Start" : "Click to Start"; }
+        else { startLabel = "Loading Cozy Art" + ".".repeat(Math.floor(game.time * 2) % 4); }
+        drawButton(c, { x: -140, y: -28, w: 280, h: 56 }, startLabel, this.hoverStart, "#B84B3A");
         c.restore();
 
         c.save();
@@ -3521,6 +3750,7 @@
         this.wardrobeHover = null;
         this.wardrobeFade = 0;
         this.wardrobeTab = "obi";
+        this.wardrobeScrollOffset = 0;
         this.modeButtons = [
           { key: "pet", label: "Pet", x: 148, y: 16, w: 88, h: 40 },
           { key: "treat", label: "Treats", x: 242, y: 16, w: 88, h: 40 },
@@ -3650,9 +3880,14 @@
         this.scrapbookHover = null;
         this.scrapbookFade = 0;
         this.scrapbookTab = "milestones";
+        this.scrapbookPhotoScroll = 0;
+        this.scrapbookMilestoneScroll = 0;
         /* window + pet bed hitboxes */
         this.windowHitbox = { x: 62, y: 48, w: 128, h: 160 };
         this.petBedHitbox = { x: 142, y: 448, w: 76, h: 28 };
+        /* decoration reactions */
+        this.decorReactionCooldown = rand(20, 40);
+        this.decorReaction = null;
       }
       enter() {
         this.hoverKey = null;
@@ -3667,11 +3902,48 @@
           store.stats.totalSessions++;
           saveStats();
         }
+        /* initialize daily moods and weather */
+        var obiMoodToday = getDailyMood("obi");
+        var lunaMoodToday = getDailyMood("luna");
+        updateWeather();
+        /* cozy upgrades: start joy bonus */
+        if (hasUpgrade("cozyBlankets")) {
+          this.obi.joy = clamp(this.obi.joy + 5, 0, 100);
+          this.luna.joy = clamp(this.luna.joy + 5, 0, 100);
+        }
+        /* pet memory: welcome back referencing yesterday */
+        var mem = store.petMemory;
+        if (mem.lastDate && mem.lastDate !== new Date().toDateString() && mem.lastActions && mem.lastActions.length > 0) {
+          if (mem.lastJoy && mem.lastJoy.obi > 75) this.obi.joy = clamp(this.obi.joy + 3, 0, 100);
+          if (mem.lastJoy && mem.lastJoy.luna > 75) this.luna.joy = clamp(this.luna.joy + 3, 0, 100);
+        }
         /* welcome back message if joy decayed while away */
         if (this.obi.joy < 40 || this.luna.joy < 40) {
           const msgs = ["The pets missed you! Give them some love.", "Obi and Luna could use some attention.", "Welcome back! The pets are waiting for you."];
           this.statusText = msgs[Math.floor(Math.random() * msgs.length)];
           this.statusPulse = 0.5;
+        } else if (mem.lastDate && mem.lastDate !== new Date().toDateString() && mem.lastActions && mem.lastActions.length > 0) {
+          var memMsgs = [];
+          if (mem.lastActions.indexOf("pet_obi") >= 0) memMsgs.push("Obi seems to remember the belly rubs!");
+          if (mem.lastActions.indexOf("pet_luna") >= 0) memMsgs.push("Luna's fur is still shiny from last time!");
+          if (mem.lastActions.indexOf("toy_obi") >= 0) memMsgs.push("Obi is looking for the ball you threw.");
+          if (mem.lastActions.indexOf("brush_obi") >= 0) memMsgs.push("Obi's coat is extra fluffy today!");
+          if (mem.lastActions.indexOf("brush_luna") >= 0) memMsgs.push("Luna remembers the brushing session.");
+          if (mem.lastActions.indexOf("treat_obi") >= 0) memMsgs.push("Obi perks up — he remembers treats!");
+          if (memMsgs.length > 0) {
+            this.statusText = memMsgs[Math.floor(Math.random() * memMsgs.length)];
+            this.statusPulse = 0.3;
+          }
+        } else if (this.passiveIncomeAmount > 0) {
+          this.statusText = "Your cozy home earned +" + this.passiveIncomeAmount + " coins overnight!";
+          this.statusPulse = 0.5;
+        } else if (game.transition && game.transition.from instanceof TitleScene) {
+          var moodMsgs = {
+            obi: { playful: "Obi is feeling playful today!", cuddly: "Obi wants cuddles today!", lazy: "Obi is in a lazy mood today.", hungry: "Obi seems extra snacky today!" },
+            luna: { curious: "Luna is feeling curious today!", aloof: "Luna is being extra aloof today.", affectionate: "Luna seems lovey today!", mischievous: "Luna has a mischievous look..." }
+          };
+          this.statusText = (moodMsgs.obi[obiMoodToday] || "") + " " + (moodMsgs.luna[lunaMoodToday] || "");
+          this.statusPulse = 0.3;
         }
         /* check for newly unlocked decorations */
         const stars = totalStarsEarned();
@@ -3691,6 +3963,16 @@
           this.dailyGift = { phase: 0, collected: false };
           store.lastVisitDate = today;
           saveJSON("lastVisitDate", today);
+          /* passive decoration income */
+          if (store.lastPassiveIncomeDate !== today) {
+            var passiveIncome = calculatePassiveIncome();
+            if (passiveIncome > 0) {
+              addCoins(passiveIncome);
+              store.lastPassiveIncomeDate = today;
+              saveJSON("lastPassiveIncomeDate", today);
+              this.passiveIncomeAmount = passiveIncome;
+            }
+          }
         }
         /* care streak milestones — expanded with escalating rewards */
         const streak = store.careStreak;
@@ -3789,16 +4071,13 @@
         return "cuddly";
       }
       moodLabel(key) {
-        const mood = this.petMood(key);
-        const labels = {
-          hungry:  { obi: "hungry",  luna: "hungry" },
-          thirsty: { obi: "thirsty", luna: "thirsty" },
-          sad:     { obi: "lonely",  luna: "grumpy" },
-          sleepy:  { obi: "sleepy",  luna: "drowsy" },
-          playful: { obi: "waggy",   luna: "curious" },
-          cuddly:  { obi: "cuddly",  luna: "aloof" }
-        };
-        return (labels[mood] || labels.cuddly)[key];
+        var dm = getMoodData(key);
+        var situationalMood = this.petMood(key);
+        if (situationalMood === "hungry" || situationalMood === "thirsty" || situationalMood === "sad") {
+          var situationalLabels = { hungry: { obi: "hungry", luna: "hungry" }, thirsty: { obi: "thirsty", luna: "thirsty" }, sad: { obi: "lonely", luna: "grumpy" } };
+          return (situationalLabels[situationalMood])[key];
+        }
+        return dm.label || "content";
       }
       petSpriteState(key) {
         if (key === "obi") {
@@ -3848,6 +4127,12 @@
       }
       rewardPet(key, amount, source, x, y) {
         const pet = key === "obi" ? this.obi : this.luna;
+        /* cozy upgrade: treats jar bonus */
+        if (hasUpgrade("treatsJar") && (source === "treat" || source === "feed")) amount += 1;
+        /* mood multiplier */
+        var moodData = getMoodData(key);
+        var moodMult = (moodData.joyMult && moodData.joyMult[source]) || 1.0;
+        amount = amount * moodMult;
         /* diminishing returns for rapid interactions */
         if (!this._rewardCooldown) this._rewardCooldown = { obi: 0, luna: 0 };
         var cooldown = this._rewardCooldown[key] || 0;
@@ -3861,6 +4146,13 @@
         this.statusPulse = 1;
         this.idleTime = 0;
         this.sessionJoy += amount;
+        /* mood feedback */
+        if (moodMult >= 1.3 && cooldown < 0.4) this.addFloatingText(this.petName(key) + " loves this today!", x || pet.x, (y || pet.y) - 30, COLORS.gold);
+        else if (moodMult <= 0.7 && cooldown < 0.4) this.addFloatingText("Not in the mood...", x || pet.x, (y || pet.y) - 30, "rgba(160,140,120,0.7)");
+        /* pet memory tracking */
+        if (!this._sessionActions) this._sessionActions = [];
+        var memAction = source + "_" + key;
+        if (this._sessionActions.indexOf(memAction) < 0) this._sessionActions.push(memAction);
         if (key === "obi") this.obi.sleepy = false;
         if (key === "obi" && pet.joy >= 88 && source === "pet" && this.obi.shakeTimer <= 0) {
           this.obi.shakeTimer = 1.2;
@@ -3955,9 +4247,13 @@
           if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabObi"; return; }
           if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabLuna"; return; }
           if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabAnnie"; return; }
+          var wMaxScroll = this.wardrobeMaxScroll();
+          if (wMaxScroll > 0 && this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 380, y: 160, w: 40, h: 20 })) { this.wardrobeHover = "scrollUp"; return; }
+          if (wMaxScroll > 0 && this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 380, y: 563, w: 40, h: 20 })) { this.wardrobeHover = "scrollDown"; return; }
           var tabItems = this.getWardrobeTabItems();
           for (var ai = 0; ai < tabItems.length; ai++) {
             var wr = this.getWardrobeItemRect(ai);
+            if (wr.y + wr.h < 165 || wr.y > 565) continue;
             if (pointInRect(x, y, wr)) { this.wardrobeHover = ai; break; }
           }
           return;
@@ -3966,9 +4262,10 @@
           this.scrapbookHover = null;
           var scClose = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, scClose)) this.scrapbookHover = "close";
-          else if (pointInRect(x, y, { x: 80, y: 110, w: 80, h: 24 })) this.scrapbookHover = "photos";
-          else if (pointInRect(x, y, { x: 170, y: 110, w: 100, h: 24 })) this.scrapbookHover = "milestones";
-          else if (pointInRect(x, y, { x: 280, y: 110, w: 60, h: 24 })) this.scrapbookHover = "stats";
+          else if (pointInRect(x, y, { x: 80, y: 110, w: 70, h: 24 })) this.scrapbookHover = "photos";
+          else if (pointInRect(x, y, { x: 158, y: 110, w: 90, h: 24 })) this.scrapbookHover = "milestones";
+          else if (pointInRect(x, y, { x: 256, y: 110, w: 50, h: 24 })) this.scrapbookHover = "stats";
+          else if (pointInRect(x, y, { x: 314, y: 110, w: 55, h: 24 })) this.scrapbookHover = "goals";
           return;
         }
         this.hoverKey = null;
@@ -4063,9 +4360,9 @@
         return y > 90 && this.mode !== "pet" && this.mode !== "brush";
       }
       onClick(x, y) {
-        /* dedication screen - click anywhere to dismiss */
+        /* dedication screen - click anywhere to dismiss (after 1.5s) */
         if (this.dedication) {
-          if (this.dedication.alpha > 0.5) {
+          if (this.dedication.phase >= 1.5 && this.dedication.alpha > 0.5) {
             this.dedication = null;
             store.firstVisit = false;
             saveBool("firstVisit", false);
@@ -4110,7 +4407,17 @@
             if (pointInRect(x, y, this.getCardRect(vi))) {
               audio.menu();
               audio.stopAmbient();
-              transitionTo(SceneRegistry.create(this.gameCards[this.menuScroll + vi].key));
+              var cardKey = this.gameCards[this.menuScroll + vi].key;
+              var scene = SceneRegistry.create(cardKey);
+              /* check if player clicked the challenge star area (top-right of card) */
+              var cr = this.getCardRect(vi);
+              var cardBestScore = store["best_" + cardKey] || 0;
+              var t3Map = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400 };
+              var cardHas3Stars = cardBestScore >= (t3Map[cardKey] || 9999);
+              if (cardHas3Stars && x > cr.x + cr.w - 75 && y < cr.y + 28) {
+                scene.challengeMode = true;
+              }
+              transitionTo(scene);
               return;
             }
           }
@@ -4120,7 +4427,7 @@
         }
         if (this.decorOpen) {
           const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.decorOpen = false; return; }
+          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.decorOpen = false; this.hoverKey = null; return; }
           /* page navigation */
           if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 }) && this.decorPage > 0) {
             this.decorPage--; audio.menu(); return;
@@ -4151,6 +4458,10 @@
                 addCoins(-item.price);
                 store.decorPurchased.push(item.key);
                 saveJSON("decorPurchased", store.decorPurchased);
+                if (item.isUpgrade && store.cozyUpgrades.indexOf(item.key) < 0) {
+                  store.cozyUpgrades.push(item.key);
+                  saveJSON("cozyUpgrades", store.cozyUpgrades);
+                }
                 audio.combo();
                 this.statusText = "Bought " + item.name + "!";
                 this.statusPulse = 1;
@@ -4169,20 +4480,34 @@
           }
           audio.menu();
           this.decorOpen = false;
+          this.hoverKey = null;
           return;
         }
         if (this.wardrobeOpen) {
           var wCloseBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, wCloseBtn)) { audio.menu(); this.wardrobeOpen = false; return; }
+          if (pointInRect(x, y, wCloseBtn)) { audio.menu(); this.wardrobeOpen = false; this.hoverKey = null; return; }
           /* tab clicks */
-          if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "obi"; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "luna"; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "annie"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "obi"; this.wardrobeScrollOffset = 0; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "luna"; this.wardrobeScrollOffset = 0; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "annie"; this.wardrobeScrollOffset = 0; audio.tinyChime(); return; }
+          /* scroll arrow clicks */
+          var wMaxScroll = this.wardrobeMaxScroll();
+          if (wMaxScroll > 0) {
+            if (this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 380, y: 160, w: 40, h: 20 })) {
+              this.wardrobeScrollOffset = Math.max(0, this.wardrobeScrollOffset - 62);
+              return;
+            }
+            if (this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 380, y: 563, w: 40, h: 20 })) {
+              this.wardrobeScrollOffset = Math.min(wMaxScroll, this.wardrobeScrollOffset + 62);
+              return;
+            }
+          }
           /* item clicks */
           var tabItems = this.getWardrobeTabItems();
           var pet = this.wardrobeTab;
           for (var ai = 0; ai < tabItems.length; ai++) {
             var wr = this.getWardrobeItemRect(ai);
+            if (wr.y + wr.h < 165 || wr.y > 565) continue;
             if (pointInRect(x, y, wr)) {
               var acc = tabItems[ai];
               var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
@@ -4190,7 +4515,12 @@
                 /* check unlock conditions */
                 if (!canUnlockAccessory(acc)) {
                   audio.miss();
-                  if (acc.tier && !canAccessTier(acc.tier)) this.statusText = "Tier " + acc.tier + " locked — earn more stars or streaks!";
+                  if (acc.tier && !canAccessTier(acc.tier)) {
+                    if (acc.tier === 4) {
+                      var s = totalStarsEarned(), ak = 0; for (var tk in store.achievements) { if (store.achievements[tk]) ak++; }
+                      this.statusText = "Tier 4: " + (s>=30?"\u2713":"✗") + " 30 stars  " + (ak>=14?"\u2713":"✗") + " 14 achievements  " + (store.careStreak.count>=30?"\u2713":"✗") + " 30-day streak";
+                    } else { this.statusText = "Tier " + acc.tier + " locked — earn more stars or streaks!"; }
+                  }
                   else if (acc.achievementUnlock) this.statusText = "Unlock the required achievements first!";
                   else if (acc.starUnlock) this.statusText = "Need " + acc.starUnlock + " stars!";
                   else this.statusText = "Can't unlock " + acc.name + " yet!";
@@ -4239,10 +4569,20 @@
         }
         if (this.scrapbookOpen) {
           var scClose = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, scClose)) { audio.menu(); this.scrapbookOpen = false; return; }
-          if (pointInRect(x, y, { x: 80, y: 110, w: 80, h: 24 })) { this.scrapbookTab = "photos"; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 170, y: 110, w: 100, h: 24 })) { this.scrapbookTab = "milestones"; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 280, y: 110, w: 60, h: 24 })) { this.scrapbookTab = "stats"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, scClose)) { audio.menu(); this.scrapbookOpen = false; this.hoverKey = null; return; }
+          if (pointInRect(x, y, { x: 80, y: 110, w: 70, h: 24 })) { this.scrapbookTab = "photos"; this.scrapbookPhotoScroll = 0; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 158, y: 110, w: 90, h: 24 })) { this.scrapbookTab = "milestones"; this.scrapbookMilestoneScroll = 0; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 256, y: 110, w: 50, h: 24 })) { this.scrapbookTab = "stats"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, { x: 314, y: 110, w: 55, h: 24 })) { this.scrapbookTab = "goals"; audio.tinyChime(); return; }
+          /* scrapbook scroll arrows */
+          if (pointInRect(x, y, { x: 380, y: 136, w: 40, h: 20 })) {
+            if (this.scrapbookTab === "photos") { this.scrapbookPhotoScroll = Math.max(0, this.scrapbookPhotoScroll - 140); return; }
+            if (this.scrapbookTab === "milestones") { this.scrapbookMilestoneScroll = Math.max(0, this.scrapbookMilestoneScroll - 1); return; }
+          }
+          if (pointInRect(x, y, { x: 380, y: 528, w: 40, h: 20 })) {
+            if (this.scrapbookTab === "photos") { this.scrapbookPhotoScroll += 140; return; }
+            if (this.scrapbookTab === "milestones") { this.scrapbookMilestoneScroll += 1; return; }
+          }
           audio.menu();
           this.scrapbookOpen = false;
           return;
@@ -4252,6 +4592,7 @@
           this.decorOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
           this.menuOpen = true;
           this.menuFade = 0;
+          this.menuScroll = 0;
           return;
         }
         if (pointInRect(x, y, this.decorButton)) {
@@ -4288,6 +4629,25 @@
           this.scrapbookFade = 0;
           return;
         }
+        /* visitor click interaction */
+        if (this.ambientEvent && this.ambientEvent.type === "visitor" && !this.ambientEvent.data.interacted) {
+          var v = this.ambientEvent.data.visitor;
+          if (dist(x, y, v.drawX, v.drawY) < 40) {
+            this.ambientEvent.data.interacted = true;
+            if (v.coinReward) {
+              this.earnCoins(v.coinReward);
+              this.addFloatingText("+" + v.coinReward + " coins!", v.drawX, v.drawY - 30, COLORS.gold);
+            }
+            if (v.joyEffect) {
+              if (v.joyEffect.obi) this.obi.joy = clamp(this.obi.joy + v.joyEffect.obi, 0, 100);
+              if (v.joyEffect.luna) this.luna.joy = clamp(this.luna.joy + v.joyEffect.luna, 0, 100);
+              this.addFloatingText("+" + (v.joyEffect.obi || 0) + " Obi, +" + (v.joyEffect.luna || 0) + " Luna joy", v.drawX, v.drawY - 20, COLORS.softPink);
+            }
+            this.statusText = "Thanks for visiting!";
+            this.statusPulse = 1;
+            audio.tinyChime();
+          }
+        }
         /* backyard door */
         if (pointInRect(x, y, this.backyardDoor)) {
           audio.menu();
@@ -4295,6 +4655,7 @@
           store.pet_luna_joy = this.luna.joy;
           saveNumber("pet_obi_joy", this.obi.joy);
           saveNumber("pet_luna_joy", this.luna.joy);
+          this.saveSessionMemory();
           transitionTo(SceneRegistry.create("backyard"));
           return;
         }
@@ -4463,7 +4824,7 @@
           else if (key === "2" || key === "t") { audio.menu(); this.setMode("treat"); }
           else if (key === "3" || key === "y") { audio.menu(); this.setMode("toy"); }
           else if (key === "4" || key === "b") { audio.menu(); this.setMode("brush"); }
-          else if (key === "g") { audio.menu(); this.menuOpen = true; this.menuFade = 0; }
+          else if (key === "g") { audio.menu(); this.menuOpen = true; this.menuFade = 0; this.menuScroll = 0; }
           else if (key === "d") { audio.menu(); this.decorOpen = true; this.decorFade = 0; }
         }
       }
@@ -4781,9 +5142,11 @@
           this._rewardCooldown.obi = Math.max(0, (this._rewardCooldown.obi || 0) - dt * 0.5);
           this._rewardCooldown.luna = Math.max(0, (this._rewardCooldown.luna || 0) - dt * 0.5);
         }
-        var obiDecay = 0.5;
+        var joyDecayMult = hasUpgrade("joyfulHome") ? 0.8 : 1.0;
+        var obiDecay = getMoodData("obi").decay || 0.5;
         if (this.foodBowl.fill < 20) obiDecay += 0.8;
         if (this.waterBowl.fill < 20) obiDecay += 0.6;
+        obiDecay = Math.min(obiDecay, 1.0) * joyDecayMult;
         this.obi.joy = clamp(this.obi.joy - dt * obiDecay, 0, 100);
         /* carryToy idle behavior */
         if (this.obi.carryingToy) {
@@ -4815,13 +5178,15 @@
             this.obi.targetY = this.obi.homeY;
           }
         } else if (!busy && !this.obi.sleepy && this.idleTime > 4) {
-          if (this.foodBowl.fill > 20 && !this.luna.eating && Math.random() < dt * 0.08) {
+          if (this.foodBowl.fill > 20 && !(this.luna.eating && this.luna.eatingFrom === "food") && Math.random() < dt * 0.08) {
             this.obi.eating = true;
+            this.obi.eatingFrom = "food";
             this.obi.eatDrinkTimer = rand(2, 4);
             this.obi.targetX = this.foodBowl.x + 20;
             this.obi.targetY = this.foodBowl.y;
-          } else if (this.waterBowl.fill > 20 && !this.luna.drinking && Math.random() < dt * 0.06) {
+          } else if (this.waterBowl.fill > 20 && !(this.luna.drinking && this.luna.eatingFrom === "water") && Math.random() < dt * 0.06) {
             this.obi.drinking = true;
+            this.obi.eatingFrom = "water";
             this.obi.eatDrinkTimer = rand(2, 4);
             this.obi.targetX = this.waterBowl.x + 20;
             this.obi.targetY = this.waterBowl.y;
@@ -4846,6 +5211,10 @@
             }
             this.luna.targetX = LUNA_PERCHES[this.luna.perch].x;
             this.luna.targetY = LUNA_PERCHES[this.luna.perch].y;
+            this.luna.jumping = true;
+            this.luna.jumpPhase = 0;
+            this.luna.jumpStartX = this.luna.x;
+            this.luna.jumpStartY = this.luna.y;
             this.luna.grooming = false;
             this.luna.bellyUp = false;
           } else if (this.idleTime > 2 && this.luna.perch === "floor") {
@@ -4889,22 +5258,38 @@
           this.luna.grooming = false;
           this.luna.bellyUp = false;
         }
-        const dx = this.luna.targetX - this.luna.x;
-        const dy = this.luna.targetY - this.luna.y;
-        const d = Math.hypot(dx, dy);
-        const speed = busy ? 145 : this.luna.perch !== "floor" ? 86 : 96;
-        if (d > 1) {
-          const step = Math.min(d, speed * dt);
-          this.luna.x += dx / d * step;
-          this.luna.y += dy / d * step;
-          if (Math.abs(dx) > 2) this.luna.facing = dx >= 0 ? 1 : -1;
+        if (this.luna.jumping) {
+          this.luna.jumpPhase += dt * 2;
+          if (this.luna.jumpPhase >= 1) {
+            this.luna.jumping = false;
+            this.luna.x = this.luna.targetX;
+            this.luna.y = this.luna.targetY;
+          } else {
+            var jt = this.luna.jumpPhase;
+            this.luna.x = lerp(this.luna.jumpStartX, this.luna.targetX, jt);
+            this.luna.y = lerp(this.luna.jumpStartY, this.luna.targetY, jt) - Math.sin(jt * Math.PI) * 80;
+            if (Math.abs(this.luna.targetX - this.luna.jumpStartX) > 2) this.luna.facing = this.luna.targetX > this.luna.jumpStartX ? 1 : -1;
+          }
+        } else {
+          const dx = this.luna.targetX - this.luna.x;
+          const dy = this.luna.targetY - this.luna.y;
+          const d = Math.hypot(dx, dy);
+          const speed = busy ? 145 : this.luna.perch !== "floor" ? 86 : 96;
+          if (d > 1) {
+            const step = Math.min(d, speed * dt);
+            this.luna.x += dx / d * step;
+            this.luna.y += dy / d * step;
+            if (Math.abs(dx) > 2) this.luna.facing = dx >= 0 ? 1 : -1;
+          }
         }
         if (this.luna.perch === "floor" && (busy || this.hoverKey === "luna")) {
           this.luna.x += Math.sin(game.time * 7 + this.luna.x * 0.03) * 8 * dt;
         }
-        var lunaDecay = 0.45;
+        var lunaJoyDecayMult = hasUpgrade("joyfulHome") ? 0.8 : 1.0;
+        var lunaDecay = getMoodData("luna").decay || 0.45;
         if (this.foodBowl.fill < 20) lunaDecay += 0.7;
         if (this.waterBowl.fill < 20) lunaDecay += 0.5;
+        lunaDecay = Math.min(lunaDecay, 1.0) * lunaJoyDecayMult;
         this.luna.joy = clamp(this.luna.joy - dt * lunaDecay, 0, 100);
         /* eating / drinking behavior */
         if (this.luna.eating || this.luna.drinking) {
@@ -4919,13 +5304,15 @@
             this.luna.targetY = LUNA_PERCHES[this.luna.perch].y;
           }
         } else if (!busy && this.luna.perch === "floor" && this.idleTime > 4) {
-          if (this.foodBowl.fill > 20 && !this.obi.eating && Math.random() < dt * 0.06) {
+          if (this.foodBowl.fill > 20 && !(this.obi.eating && this.obi.eatingFrom === "food") && Math.random() < dt * 0.06) {
             this.luna.eating = true;
+            this.luna.eatingFrom = "food";
             this.luna.eatDrinkTimer = rand(2, 4);
             this.luna.targetX = this.foodBowl.x - 20;
             this.luna.targetY = this.foodBowl.y;
-          } else if (this.waterBowl.fill > 20 && !this.obi.drinking && Math.random() < dt * 0.05) {
+          } else if (this.waterBowl.fill > 20 && !(this.obi.drinking && this.obi.eatingFrom === "water") && Math.random() < dt * 0.05) {
             this.luna.drinking = true;
+            this.luna.eatingFrom = "water";
             this.luna.eatDrinkTimer = rand(2, 4);
             this.luna.targetX = this.waterBowl.x - 20;
             this.luna.targetY = this.waterBowl.y;
@@ -5014,8 +5401,8 @@
         else if (this.hoverKey === "toyBasket") this.tooltip = { x: 265, y: 368, title: "Toy Basket", body: "Click to toss a toy!" };
         else if (this.hoverKey === "window") this.tooltip = { x: 126, y: 44, title: "Window", body: "Look outside! (+1 joy)" };
         else if (this.hoverKey === "petBed") this.tooltip = { x: 180, y: 442, title: "Pet Bed", body: "Click to call a pet to nap." };
-        else if (this.hoverKey === "obi") this.tooltip = { x: this.obi.x, y: this.obi.y - 104, title: "Obi", body: "Mood: " + this.moodLabel("obi") };
-        else if (this.hoverKey === "luna") this.tooltip = { x: this.luna.x, y: (this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y) - 104, title: "Luna", body: "Mood: " + this.moodLabel("luna") };
+        else if (this.hoverKey === "obi") this.tooltip = { x: this.obi.x, y: this.obi.y - 104, title: "Obi", body: "Mood: " + this.moodLabel("obi") + " (" + getDailyMood("obi") + " today)" };
+        else if (this.hoverKey === "luna") this.tooltip = { x: this.luna.x, y: (this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y) - 104, title: "Luna", body: "Mood: " + this.moodLabel("luna") + " (" + getDailyMood("luna") + " today)" };
         /* Annie behavior system */
         this.updateAnnie(dt);
 
@@ -5037,8 +5424,9 @@
         /* camera flash decay */
         if (this.cameraFlash > 0) this.cameraFlash = Math.max(0, this.cameraFlash - dt * 2.5);
         /* bowl depletion during play */
-        this.foodBowl.fill = clamp(this.foodBowl.fill - dt * 0.4, 0, 100);
-        this.waterBowl.fill = clamp(this.waterBowl.fill - dt * 0.55, 0, 100);
+        var bowlDrainMult = hasUpgrade("comfyBowls") ? 0.75 : 1.0;
+        this.foodBowl.fill = clamp(this.foodBowl.fill - dt * 0.4 * bowlDrainMult, 0, 100);
+        this.waterBowl.fill = clamp(this.waterBowl.fill - dt * 0.55 * bowlDrainMult, 0, 100);
         this.bowlSaveTimer += dt;
         if (this.bowlSaveTimer > 10) {
           this.bowlSaveTimer = 0;
@@ -5069,6 +5457,11 @@
         this.updatePetInteraction(dt);
         this.updateThoughtBubbles(dt);
         this.updateAmbientEvents(dt);
+        this.updateDecorReactions(dt);
+        /* scrapbook goals check (every 2 seconds) */
+        if (!this._goalCheckTimer) this._goalCheckTimer = 0;
+        this._goalCheckTimer -= dt;
+        if (this._goalCheckTimer <= 0) { this._goalCheckTimer = 2; this.checkScrapbookGoals(); }
         /* ambient particles - occasional dust motes */
         if (Math.random() < dt * 0.8) {
           spawnParticleBurst(rand(100, 700), rand(150, 450), ["rgba(255,240,200,0.5)"], 1, ["star"]);
@@ -5195,7 +5588,9 @@
               }
             }
           }
-          if (pi.phase > 5) { pi.active = false; pi.timer = rand(8, 14); pi.phase = 0; this.obi.sniffing = false; }
+          var interactionDurations = { obiSniffsLuna: 6, lunaBatsObi: 4, obiLiesNearLuna: 8, bothLookAtAnnie: 5 };
+          var piDuration = interactionDurations[pi.type] || 5;
+          if (pi.phase > piDuration) { pi.active = false; pi.timer = rand(8, 14); pi.phase = 0; this.obi.sniffing = false; }
         } else {
           pi.timer -= dt;
           if (pi.timer <= 0 && !obiBusy && !lunaBusy && this.idleTime > 1.5) {
@@ -5219,17 +5614,29 @@
         if (food < 25) return "food";
         if (water < 25) return "water";
         const mood = this.petMood(pet);
+        var want;
         if (pet === "obi") {
-          if (mood === "hungry") return Math.random() < 0.7 ? "food" : "treat";
-          if (mood === "sleepy") return Math.random() < 0.6 ? "pet" : "brush";
-          if (mood === "playful") return Math.random() < 0.5 ? "toy" : "treat";
-          return Math.random() < 0.5 ? "pet" : "brush";
+          if (mood === "hungry") want = Math.random() < 0.7 ? "food" : "treat";
+          else if (mood === "sleepy") want = Math.random() < 0.6 ? "pet" : "brush";
+          else if (mood === "playful") want = Math.random() < 0.5 ? "toy" : "treat";
+          else want = Math.random() < 0.5 ? "pet" : "brush";
         } else {
-          if (mood === "hungry") return Math.random() < 0.6 ? "food" : "treat";
-          if (mood === "sleepy") return Math.random() < 0.5 ? "pet" : "brush";
-          if (mood === "playful") return Math.random() < 0.6 ? "toy" : "treat";
-          return Math.random() < 0.4 ? "toy" : (Math.random() < 0.5 ? "brush" : "pet");
+          if (mood === "hungry") want = Math.random() < 0.6 ? "food" : "treat";
+          else if (mood === "sleepy") want = Math.random() < 0.5 ? "pet" : "brush";
+          else if (mood === "playful") want = Math.random() < 0.6 ? "toy" : "treat";
+          else want = Math.random() < 0.4 ? "toy" : (Math.random() < 0.5 ? "brush" : "pet");
         }
+        /* mood-weighted override: 40% chance to pick the action the daily mood favors most */
+        var dm = getMoodData(pet);
+        if (dm.joyMult && Math.random() < 0.4) {
+          var best = null, bestVal = 0;
+          for (var mk in dm.joyMult) { if (dm.joyMult[mk] > bestVal) { bestVal = dm.joyMult[mk]; best = mk; } }
+          if (best) want = best;
+        }
+        /* filter out food/water when bowls are full */
+        if (want === "food" && food > 80) want = "pet";
+        if (want === "water" && water > 80) want = "pet";
+        return want;
       }
       updateThoughtBubbles(dt) {
         if (this.obiBubble) {
@@ -5261,9 +5668,21 @@
           const obiBusy = this.treats.some(t => t.pet === "obi") || (this.toy && this.toy.pet === "obi") || this.obi.eating || this.obi.drinking;
           const lunaBusy = this.treats.some(t => t.pet === "luna") || (this.toy && this.toy.pet === "luna") || this.luna.eating || this.luna.drinking;
           const canObi = !this.obiBubble && !this.obi.sleepy && !obiBusy;
-          const canLuna = !this.lunaBubble && this.luna.perch === "floor" && !lunaBusy;
+          const canLuna = !this.lunaBubble && !lunaBusy;
           if (!canObi && !canLuna) return;
           const pet = (canObi && canLuna) ? (Math.random() < 0.5 ? "obi" : "luna") : (canObi ? "obi" : "luna");
+          /* 10% chance: memory bubble instead of want (flavor only) */
+          if (Math.random() < 0.1 && store.petMemory.lastActions && store.petMemory.lastActions.length > 0) {
+            var memAct = store.petMemory.lastActions[Math.floor(Math.random() * store.petMemory.lastActions.length)];
+            var memLabels = { pet_obi: "belly rubs", pet_luna: "chin scratches", toy_obi: "the ball", toy_luna: "the yarn", brush_obi: "brushing", brush_luna: "being brushed", treat_obi: "treats", treat_luna: "snacks" };
+            var memLabel = memLabels[memAct];
+            if (memLabel) {
+              this.statusText = this.petName(pet) + " is remembering " + memLabel + "...";
+              this.statusPulse = 0.2;
+              spawnParticleBurst(pet === "obi" ? this.obi.x : this.luna.x, (pet === "obi" ? this.obi.y : this.luna.y) - 40, [COLORS.softPink], 2, ["heart"]);
+              return;
+            }
+          }
           let want = this.pickWant(pet);
           /* avoid repeating recent wants */
           const allWants = ["pet", "treat", "toy", "brush", "food", "water"];
@@ -5337,9 +5756,9 @@
         if (isExact) {
           pet.joy = clamp(pet.joy + 10, 0, 100);
           this.sessionJoy += 10;
-          this.earnCoins(2);
+          this.earnCoins(5);
           spawnParticleBurst(px, py, [COLORS.gold, "#FFF4C0"], 12, ["star"]);
-          this.statusText = this.petName(key) + " got exactly what they wanted!";
+          this.statusText = this.petName(key) + " got exactly what they wanted! +5 coins";
           this.statusPulse = 1;
           audio.combo();
           screenShake(3, 0.2);
@@ -5358,6 +5777,95 @@
       earnCoins(amount) {
         addCoins(amount);
         this.coinPopup = { amount: amount, timer: 1.5 };
+      }
+      saveSessionMemory() {
+        store.petMemory.lastActions = this._sessionActions || [];
+        store.petMemory.lastJoy = { obi: this.obi.joy, luna: this.luna.joy };
+        store.petMemory.lastDate = new Date().toDateString();
+        if (store.petMemory.lastActions.length > 10) store.petMemory.lastActions = store.petMemory.lastActions.slice(-10);
+        if (!store.petMemory.memories) store.petMemory.memories = [];
+        saveJSON("petMemory", store.petMemory);
+      }
+      updateDecorReactions(dt) {
+        if (this.petInteraction.active || this.decorReaction) {
+          if (this.decorReaction) {
+            this.decorReaction.timer -= dt;
+            if (this.decorReaction.timer <= 0) {
+              this.decorReaction = null;
+              this.obi.targetX = this.obi.homeX;
+              this.obi.targetY = this.obi.homeY;
+              if (this.luna.perch === "floor") {
+                this.luna.targetX = LUNA_PERCHES.floor.x;
+                this.luna.targetY = LUNA_PERCHES.floor.y;
+              }
+            }
+          }
+          return;
+        }
+        this.decorReactionCooldown -= dt;
+        if (this.decorReactionCooldown > 0) return;
+        for (var key in DECOR_REACTIONS) {
+          if (!store.decor[key]) continue;
+          var r = DECOR_REACTIONS[key];
+          if (r.condition === "nighttime" && store.decor.timeOfDay !== 3) continue;
+          if (Math.random() < r.chance) {
+            var pet = r.pet === "both" ? this.obi : (r.pet === "obi" ? this.obi : this.luna);
+            pet.targetX = r.targetX;
+            pet.targetY = r.targetY || pet.homeY;
+            if (r.pet === "both") {
+              this.obi.targetX = r.targetX - 30; this.obi.targetY = r.targetY || this.obi.homeY;
+              this.luna.targetX = r.targetX + 30; this.luna.targetY = r.targetY || this.luna.homeY;
+            }
+            pet.joy = clamp(pet.joy + r.joyBonus, 0, 100);
+            if (r.pet === "both") this.luna.joy = clamp(this.luna.joy + r.joyBonus, 0, 100);
+            this.statusText = r.message;
+            this.statusPulse = 0.5;
+            spawnParticleBurst(r.targetX, r.targetY - 20, [COLORS.softPink], 3, ["heart"]);
+            this.decorReaction = { timer: rand(2.5, 4) };
+            this.decorReactionCooldown = rand(30, 60);
+            return;
+          }
+        }
+        this.decorReactionCooldown = rand(5, 10);
+      }
+      completeScrapbookGoal(key) {
+        if (store.scrapbookGoals.completed.indexOf(key) >= 0) return;
+        var goal = null;
+        for (var i = 0; i < SCRAPBOOK_GOALS.length; i++) { if (SCRAPBOOK_GOALS[i].key === key) { goal = SCRAPBOOK_GOALS[i]; break; } }
+        if (!goal) return;
+        store.scrapbookGoals.completed.push(key);
+        saveJSON("scrapbookGoals", store.scrapbookGoals);
+        this.earnCoins(goal.reward);
+        addScrapbookEntry("goal", "Goal: " + goal.name + " complete!", goal.icon || "star");
+        this.decorNotification = { text: "\u2605 Goal: " + goal.name + " +" + goal.reward + " coins!", timer: 4 };
+        audio.combo();
+      }
+      checkScrapbookGoals() {
+        var sg = store.scrapbookGoals.completed;
+        /* both80Joy */
+        if (sg.indexOf("both80Joy") < 0 && this.obi.joy >= 80 && this.luna.joy >= 80) this.completeScrapbookGoal("both80Joy");
+        /* rainWindow */
+        if (sg.indexOf("rainWindow") < 0 && this.ambientEvent && this.ambientEvent.type === "rain") this.completeScrapbookGoal("rainWindow");
+        /* snowDay */
+        if (sg.indexOf("snowDay") < 0 && this.ambientEvent && this.ambientEvent.type === "snow") this.completeScrapbookGoal("snowDay");
+        /* petInteraction */
+        if (sg.indexOf("petInteraction") < 0 && this.petInteraction && this.petInteraction.active) this.completeScrapbookGoal("petInteraction");
+        /* fiveGames3Star */
+        if (sg.indexOf("fiveGames3Star") < 0) {
+          var t3map = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400 };
+          var count3 = 0;
+          for (var gk in t3map) { if ((store["best_" + gk] || 0) >= t3map[gk]) count3++; }
+          if (count3 >= 5) this.completeScrapbookGoal("fiveGames3Star");
+        }
+        /* allDecor5 */
+        if (sg.indexOf("allDecor5") < 0) {
+          var dc = 0; for (var dk in store.decor) { if (store.decor[dk] === true) dc++; }
+          if (dc >= 5) this.completeScrapbookGoal("allDecor5");
+        }
+        /* tenPhotos */
+        if (sg.indexOf("tenPhotos") < 0 && store.stats.totalPhotos >= 10) this.completeScrapbookGoal("tenPhotos");
+        /* visitorMet */
+        if (sg.indexOf("visitorMet") < 0 && this.ambientEvent && this.ambientEvent.type === "visitor" && this.ambientEvent.data.interacted) this.completeScrapbookGoal("visitorMet");
       }
       logAmbientEntry(type) {
         var entries = store.scrapbook.entries;
@@ -5400,7 +5908,12 @@
         try {
           dataURL = captureCanvas.toDataURL("image/png");
         } catch (e) {
-          this.statusText = "Couldn't capture photo (try opening from a web server).";
+          this.cameraFlash = 0.5;
+          if (location.protocol === "file:") {
+            this.statusText = "Photo saved to memory! (Open from web server for full capture)";
+          } else {
+            this.statusText = "Couldn't capture photo.";
+          }
           this.statusPulse = 1;
           return;
         }
@@ -5431,6 +5944,9 @@
         this._photoCache = null;
         store.stats.totalPhotos++;
         saveStats();
+        /* photo-specific scrapbook goals */
+        if (this.obi && this.obi.sleepy) this.completeScrapbookGoal("obiSleepPhoto");
+        if (this.luna && this.luna.grooming) this.completeScrapbookGoal("lunaGroomPhoto");
         /* scrapbook entry for first photo */
         if (store.stats.totalPhotos === 1) {
           addScrapbookEntry("milestone", "Took the first photo!", "star");
@@ -5447,7 +5963,13 @@
         return ACCESSORIES[this.wardrobeTab] || [];
       }
       getWardrobeItemRect(index) {
-        return { x: 80, y: 175 + index * 62, w: 640, h: 54 };
+        return { x: 80, y: 175 + index * 62 - this.wardrobeScrollOffset, w: 640, h: 54 };
+      }
+      wardrobeMaxScroll() {
+        var tabItems = this.getWardrobeTabItems();
+        var totalH = tabItems.length * 62;
+        var visibleH = 565 - 175;
+        return Math.max(0, totalH - visibleH);
       }
       drawTreat(c, t) {
         c.save();
@@ -5626,10 +6148,15 @@
         const today = new Date().toDateString();
         const streak = store.careStreak;
         if (streak.lastCareDate !== today) {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          if (streak.lastCareDate === yesterday.toDateString()) {
+          var lastDate = streak.lastCareDate ? new Date(streak.lastCareDate) : null;
+          var now = new Date();
+          var daysDiff = lastDate ? Math.floor((now - lastDate) / (1000 * 60 * 60 * 24)) : 999;
+          if (daysDiff <= 2) {
             streak.count++;
+            if (daysDiff === 2) {
+              this.statusText = "Your streak was saved! Don't forget to visit tomorrow!";
+              this.statusPulse = 1;
+            }
           } else {
             streak.count = 1;
           }
@@ -5650,8 +6177,9 @@
           if (store.dailyTasks.completed.length >= 3) {
             this.obi.joy = clamp(this.obi.joy + 5, 0, 100);
             this.luna.joy = clamp(this.luna.joy + 5, 0, 100);
-            this.earnCoins(12);
-            this.decorNotification = { text: "All daily tasks complete! +12 coins, +5 joy!", timer: 4 };
+            var taskReward = 12 + Math.floor((store.careStreak.count || 0) / 7) * 3;
+            this.earnCoins(taskReward);
+            this.decorNotification = { text: "All daily tasks complete! +" + taskReward + " coins, +5 joy!", timer: 4 };
             audio.combo();
           }
         }
@@ -5663,23 +6191,39 @@
             for (const bf of this.ambientEvent.data) {
               bf.x += Math.sin(game.time * 2.5 + bf.phase) * 20 * dt;
               bf.y += Math.cos(game.time * 1.8 + bf.phase) * 12 * dt;
-              bf.x = clamp(bf.x, 70, 180);
-              bf.y = clamp(bf.y, 56, 196);
+              if (bf.x < 80) bf.x += (80 - bf.x) * 0.1;
+              if (bf.x > 170) bf.x -= (bf.x - 170) * 0.1;
+              if (bf.y < 62) bf.y += (62 - bf.y) * 0.1;
+              if (bf.y > 190) bf.y -= (bf.y - 190) * 0.1;
             }
           }
           if (this.ambientEvent.timer <= 0) {
             this.ambientEvent = null;
-            this.ambientEventCooldown = rand(120, 300);
+            var careLevel = ((this.obi.joy || 50) + (this.luna.joy || 50)) / 200;
+            this.ambientEventCooldown = rand(60, 180) * (1.3 - careLevel * 0.6);
           }
           return;
         }
         this.ambientEventCooldown -= dt;
         if (this.ambientEventCooldown <= 0) {
-          const r = Math.random();
-          if (r < 0.35) this.spawnButterflyEvent();
-          else if (r < 0.6) this.spawnBirdEvent();
-          else if (r < 0.85) this.spawnRainEvent();
-          else this.spawnPackageEvent();
+          var weather = store.weather.current || "sunny";
+          var r = Math.random();
+          /* weather-aware spawning + visitors */
+          if (r < 0.15) {
+            this.spawnVisitorEvent();
+          } else if (weather === "rain" && r < 0.6) {
+            this.spawnRainEvent();
+          } else if (weather === "snow" && r < 0.5) {
+            this.spawnSnowEvent();
+          } else if ((weather === "sunny" || weather === "golden") && r < 0.55) {
+            this.spawnButterflyEvent();
+          } else if (r < 0.7) {
+            this.spawnBirdEvent();
+          } else if (r < 0.85) {
+            this.spawnRainEvent();
+          } else {
+            this.spawnPackageEvent();
+          }
         }
       }
       spawnButterflyEvent() {
@@ -5706,9 +6250,27 @@
         this.logAmbientEntry("rain");
       }
       spawnPackageEvent() {
-        this.ambientEvent = { type: "package", timer: rand(10, 15), data: { x: 740, y: 458, alpha: 1 } };
+        this.ambientEvent = { type: "package", timer: rand(10, 15), data: { x: 710, y: 458, alpha: 1 } };
         this.statusText = "A package at the door!";
         audio.tinyChime();
+      }
+      spawnVisitorEvent() {
+        var visitor = VISITOR_TYPES[Math.floor(Math.random() * VISITOR_TYPES.length)];
+        this.ambientEvent = { type: "visitor", timer: visitor.stayTime, data: { visitor: visitor, interacted: false, fadeIn: 0 } };
+        this.statusText = visitor.message;
+        audio.tinyChime();
+        /* auto-apply joy effects for non-clickable visitors */
+        if (visitor.joyEffect && !visitor.coinReward) {
+          if (visitor.joyEffect.obi) this.obi.joy = clamp(this.obi.joy + visitor.joyEffect.obi, 0, 100);
+          if (visitor.joyEffect.luna) this.luna.joy = clamp(this.luna.joy + visitor.joyEffect.luna, 0, 100);
+        }
+      }
+      spawnSnowEvent() {
+        var flakes = [];
+        for (var i = 0; i < 20; i++) flakes.push({ x: rand(68, 184), y: rand(54, 200), speed: rand(20, 50), drift: rand(-15, 15), size: rand(2, 5) });
+        this.ambientEvent = { type: "snow", timer: rand(30, 60), data: flakes };
+        this.statusText = "It's snowing! So cozy inside.";
+        this.logAmbientEntry("snow");
       }
       drawAmbientEvent(c) {
         if (!this.ambientEvent) return;
@@ -5761,6 +6323,52 @@
           c.beginPath(); c.moveTo(-16, -7); c.lineTo(16, -7); c.stroke();
           c.beginPath(); c.moveTo(0, -18); c.lineTo(0, 4); c.stroke();
           c.fillStyle = "#D04040"; c.beginPath(); c.arc(0, -18, 5, 0, Math.PI * 2); c.fill();
+          c.restore();
+        } else if (ev.type === "visitor") {
+          var v = ev.data.visitor;
+          var fadeA = clamp(ev.timer / 2, 0, 1) * clamp((v.stayTime - ev.timer) / 1, 0, 1);
+          c.save();
+          c.globalAlpha = fadeA;
+          if (v.key === "neighborCat") {
+            /* small cat silhouette in window */
+            c.fillStyle = "#8B7355"; c.beginPath(); c.ellipse(v.drawX, v.drawY, 10, 7, 0, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(v.drawX, v.drawY - 10, 6, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.moveTo(v.drawX - 5, v.drawY - 14); c.lineTo(v.drawX - 2, v.drawY - 20); c.lineTo(v.drawX + 1, v.drawY - 14); c.fill();
+            c.beginPath(); c.moveTo(v.drawX + 2, v.drawY - 14); c.lineTo(v.drawX + 5, v.drawY - 20); c.lineTo(v.drawX + 8, v.drawY - 14); c.fill();
+            c.fillStyle = "#7CB342"; c.beginPath(); c.arc(v.drawX - 2, v.drawY - 12, 1.5, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(v.drawX + 4, v.drawY - 12, 1.5, 0, Math.PI * 2); c.fill();
+          } else if (v.key === "squirrel") {
+            c.fillStyle = "#A0785A"; c.beginPath(); c.ellipse(v.drawX, v.drawY, 7, 5, 0, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(v.drawX + 5, v.drawY - 6, 4, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#C09878"; c.beginPath(); c.ellipse(v.drawX - 8, v.drawY - 4, 5, 8, -0.4, 0, Math.PI * 2); c.fill();
+          } else if (v.key === "robin") {
+            c.fillStyle = "#C84030"; c.beginPath(); c.arc(v.drawX, v.drawY, 6, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#6B4A2A"; c.beginPath(); c.arc(v.drawX, v.drawY - 8, 4, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#E8A84C"; c.beginPath(); c.moveTo(v.drawX + 4, v.drawY - 8); c.lineTo(v.drawX + 9, v.drawY - 7); c.lineTo(v.drawX + 4, v.drawY - 6); c.closePath(); c.fill();
+          } else if (v.key === "mailCarrier") {
+            /* package near door */
+            c.fillStyle = "#A08050"; rr(c, v.drawX - 14, v.drawY - 16, 28, 20, 4); c.fill();
+            c.strokeStyle = "#806030"; c.lineWidth = 1.5;
+            c.beginPath(); c.moveTo(v.drawX - 14, v.drawY - 6); c.lineTo(v.drawX + 14, v.drawY - 6); c.stroke();
+            c.fillStyle = "#D04040"; c.beginPath(); c.arc(v.drawX, v.drawY - 16, 4, 0, Math.PI * 2); c.fill();
+            /* clickable indicator */
+            if (!ev.data.interacted) {
+              c.fillStyle = COLORS.gold; c.font = '11px "Fredoka One", sans-serif'; c.textAlign = "center";
+              c.fillText(isMobile ? "Tap!" : "Click!", v.drawX, v.drawY - 24);
+            }
+          }
+          c.restore();
+        } else if (ev.type === "snow") {
+          c.save();
+          c.beginPath(); rr(c, 66, 52, 120, 152, 5); c.clip();
+          c.fillStyle = "rgba(20,30,50,0.08)"; c.fillRect(66, 52, 120, 152);
+          c.fillStyle = "rgba(255,255,255,0.8)";
+          for (var si = 0; si < ev.data.length; si++) {
+            var sf = ev.data[si];
+            var yOff = (game.time * sf.speed + sf.y) % 160;
+            var xOff = sf.x + Math.sin(game.time * 0.8 + si) * sf.drift * 0.3;
+            c.beginPath(); c.arc(xOff, 52 + yOff, sf.size * 0.5, 0, Math.PI * 2); c.fill();
+          }
           c.restore();
         }
       }
@@ -5929,13 +6537,21 @@
           c.fillStyle = "#FFF8F0";
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText(done + "/" + total, 630, 48);
+          c.fillText(done + "/" + total + (done >= total ? " \u2605" : ""), 630, 48);
           c.restore();
         }
 
         /* weekly challenge pill */
         if (store.weeklyChallenge.challengeId && !store.weeklyChallenge.completed) {
           c.save();
+          var wcNearDone = store.weeklyChallenge.progress >= store.weeklyChallenge.target * 0.8;
+          if (wcNearDone) {
+            c.globalAlpha = 0.5 + Math.sin(game.time * 4) * 0.3;
+            c.fillStyle = "rgba(160,130,200,0.3)";
+            rr(c, 660, 30, 68, 28, 14);
+            c.fill();
+            c.globalAlpha = 1;
+          }
           rr(c, 664, 34, 60, 20, 10);
           c.fillStyle = "rgba(160,130,200,0.65)";
           c.fill();
@@ -6067,6 +6683,19 @@
         var obiState = this.petSpriteState("obi");
         drawObi(c, this.obi.x, this.obi.y, 1.12, obiState);
         drawAccessoryOverlay(c, "obi", this.obi.x, this.obi.y, 1.12, obiState.pose, obiState.facing);
+        /* bone carry visual */
+        if (this.obi.carryingToy) {
+          var boneDir = obiState.facing || 1;
+          var boneX = this.obi.x + boneDir * 14;
+          var boneY = this.obi.y - 34;
+          c.fillStyle = "#D4B896";
+          rr(c, boneX - 8, boneY - 3, 16, 6, 3);
+          c.fill();
+          c.beginPath();
+          c.arc(boneX - 8, boneY, 4, 0, Math.PI * 2);
+          c.arc(boneX + 8, boneY, 4, 0, Math.PI * 2);
+          c.fill();
+        }
         const lunaDrawY = this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y;
         const lunaDrawScale = this.luna.perch === "floor" ? 0.98 : this.luna.perch === "tower" ? 1.06 : 0.92;
         var lunaState = this.petSpriteState("luna");
@@ -6187,7 +6816,12 @@
         c.fillStyle = "#7A5040";
         c.textAlign = "center";
         c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.save();
+        c.beginPath();
+        c.rect(122, 536, 556, 40);
+        c.clip();
         c.fillText(this.statusText, 400, 560);
+        c.restore();
         c.restore();
 
         /* camera button */
@@ -6327,7 +6961,7 @@
 
             /* colored accent bar */
             c.fillStyle = card.color;
-            rr(c, cr.x, cr.y, 8, cr.h, 14);
+            rr(c, cr.x, cr.y, 8, cr.h, 4);
             c.fill();
             c.fillRect(cr.x + 7, cr.y + 4, 1, cr.h - 8);
 
@@ -6371,6 +7005,25 @@
             c.closePath();
             c.fill();
 
+            /* challenge star indicator */
+            var cardBest = store["best_" + card.key] || 0;
+            var t3 = { treat: 1400, laser: 1000, cuddle: 90, walk: 800, nap: 1000, bath: 500, sort: 550, pillow: 650, findluna: 500, window: 750, pawstep: 400 };
+            var has3Stars = cardBest >= (t3[card.key] || 9999);
+            if (has3Stars) {
+              var hasChalStar = store.challengeStars[card.key];
+              c.save();
+              c.translate(cr.x + cr.w - 60, cr.y + 14);
+              if (hasChalStar) {
+                drawGlowCircle(c, 0, 0, 12, "rgba(255,180,0,ALPHA)", 0.2);
+                drawStar(c, 0, 0, 8, "#FFA500");
+              } else {
+                c.globalAlpha = 0.4 + Math.sin(game.time * 3) * 0.15;
+                drawStar(c, 0, 0, 8, "#D3C8B4");
+                c.globalAlpha = 1;
+              }
+              c.restore();
+            }
+
             c.restore();
           }
 
@@ -6406,7 +7059,7 @@
           const stars = totalStarsEarned();
           c.fillStyle = "rgba(92,61,46,0.5)";
           c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Stars earned: " + stars + " / 21  •  Unlock items by earning stars in minigames!", W / 2, 130);
+          c.fillText("Stars earned: " + stars + " / 33  •  Unlock items by earning stars in minigames!", W / 2, 130);
 
           /* close button */
           const closeHover = this.decorHover === "close";
@@ -6540,9 +7193,9 @@
           c.beginPath(); c.moveTo(wcx + 6, wcy - 6); c.lineTo(wcx - 6, wcy + 6); c.stroke();
           /* character tabs */
           var wtabs = [
-            { key: "obi", label: "Obi", x: 80, color: "#8B6914" },
-            { key: "luna", label: "Luna", x: 170, color: "#9B7D3C" },
-            { key: "annie", label: "Annie", x: 260, color: "#C07850" }
+            { key: "obi", label: "Obi", x: 80, color: "#4A90D9" },
+            { key: "luna", label: "Luna", x: 170, color: "#7DB36C" },
+            { key: "annie", label: "Annie", x: 260, color: "#E8A84C" }
           ];
           for (var wti = 0; wti < wtabs.length; wti++) {
             var wt = wtabs[wti];
@@ -6556,14 +7209,19 @@
             c.textAlign = "center";
             c.fillText(wt.label, wt.x + 40, 147);
           }
-          /* items for current tab */
+          /* items for current tab (with scroll) */
           var tabItems = this.getWardrobeTabItems();
           var pet = this.wardrobeTab;
           var equippedSlots = store.wardrobe.equipped[pet] || {};
+          c.save();
+          c.beginPath();
+          c.rect(60, 165, 680, 400);
+          c.clip();
           for (var ai = 0; ai < tabItems.length; ai++) {
             var acc = tabItems[ai];
             var wr = this.getWardrobeItemRect(ai);
-            if (wr.y + wr.h > 565) break;
+            if (wr.y + wr.h < 165) continue;
+            if (wr.y > 565) continue;
             var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
             var equipped = equippedSlots[acc.slot] === acc.key;
             var hover = this.wardrobeHover === ai;
@@ -6616,6 +7274,22 @@
             c.restore();
           }
           c.restore();
+          /* scroll arrows */
+          var wMaxScroll = this.wardrobeMaxScroll();
+          if (wMaxScroll > 0) {
+            c.fillStyle = "#7A4E36";
+            c.font = '18px "Fredoka One", sans-serif';
+            c.textAlign = "center";
+            if (this.wardrobeScrollOffset > 0) {
+              c.fillStyle = this.wardrobeHover === "scrollUp" ? "#C07850" : "#7A4E36";
+              c.fillText("\u25B2", 400, 172);
+            }
+            if (this.wardrobeScrollOffset < wMaxScroll) {
+              c.fillStyle = this.wardrobeHover === "scrollDown" ? "#C07850" : "#7A4E36";
+              c.fillText("\u25BC", 400, 575);
+            }
+          }
+          c.restore();
         }
 
         /* ── Scrapbook panel overlay ── */
@@ -6645,9 +7319,10 @@
           c.beginPath(); c.moveTo(scx + 6, scy - 6); c.lineTo(scx - 6, scy + 6); c.stroke();
           /* tabs */
           var tabs = [
-            { key: "photos", label: "Photos", x: 80, w: 80 },
-            { key: "milestones", label: "Milestones", x: 170, w: 100 },
-            { key: "stats", label: "Stats", x: 280, w: 60 }
+            { key: "photos", label: "Photos", x: 80, w: 70 },
+            { key: "milestones", label: "Milestones", x: 158, w: 90 },
+            { key: "stats", label: "Stats", x: 256, w: 50 },
+            { key: "goals", label: "Goals", x: 314, w: 55 }
           ];
           for (var ti = 0; ti < tabs.length; ti++) {
             var tab = tabs[ti];
@@ -6680,10 +7355,17 @@
                   this._photoCache.push({ img: cimg, date: photos[ci].date, room: photos[ci].room });
                 }
               }
+              var photoMaxRows = Math.ceil(this._photoCache.length / 4);
+              var photoMaxScroll = Math.max(0, (photoMaxRows * 140 + 150) - 510);
+              this.scrapbookPhotoScroll = clamp(this.scrapbookPhotoScroll, 0, photoMaxScroll);
+              c.save();
+              c.beginPath();
+              c.rect(60, 140, 680, 380);
+              c.clip();
               for (var pi = 0; pi < this._photoCache.length; pi++) {
                 var px = 80 + (pi % 4) * 170;
-                var py = 150 + Math.floor(pi / 4) * 140;
-                if (py > 510) break;
+                var py = 150 + Math.floor(pi / 4) * 140 - this.scrapbookPhotoScroll;
+                if (py + 140 < 140 || py > 530) continue;
                 var cached = this._photoCache[pi];
                 /* draw thumbnail frame */
                 c.save();
@@ -6705,6 +7387,15 @@
                 c.textAlign = "center";
                 c.fillText((cached.room || "") + " — " + (cached.date || ""), px + 80, py + 135);
               }
+              c.restore();
+              /* photo scroll arrows */
+              if (photoMaxScroll > 0) {
+                c.fillStyle = "#7A4E36";
+                c.font = '18px "Fredoka One", sans-serif';
+                c.textAlign = "center";
+                if (this.scrapbookPhotoScroll > 0) c.fillText("\u25B2", 400, 148);
+                if (this.scrapbookPhotoScroll < photoMaxScroll) c.fillText("\u25BC", 400, 540);
+              }
             }
           } else if (this.scrapbookTab === "milestones") {
             var entries = store.scrapbook.entries;
@@ -6714,8 +7405,12 @@
               c.textAlign = "center";
               c.fillText("No milestones yet! Keep playing to earn them.", W / 2, 300);
             } else {
-              var startIdx = Math.max(0, entries.length - 8);
-              for (var ei = startIdx; ei < entries.length; ei++) {
+              var msMaxScroll = Math.max(0, entries.length - 8);
+              if (this.scrapbookMilestoneScroll === 0) this.scrapbookMilestoneScroll = msMaxScroll;
+              this.scrapbookMilestoneScroll = clamp(this.scrapbookMilestoneScroll, 0, msMaxScroll);
+              var startIdx = this.scrapbookMilestoneScroll;
+              var endIdx = Math.min(entries.length, startIdx + 8);
+              for (var ei = startIdx; ei < endIdx; ei++) {
                 var entry = entries[ei];
                 var ey = 155 + (ei - startIdx) * 48;
                 /* icon */
@@ -6740,6 +7435,14 @@
                 c.textAlign = "right";
                 c.fillText(entry.date, 720, ey + 4);
               }
+              /* milestone scroll arrows */
+              if (msMaxScroll > 0) {
+                c.fillStyle = "#7A4E36";
+                c.font = '18px "Fredoka One", sans-serif';
+                c.textAlign = "center";
+                if (this.scrapbookMilestoneScroll > 0) c.fillText("\u25B2", 400, 148);
+                if (this.scrapbookMilestoneScroll < msMaxScroll) c.fillText("\u25BC", 400, 540);
+              }
             }
           } else if (this.scrapbookTab === "stats") {
             c.fillStyle = "#5C3D2E";
@@ -6752,14 +7455,49 @@
             c.fillText("Photos Taken: " + store.stats.totalPhotos, 120, sy); sy += 40;
             c.fillText("Care Streak: " + store.careStreak.count + " days", 120, sy); sy += 40;
             c.fillText("Best Streak: " + (store.careStreak.bestStreak || 0) + " days", 120, sy); sy += 40;
-            c.fillText("Accessories Owned: " + store.wardrobe.owned.length + " / 7", 120, sy); sy += 40;
+            c.fillText("Accessories Owned: " + store.wardrobe.owned.length + " / " + Object.values(ACCESSORIES).reduce(function(sum, arr) { return sum + arr.length; }, 0), 120, sy); sy += 40;
             c.fillText("Scrapbook Entries: " + store.scrapbook.entries.length, 120, sy);
+          } else if (this.scrapbookTab === "goals") {
+            var gy = 150;
+            var completedGoals = store.scrapbookGoals.completed || [];
+            c.textAlign = "left";
+            for (var gi = 0; gi < SCRAPBOOK_GOALS.length; gi++) {
+              var goal = SCRAPBOOK_GOALS[gi];
+              var done = completedGoals.indexOf(goal.key) >= 0;
+              if (gy > 530) break;
+              c.save();
+              /* checkbox */
+              rr(c, 88, gy - 8, 16, 16, 3);
+              c.fillStyle = done ? "#7DB36C" : "rgba(200,190,180,0.4)";
+              c.fill();
+              if (done) {
+                c.fillStyle = "#FFF8F0";
+                c.font = '10px "Fredoka One", sans-serif';
+                c.textAlign = "center";
+                c.fillText("\u2713", 96, gy + 3);
+              }
+              /* goal name + description on one line */
+              c.textAlign = "left";
+              c.fillStyle = done ? "rgba(92,61,46,0.45)" : "#5C3D2E";
+              c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.fillText(goal.name, 114, gy + 2);
+              c.fillStyle = "rgba(92,61,46,0.45)";
+              c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.fillText(goal.desc, 114, gy + 16);
+              /* reward */
+              c.textAlign = "right";
+              c.fillStyle = done ? "rgba(92,61,46,0.35)" : COLORS.gold;
+              c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+              c.fillText(done ? "Done!" : "+" + goal.reward, 720, gy + 4);
+              c.restore();
+              gy += 31;
+            }
           }
           c.restore();
         }
 
-        /* daily gift overlay */
-        this.drawDailyGift(c);
+        /* daily gift overlay — skip if dedication is showing */
+        if (!this.dedication) this.drawDailyGift(c);
 
         /* ── First visit dedication screen ── */
         if (this.dedication) {
@@ -6846,7 +7584,7 @@
         this.coinPopup = null;
         this.cameraFlash = 0;
         /* bird feeder */
-        this.feeder = { x: 620, y: 280, filled: false, birdTimer: 0, birds: [] };
+        this.feeder = { x: 620, y: 360, filled: false, birdTimer: 0, birds: [] };
         /* garden */
         this.garden = { x: 180, y: 460 };
         /* kiddie pool */
@@ -6867,6 +7605,12 @@
         this.joySaveTimer = 0;
         /* first visit scrapbook */
         this.checkedFirstVisit = false;
+        /* backyard expansion */
+        this.fishingState = null;
+        this.byButterflies = [];
+        this.byButterflyTimer = rand(20, 40);
+        this.picnicState = null;
+        this.picnicCooldown = 0;
       }
       enter() {
         this.obi.joy = store.pet_obi_joy;
@@ -6882,6 +7626,13 @@
           if (!hasVisit) {
             addScrapbookEntry("milestone", "Explored the backyard for the first time!", "heart");
           }
+        }
+        /* scrapbook goal */
+        if (store.scrapbookGoals.completed.indexOf("backyardVisit") < 0) {
+          store.scrapbookGoals.completed.push("backyardVisit");
+          saveJSON("scrapbookGoals", store.scrapbookGoals);
+          var bvGoal = SCRAPBOOK_GOALS.find(function(g) { return g.key === "backyardVisit"; });
+          if (bvGoal) { addCoins(bvGoal.reward); addScrapbookEntry("goal", "Goal: Outdoor Explorer complete!", "bone"); }
         }
       }
       addFloatingText(text, x, y, color) {
@@ -6976,6 +7727,53 @@
         this.updateLunaBackyard(dt);
         /* bird feeder */
         this.updateFeeder(dt);
+        /* fishing micro-activity */
+        if (this.fishingState) {
+          this.fishingState.timer -= dt;
+          if (this.fishingState.phase === "waiting") {
+            this.fishingState.fishX = this.pool.x + Math.sin(game.time * 1.5) * 30;
+            this.fishingState.fishY = this.pool.y - 8 + Math.cos(game.time * 2) * 6;
+            if (this.fishingState.timer <= 0) {
+              this.fishingState.phase = "strike";
+              this.fishingState.timer = 1.2;
+              this.statusText = "Now! Click the fish!";
+              this.statusPulse = 1;
+            }
+          } else if (this.fishingState.phase === "strike") {
+            if (this.fishingState.timer <= 0) {
+              this.fishingState = null;
+              this.statusText = "The fish got away!";
+              audio.miss();
+            }
+          } else if (this.fishingState.phase === "caught") {
+            if (this.fishingState.timer <= 0) this.fishingState = null;
+          }
+        }
+        /* butterfly catching */
+        if (store.backyardDecor.butterflyGarden && store.backyardFlowers > 0) {
+          this.byButterflyTimer -= dt;
+          if (this.byButterflyTimer <= 0 && this.byButterflies.length < 3) {
+            this.byButterflies.push({ x: this.garden.x + rand(-40, 40), y: this.garden.y - rand(20, 50), timer: rand(8, 12), phase: rand(0, 6.28), color: ["#FF69B4", "#87CEEB", "#FFD700"][Math.floor(Math.random() * 3)] });
+            this.byButterflyTimer = rand(20, 40);
+          }
+          for (var bi = this.byButterflies.length - 1; bi >= 0; bi--) {
+            var bf = this.byButterflies[bi];
+            bf.x += Math.sin(game.time * 2 + bf.phase) * 18 * dt;
+            bf.y += Math.cos(game.time * 1.5 + bf.phase) * 10 * dt;
+            bf.timer -= dt;
+            if (bf.timer <= 0) this.byButterflies.splice(bi, 1);
+          }
+        }
+        /* picnic cooldown */
+        if (this.picnicCooldown > 0) this.picnicCooldown -= dt;
+        if (this.picnicState) {
+          this.picnicState.timer -= dt;
+          if (this.picnicState.timer <= 0) {
+            this.picnicState = null;
+            this.obi.targetX = this.obi.homeX;
+            this.luna.targetX = this.luna.homeX;
+          }
+        }
       }
       updateObiBackyard(dt) {
         var o = this.obi;
@@ -7022,7 +7820,8 @@
             this.statusText = "Obi dug up a tulip! Bad boy!";
             this.statusPulse = 1;
             spawnParticleBurst(o.x, o.y - 30, ["#8B6914", "#5C7A3A"], 6, ["star"]);
-            addScrapbookEntry("event", "Obi dug up a flower in the garden!", "bone");
+            var lastSE = store.scrapbook.entries[store.scrapbook.entries.length - 1];
+            if (!lastSE || lastSE.text !== "Obi dug up a flower in the garden!") addScrapbookEntry("event", "Obi dug up a flower in the garden!", "bone");
           }
         }
         /* finish splashing */
@@ -7189,24 +7988,89 @@
               this.statusPulse = 1;
             }
           } else {
-            this.statusText = "Garden is full! (6/6)";
+            /* harvest full garden */
+            addCoins(5);
+            store.backyardFlowers = 0;
+            saveNumber("backyardFlowers", 0);
+            this.statusText = "Harvested flowers! +5 coins";
+            this.statusPulse = 1;
+            this.addFloatingText("+5 coins", this.garden.x, this.garden.y - 30, COLORS.gold);
+            if (audio.combo) audio.combo();
           }
           return;
         }
-        /* kiddie pool — call Obi */
+        /* kiddie pool — fishing or splash */
         if (Math.abs(x - this.pool.x) < 50 && Math.abs(y - this.pool.y) < 40) {
-          if (!this.obi.splashing && !this.obi.digging) {
-            this.obi.targetX = this.pool.x;
-            this.obi.splashing = true;
-            this.obi.actionTimer = rand(3, 5);
-            this.obi.joy = clamp(this.obi.joy + 6, 0, 100);
-            this.addFloatingText("+6 Obi joy", this.obi.x, this.obi.y - 50, "#4A90D9");
-            this.statusText = "Obi loves the pool!";
-            this.statusPulse = 1;
-            audio.combo();
-            spawnParticleBurst(this.pool.x, this.pool.y - 20, ["#87CEEB", "#B3D9FF"], 8, ["star"]);
+          /* fishing: click during strike phase to catch */
+          if (this.fishingState && this.fishingState.phase === "strike") {
+            if (dist(x, y, this.fishingState.fishX, this.fishingState.fishY) < 35) {
+              var fishCoins = rand(3, 6) | 0;
+              addCoins(fishCoins);
+              this.fishingState = { phase: "caught", timer: 1.5 };
+              this.statusText = "Caught a fish! +" + fishCoins + " coins!";
+              this.statusPulse = 1;
+              this.addFloatingText("+" + fishCoins + " coins!", this.pool.x, this.pool.y - 30, COLORS.gold);
+              audio.combo();
+              spawnParticleBurst(this.pool.x, this.pool.y - 20, ["#87CEEB", COLORS.gold], 8, ["star"]);
+            }
+            return;
+          }
+          /* start fishing if not already active */
+          if (!this.fishingState && !this.obi.splashing && !this.obi.digging) {
+            if (Math.random() < 0.4) {
+              /* fishing mini-activity */
+              this.fishingState = { phase: "waiting", timer: rand(1.5, 3.5), fishX: this.pool.x, fishY: this.pool.y - 5 };
+              this.statusText = "Something's moving in the pool... wait for it!";
+              this.statusPulse = 0.5;
+              audio.tinyChime();
+            } else {
+              /* splash */
+              this.obi.targetX = this.pool.x;
+              this.obi.splashing = true;
+              this.obi.actionTimer = rand(3, 5);
+              this.obi.joy = clamp(this.obi.joy + 6, 0, 100);
+              this.addFloatingText("+6 Obi joy", this.obi.x, this.obi.y - 50, "#4A90D9");
+              this.statusText = "Obi loves the pool!";
+              this.statusPulse = 1;
+              audio.combo();
+              spawnParticleBurst(this.pool.x, this.pool.y - 20, ["#87CEEB", "#B3D9FF"], 8, ["star"]);
+            }
           }
           return;
+        }
+        /* butterfly catching */
+        for (var bi = this.byButterflies.length - 1; bi >= 0; bi--) {
+          var bf = this.byButterflies[bi];
+          if (dist(x, y, bf.x, bf.y) < 28) {
+            this.byButterflies.splice(bi, 1);
+            var bfCoins = Math.random() < 0.3 ? 2 : 1;
+            addCoins(bfCoins);
+            this.addFloatingText("+" + bfCoins + " coins!", bf.x, bf.y - 20, COLORS.gold);
+            this.statusText = "Caught a butterfly!";
+            this.statusPulse = 0.5;
+            audio.tinyChime();
+            spawnParticleBurst(bf.x, bf.y, [bf.color, "#FFF4C0"], 6, ["star"]);
+            break;
+          }
+        }
+        /* picnic time (if picnicBlanket active) */
+        if (store.backyardDecor.picnicBlanket && this.picnicCooldown <= 0 && !this.picnicState) {
+          if (Math.abs(x - 350) < 50 && Math.abs(y - 430) < 30) {
+            this.picnicState = { timer: 10 };
+            this.picnicCooldown = 60;
+            this.obi.targetX = 330;
+            this.obi.targetY = 430;
+            this.luna.targetX = 370;
+            this.luna.targetY = 430;
+            this.obi.joy = clamp(this.obi.joy + 5, 0, 100);
+            this.luna.joy = clamp(this.luna.joy + 5, 0, 100);
+            addCoins(2);
+            this.addFloatingText("Picnic! +5 joy, +2 coins", 350, 410, COLORS.gold);
+            this.statusText = "Everyone's enjoying a cozy picnic!";
+            this.statusPulse = 1;
+            audio.combo();
+            spawnParticleBurst(350, 420, [COLORS.softPink, COLORS.gold, "#FFF4C0"], 10, ["heart", "star"]);
+          }
         }
       }
       onMouseMove(x, y) {
@@ -7230,7 +8094,7 @@
           this.tooltip = { x: this.feeder.x, y: this.feeder.y - 40, title: "Bird Feeder", body: this.feeder.filled ? "Birds are coming..." : "Click to fill!" };
         } else if (Math.abs(x - this.garden.x) < 50 && Math.abs(y - this.garden.y) < 40) {
           this.hoverKey = "garden";
-          this.tooltip = { x: this.garden.x, y: this.garden.y - 40, title: "Garden", body: store.backyardFlowers + "/6 flowers. 3 coins to plant." };
+          this.tooltip = { x: this.garden.x, y: this.garden.y - 40, title: "Garden", body: store.backyardFlowers + "/6 flowers." + (store.backyardFlowers >= 6 ? " Click to harvest! +5 coins" : " 3 coins to plant.") };
         } else if (Math.abs(x - this.pool.x) < 50 && Math.abs(y - this.pool.y) < 40) {
           this.hoverKey = "pool";
           this.tooltip = { x: this.pool.x, y: this.pool.y - 40, title: "Kiddie Pool", body: "Click to call Obi for a splash!" };
@@ -7288,6 +8152,47 @@
           c.restore();
         }
 
+        /* fishing indicator */
+        if (this.fishingState) {
+          c.save();
+          if (this.fishingState.phase === "waiting") {
+            c.globalAlpha = 0.4 + Math.sin(game.time * 3) * 0.2;
+            c.fillStyle = "#6B8F8A";
+            c.beginPath(); c.ellipse(this.fishingState.fishX, this.fishingState.fishY, 8, 4, 0, 0, Math.PI * 2); c.fill();
+          } else if (this.fishingState.phase === "strike") {
+            c.fillStyle = "#6B8F8A";
+            c.beginPath(); c.ellipse(this.fishingState.fishX, this.fishingState.fishY, 10, 5, Math.sin(game.time * 6) * 0.3, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#FFDD44";
+            c.font = '16px "Fredoka One", sans-serif';
+            c.textAlign = "center";
+            c.fillText("!", this.fishingState.fishX, this.fishingState.fishY - 16);
+          } else if (this.fishingState.phase === "caught") {
+            c.globalAlpha = clamp(this.fishingState.timer / 0.5, 0, 1);
+            c.fillStyle = "#6B8F8A";
+            c.beginPath(); c.ellipse(this.pool.x, this.pool.y - 20 - (1.5 - this.fishingState.timer) * 30, 8, 4, 0, 0, Math.PI * 2); c.fill();
+          }
+          c.restore();
+        }
+        /* backyard butterflies */
+        for (var bbi = 0; bbi < this.byButterflies.length; bbi++) {
+          var bbf = this.byButterflies[bbi];
+          c.save();
+          c.translate(bbf.x, bbf.y);
+          var bWing = Math.sin(game.time * 8 + bbf.phase) * 0.6;
+          c.fillStyle = bbf.color;
+          c.save(); c.rotate(bWing); c.beginPath(); c.ellipse(-4, 0, 6, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
+          c.save(); c.rotate(-bWing); c.beginPath(); c.ellipse(4, 0, 6, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
+          c.fillStyle = "#333"; c.beginPath(); c.arc(0, 0, 1.5, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        /* picnic scene */
+        if (this.picnicState && store.backyardDecor.picnicBlanket) {
+          c.save();
+          c.globalAlpha = clamp((10 - this.picnicState.timer) / 1, 0, 1) * clamp(this.picnicState.timer / 1, 0, 1);
+          if (Math.random() < 0.03) spawnParticleBurst(350 + rand(-20, 20), 420 + rand(-10, 10), [COLORS.softPink, COLORS.gold], 1, ["heart"]);
+          c.restore();
+        }
+
         /* go inside button */
         c.save();
         var insideHover = this.hoverKey === "inside";
@@ -7332,16 +8237,16 @@
         /* coin pill (same as hangout) */
         c.save();
         c.fillStyle = "rgba(255,248,240,0.65)";
-        rr(c, 452, 12, 72, 22, 11);
+        rr(c, 452, 59, 72, 22, 11);
         c.fill();
         c.fillStyle = COLORS.gold;
-        c.beginPath(); c.arc(466, 23, 7, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(466, 70, 7, 0, Math.PI * 2); c.fill();
         c.fillStyle = "#FFF4C0";
-        c.beginPath(); c.arc(464, 21, 3, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(464, 68, 3, 0, Math.PI * 2); c.fill();
         c.fillStyle = COLORS.gold;
         c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
-        c.fillText(store.coins, 503, 28);
+        c.fillText(store.coins, 503, 75);
         c.restore();
         /* coin popup */
         if (this.coinPopup) {
@@ -7356,11 +8261,14 @@
         }
 
         /* status text */
+        var sAlpha = 0.7 + this.statusPulse * 0.3;
+        c.globalAlpha = sAlpha;
+        c.fillStyle = "rgba(255,248,240,0.85)";
+        rr(c, 122, 540, 556, 36, 18);
+        c.fill();
         c.fillStyle = "#5C3D2E";
         c.textAlign = "center";
         c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        var sAlpha = 0.7 + this.statusPulse * 0.3;
-        c.globalAlpha = sAlpha;
         c.fillText(this.statusText, 400, 560);
         c.globalAlpha = 1;
 
@@ -7433,8 +8341,10 @@
             c.fillStyle = "#7A4E36"; c.textAlign = "center";
             c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
             c.fillText("Page " + (this.byDecorPage + 1) + "/" + this.byDecorPageCount(), W / 2, 548);
-            if (this.byDecorPage > 0) { c.fillText("\u25C4", 318, 548); }
-            if (this.byDecorPage < this.byDecorPageCount() - 1) { c.fillText("\u25BA", 482, 548); }
+            var leftArrowHov = this.byDecorPage > 0 && game.mouse.x > 308 && game.mouse.x < 328 && game.mouse.y > 536 && game.mouse.y < 560;
+            var rightArrowHov = this.byDecorPage < this.byDecorPageCount() - 1 && game.mouse.x > 472 && game.mouse.x < 492 && game.mouse.y > 536 && game.mouse.y < 560;
+            if (this.byDecorPage > 0) { c.fillStyle = leftArrowHov ? "#C07850" : "#7A4E36"; c.fillText("\u25C4", 318, 548); }
+            if (this.byDecorPage < this.byDecorPageCount() - 1) { c.fillStyle = rightArrowHov ? "#C07850" : "#7A4E36"; c.fillText("\u25BA", 482, 548); }
           }
           c.restore();
         }
@@ -7545,7 +8455,7 @@
 
         /* kiddie pool */
         if (byFrames && byFrames.kiddiePool) {
-          drawFrameImage(c, byFrames.kiddiePool, this.pool.x, this.pool.y, 0.85, { baseScale: 1, shadowAlpha: 0.08 });
+          drawFrameImage(c, byFrames.kiddiePool, this.pool.x, this.pool.y, 0.5, { baseScale: 1, shadowAlpha: 0.08 });
         } else {
           c.fillStyle = "#4A90D9";
           c.globalAlpha = 0.5;
@@ -7562,7 +8472,7 @@
 
         /* bird feeder */
         if (byFrames && byFrames.birdFeeder) {
-          drawFrameImage(c, byFrames.birdFeeder, this.feeder.x, this.feeder.y, 0.8, { baseScale: 1, shadowAlpha: 0.10 });
+          drawFrameImage(c, byFrames.birdFeeder, this.feeder.x, this.feeder.y, 0.35, { baseScale: 1, shadowAlpha: 0.10 });
         } else {
           c.fillStyle = tod === 3 ? "#3A2818" : "#8B6914";
           c.fillRect(this.feeder.x - 4, this.feeder.y, 8, 55);
@@ -7706,6 +8616,9 @@
         this.personalBest = 0;
         this.playHint = null;
         this.playHintTimer = 4;
+        this.challengeMode = false;
+        this.challengeModifier = null;
+        this.challengeStarEarned = false;
       }
       enter() {
         this.phase = "instructions";
@@ -7724,6 +8637,21 @@
         this.starTimer = 0;
         this.scoreInT = 0;
         this.personalBest = store["best_" + this.gameId] || 0;
+        this.challengeStarEarned = false;
+        if (this.challengeMode) {
+          this.challengeModifier = CHALLENGE_MODIFIERS[this.gameId] || null;
+          /* scrapbook goal: first challenge attempt */
+          if (store.scrapbookGoals && store.scrapbookGoals.completed.indexOf("challengeAttempt") < 0) {
+            store.scrapbookGoals.completed.push("challengeAttempt");
+            saveJSON("scrapbookGoals", store.scrapbookGoals);
+            var caGoal = SCRAPBOOK_GOALS.find(function(g) { return g.key === "challengeAttempt"; });
+            if (caGoal) addCoins(caGoal.reward);
+          }
+        }
+        /* care bonus from pet happiness */
+        this.careBonus = getCareBonus();
+        if (this.careBonus.timerBonus > 0) this.timeLeft += this.careBonus.timerBonus;
+        if (this.careBonus.comboStartBonus) this.combo = 2;
       }
       resultsButtons() {
         return {
@@ -7796,7 +8724,7 @@
         if (this.phaseTime > 1.2) this.finishGame();
       }
       addScore(value) {
-        this.score += value;
+        this.score += value * (this.careBonus ? this.careBonus.scoreMultiplier : 1);
         this.scorePop = 1;
       }
       onMouseMove(x, y) {
@@ -7894,7 +8822,11 @@
         this.resultsStars = this.calculateStars(finalScore);
         this.newBest = setBest(this.gameId, finalScore);
         this.personalBest = store["best_" + this.gameId] || finalScore;
-        this.coinReward = 5 + this.resultsStars * 5 + (this.newBest ? 10 : 0);
+        var baseReward = 5 + this.resultsStars * 10;
+        var scoreBonus = Math.floor(this.score / 100) * 2;
+        var playBonus = Math.min(10, Math.floor((store.stats.totalSessions || 0) / 5));
+        var upgradeBonus = hasUpgrade("luckyCharm") ? 2 : 0;
+        this.coinReward = baseReward + scoreBonus + (this.newBest ? 15 : 0) + playBonus + upgradeBonus;
         addCoins(this.coinReward);
         if (this.resultsStars >= 3 && this.newBest) {
           addScrapbookEntry("milestone", "Earned 3 stars in " + this.displayTitle + "!", "star");
@@ -7902,7 +8834,10 @@
         /* check star milestone coin rewards */
         if (this.newBest) {
           var milestoneCoins = checkStarMilestones();
-          if (milestoneCoins > 0) this.coinReward += milestoneCoins;
+          if (milestoneCoins > 0) {
+            this.coinReward += milestoneCoins;
+            this.milestoneText = "\u2605 Star Milestone! +" + milestoneCoins + " coins!";
+          }
         }
         /* check fullHouse achievement */
         if (totalStarsEarned() >= 33 && !store.achievements.fullHouse) {
@@ -7912,6 +8847,23 @@
           if (fhInfo && fhInfo.coinBonus) addCoins(fhInfo.coinBonus);
           addScrapbookEntry("achievement", "Full House — all 33 stars!", "star");
         }
+        /* challenge star check */
+        if (this.challengeMode && this.resultsStars >= 2 && !store.challengeStars[this.gameId]) {
+          store.challengeStars[this.gameId] = true;
+          saveJSON("challengeStars", store.challengeStars);
+          this.challengeStarEarned = true;
+          this.coinReward += 20;
+          addCoins(20);
+          addScrapbookEntry("milestone", "Challenge star earned in " + this.displayTitle + "!", "star");
+          /* check challenge champion achievement */
+          if (totalChallengeStars() >= 5 && !store.achievements.challengeChampion) {
+            store.achievements.challengeChampion = true;
+            saveAchievements();
+            var ccInfo = ACHIEVEMENTS.find(function(a) { return a.key === "challengeChampion"; });
+            if (ccInfo && ccInfo.coinBonus) addCoins(ccInfo.coinBonus);
+            addScrapbookEntry("achievement", "Challenge Champion unlocked!", "star");
+          }
+        }
         this.phase = "results";
         this.phaseTime = 0;
         this.scoreInT = 0;
@@ -7920,7 +8872,9 @@
         this.confettiFired = false;
       }
       createReplay() {
-        return SceneRegistry.create(this.gameId);
+        var s = SceneRegistry.create(this.gameId);
+        s.challengeMode = this.challengeMode;
+        return s;
       }
       queueAchievement(key) {
         if (store.achievements[key]) return;
@@ -7969,7 +8923,7 @@
         c.fillText("Score " + Math.round(this.score), 0, 0);
         c.restore();
 
-        if (showCombo) {
+        if (showCombo && this.phase === "play") {
           c.fillStyle = "#FFEAA7";
           c.textAlign = "center";
           c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
@@ -7995,9 +8949,29 @@
         c.font = '20px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         wrapText(c, this.instruction, W / 2, 252, 410, 30);
         if (iconFn) iconFn(c, W / 2, 320);
+        if (this.challengeMode && this.challengeModifier) {
+          c.fillStyle = "#FFA500";
+          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("\u2605 CHALLENGE: " + this.challengeModifier.name + " \u2605", W / 2, 350);
+          c.fillStyle = "rgba(160,120,80,0.7)";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(this.challengeModifier.desc, W / 2, 370);
+        }
+        /* care bonus indicator */
+        var careBonusY = this.challengeMode ? 390 : 350;
+        if (this.careBonus && this.careBonus.label) {
+          c.fillStyle = "#7DB36C";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          var bonusParts = [];
+          if (this.careBonus.timerBonus > 0) bonusParts.push("+" + this.careBonus.timerBonus + "s");
+          if (this.careBonus.scoreMultiplier > 1.05) bonusParts.push("+" + Math.round((this.careBonus.scoreMultiplier - 1) * 100) + "% score");
+          if (this.careBonus.comboStartBonus) bonusParts.push("combo x2 start");
+          c.fillText(this.careBonus.label + " " + bonusParts.join(", "), W / 2, careBonusY);
+          careBonusY += 18;
+        }
         c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.fillStyle = "#A06B4F";
-        c.fillText(isMobile ? "Tap to begin" : "Click to begin early  •  Esc to go back", W / 2, 376);
+        c.fillText(isMobile ? "Tap to begin" : "Click to begin early  •  Esc to go back", W / 2, careBonusY + 8);
         c.restore();
       }
       drawCountdown(c) {
@@ -8102,16 +9076,26 @@
           c.restore();
         }
 
-        for (let i = 0; i < 3; i++) {
-          const revealed = i < this.revealedStars;
-          const t = revealed ? easeOutBack(clamp((this.phaseTime - i * 0.3) / 0.28, 0, 1)) : 0;
+        var hasChalStar = store.challengeStars[this.gameId];
+        var show4Stars = hasChalStar || this.challengeMode;
+        var starCount = show4Stars ? 4 : 3;
+        var starStartX = show4Stars ? W / 2 - 96 : W / 2 - 64;
+        for (let i = 0; i < starCount; i++) {
+          var isChallenge = i === 3;
+          var revealed = isChallenge ? (hasChalStar && this.phaseTime > 1.2) : (i < this.revealedStars);
+          var t = revealed ? easeOutBack(clamp((this.phaseTime - (isChallenge ? 1.2 : i * 0.3)) / 0.28, 0, 1)) : 0;
           c.save();
-          c.translate(W / 2 - 64 + i * 64, 310);
+          c.translate(starStartX + i * 64, 310);
           c.scale(t, t);
           if (revealed) {
-            drawGlowCircle(c, 0, 0, 28, "rgba(255,215,0,ALPHA)", 0.15);
+            drawGlowCircle(c, 0, 0, 28, isChallenge ? "rgba(255,180,0,ALPHA)" : "rgba(255,215,0,ALPHA)", isChallenge ? 0.25 : 0.15);
           }
-          drawStar(c, 0, 0, 22, revealed ? COLORS.gold : "#D3C8B4");
+          drawStar(c, 0, 0, isChallenge ? 20 : 22, revealed ? (isChallenge ? "#FFA500" : COLORS.gold) : "#D3C8B4");
+          if (isChallenge && !hasChalStar) {
+            c.globalAlpha = 0.4;
+            drawStar(c, 0, 0, 20, "#D3C8B4");
+            c.globalAlpha = 1;
+          }
           c.restore();
         }
 
@@ -8123,6 +9107,17 @@
           c.textAlign = "center";
           c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("Perfect score! Amazing!", W / 2, 348);
+          c.restore();
+        }
+
+        /* star milestone notification */
+        if (this.milestoneText && this.phaseTime > 0.8) {
+          c.save();
+          c.globalAlpha = clamp(this.phaseTime - 0.8, 0, 1);
+          c.fillStyle = COLORS.gold;
+          c.textAlign = "center";
+          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(this.milestoneText, W / 2, 368);
           c.restore();
         }
 
@@ -8187,7 +9182,7 @@
         this.treat = null;
         this.obiX = 140;
         this.obiPhase = 0;
-        this.obiSpeed = 1;
+        this.obiSpeed = this.challengeMode ? 1.5 : 1;
         this.obiFacing = 1;
         this.catches = 0;
         this.goldenReady = false;
@@ -8228,7 +9223,7 @@
         const newRamp = Math.floor(elapsed / 15);
         if (newRamp > this.rampStep) {
           this.rampStep = newRamp;
-          this.obiSpeed = Math.pow(1.15, this.rampStep);
+          this.obiSpeed = Math.pow(1.15, this.rampStep) * (this.challengeMode ? 1.5 : 1.0);
           this.speedUpTimer = 1.0;
           audio.pounce();
         }
@@ -8468,6 +9463,9 @@
         const overPet = pointInRect(mx, my, this.petHitbox);
 
         if (this.washPhase === "scrub") {
+          if (this.challengeMode && !(game.mouse.down && overPet) && this.cleanMeter > 0) {
+            this.cleanMeter = clamp(this.cleanMeter - dt * 12, 0, 100);
+          }
           if (game.mouse.down && overPet) {
             this.cleanMeter = clamp(this.cleanMeter + dt * 35, 0, 100);
             this.addScore(dt * 30);
@@ -8559,6 +9557,30 @@
           c.fillStyle = "rgba(255,255,255,0.3)";
           rr(c, 604 + bi * 48, 24, 6, 28, 4); c.fill();
         }
+        // Towel rack
+        c.strokeStyle = "#A09080"; c.lineWidth = 3;
+        c.beginPath(); c.moveTo(40, 120); c.lineTo(40, 250); c.stroke();
+        c.beginPath(); c.moveTo(30, 130); c.lineTo(50, 130); c.stroke();
+        c.beginPath(); c.moveTo(30, 200); c.lineTo(50, 200); c.stroke();
+        c.fillStyle = "#E8B8A0"; rr(c, 24, 132, 32, 65, 4); c.fill();
+        c.fillStyle = "#A8D8E8"; rr(c, 28, 202, 28, 45, 4); c.fill();
+        // Mirror
+        c.fillStyle = "rgba(200,215,225,0.5)";
+        rr(c, 70, 40, 80, 100, 16); c.fill();
+        c.strokeStyle = "#B0A090"; c.lineWidth = 3;
+        rr(c, 70, 40, 80, 100, 16); c.stroke();
+        c.fillStyle = "rgba(255,255,255,0.15)";
+        c.beginPath(); c.ellipse(95, 70, 20, 30, -0.2, 0, Math.PI * 2); c.fill();
+        // Bath mat
+        c.fillStyle = "#D8C0B0";
+        c.beginPath(); c.ellipse(400, 500, 80, 20, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#C8B0A0";
+        c.beginPath(); c.ellipse(400, 500, 60, 14, 0, 0, Math.PI * 2); c.fill();
+        // Rubber duck
+        c.fillStyle = "#FFD700";
+        c.beginPath(); c.arc(320, 490, 8, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#FFA500"; c.beginPath(); c.moveTo(328, 488); c.lineTo(335, 490); c.lineTo(328, 492); c.closePath(); c.fill();
+        c.fillStyle = "#333"; c.beginPath(); c.arc(325, 486, 1.5, 0, Math.PI * 2); c.fill();
 
         // Tub
         c.save();
@@ -8659,6 +9681,7 @@
         this.correctStreak = 0;
         this.obiBowl = { x: 150, y: 520 };
         this.lunaBowl = { x: 650, y: 520 };
+        this.bowlsSwapped = false;
       }
       spawnTreat() {
         const isDog = Math.random() < 0.5;
@@ -8683,6 +9706,18 @@
         this.obiHappy = Math.max(0, this.obiHappy - dt);
         this.lunaHappy = Math.max(0, this.lunaHappy - dt);
         this.wrongFlash = Math.max(0, this.wrongFlash - dt * 2);
+
+        /* challenge: swap bowls every 15s */
+        if (this.challengeMode) {
+          if (!this.swapTimer) this.swapTimer = 15;
+          this.swapTimer -= dt;
+          if (this.swapTimer <= 0) {
+            this.bowlsSwapped = !this.bowlsSwapped;
+            this.swapTimer = 15;
+            this.playHint = { text: "Bowls swapped!", life: 2 };
+            audio.pounce();
+          }
+        }
 
         // Spawn treats
         this.spawnTimer -= dt;
@@ -8727,7 +9762,8 @@
           t.vy = 60;
           return;
         }
-        const obiSide = t.x < W / 2;
+        var obiSide = t.x < W / 2;
+        if (this.bowlsSwapped) obiSide = !obiSide;
         const correct = (t.type === "dog" && obiSide) || (t.type === "cat" && !obiSide);
         if (correct) {
           this.addScore(t.points * this.combo);
@@ -8812,12 +9848,17 @@
         c.beginPath(); c.moveTo(W / 2, 60); c.lineTo(W / 2, H); c.stroke();
         c.setLineDash([]);
 
-        // Labels
-        c.fillStyle = "rgba(100,80,60,0.5)";
+        // Labels (swap in challenge mode)
+        c.fillStyle = "rgba(80,60,40,0.8)";
         c.textAlign = "center";
-        c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("\u2190 Dog Treats", 200, 80);
-        c.fillText("Cat Treats \u2192", 600, 80);
+        c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        if (this.bowlsSwapped) {
+          c.fillText("\u2190 Cat Treats", 200, 80);
+          c.fillText("Dog Treats \u2192", 600, 80);
+        } else {
+          c.fillText("\u2190 Dog Treats", 200, 80);
+          c.fillText("Cat Treats \u2192", 600, 80);
+        }
 
         // Bowls
         c.save();
@@ -8899,7 +9940,8 @@
         const holdDuration = Math.max(0.4, 1.2 - elapsed * 0.015);
         this.obiAppearChance = Math.min(0.3, 0.15 + elapsed * 0.003);
         this.spawnTimer -= dt;
-        if (this.spawnTimer <= 0 && this.popups.filter(p => !p.hit).length < 2) {
+        var maxPopups = this.challengeMode ? 4 : 2;
+        if (this.spawnTimer <= 0 && this.popups.filter(p => !p.hit).length < maxPopups) {
           this.spawnPopup(holdDuration);
           this.spawnTimer = this.spawnRate;
         }
@@ -9002,11 +10044,17 @@
             c.restore();
           }
           c.save();
-          c.fillStyle = pos.color;
+          var pcg = c.createRadialGradient(pos.x - 6, pos.y - 8, 4, pos.x, pos.y, 52);
+          pcg.addColorStop(0, lightenColor(pos.color, 0.25));
+          pcg.addColorStop(0.5, pos.color);
+          pcg.addColorStop(1, darkenColor(pos.color, 0.15));
+          c.fillStyle = pcg;
           c.beginPath(); c.ellipse(pos.x, pos.y, 52, 28, 0, 0, Math.PI * 2); c.fill();
-          c.fillStyle = "rgba(255,255,255,0.2)";
-          c.beginPath(); c.ellipse(pos.x - 8, pos.y - 6, 30, 14, -0.2, 0, Math.PI * 2); c.fill();
-          c.fillStyle = "rgba(0,0,0,0.08)";
+          c.strokeStyle = darkenColor(pos.color, 0.12); c.lineWidth = 1;
+          c.beginPath(); c.ellipse(pos.x, pos.y, 52, 28, 0, 0, Math.PI * 2); c.stroke();
+          c.fillStyle = "rgba(255,255,255,0.22)";
+          c.beginPath(); c.ellipse(pos.x - 8, pos.y - 8, 28, 12, -0.2, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "rgba(0,0,0,0.1)";
           c.beginPath(); c.ellipse(pos.x, pos.y + 16, 48, 10, 0, 0, Math.PI * 2); c.fill();
           c.restore();
         }
@@ -9093,7 +10141,7 @@
       startRound() {
         this.round++;
         this.numShuffles = Math.min(8, 2 + Math.floor(this.round / 2));
-        this.shuffleSpeed = Math.max(0.2, 1.2 - this.round * 0.08);
+        this.shuffleSpeed = Math.max(0.2, 1.2 - this.round * 0.08) * (this.challengeMode ? 0.5 : 1.0);
         this.lunaSlot = Math.floor(Math.random() * 3);
         this.roundPhase = "show";
         this.roundTimer = 0;
@@ -9103,6 +10151,7 @@
         this.cushions[1].x = 400; this.cushions[1].targetX = 400;
         this.cushions[2].x = 600; this.cushions[2].targetX = 600;
         this.shuffleMoves = [];
+        this.basePositions = [200 + rand(-30, 30), 400 + rand(-30, 30), 600 + rand(-30, 30)];
         for (let i = 0; i < this.numShuffles; i++) {
           const a = Math.floor(Math.random() * 3);
           const b = (a + 1 + Math.floor(Math.random() * 2)) % 3;
@@ -9132,8 +10181,8 @@
           const ca = this.cushions[swap.a];
           const cb = this.cushions[swap.b];
           const t = easeOutQuad(clamp(this.shuffleT, 0, 1));
-          const baseAX = [200, 400, 600][swap.a];
-          const baseBX = [200, 400, 600][swap.b];
+          const baseAX = this.basePositions[swap.a];
+          const baseBX = this.basePositions[swap.b];
           ca.x = lerp(baseAX, baseBX, t);
           cb.x = lerp(baseBX, baseAX, t);
           if (this.shuffleT >= 1) {
@@ -9215,10 +10264,17 @@
             c.save();
             const hover = this.pickable && pointInRect(game.mouse.x, game.mouse.y, { x: cx - 70, y: cy - 50, w: 140, h: 100 });
             if (hover) drawGlowCircle(c, cx, cy, 70, "rgba(255,215,0,ALPHA)", 0.15);
-            c.fillStyle = cushionColors[i % 3];
+            var cg = c.createRadialGradient(cx - 8, cy - 10, 5, cx, cy, 60);
+            cg.addColorStop(0, lightenColor(cushionColors[i % 3], 0.3));
+            cg.addColorStop(0.5, cushionColors[i % 3]);
+            cg.addColorStop(1, darkenColor(cushionColors[i % 3], 0.2));
+            c.fillStyle = cg;
             c.beginPath(); c.ellipse(cx, cy, 60, 35, 0, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "rgba(255,255,255,0.15)";
-            c.beginPath(); c.ellipse(cx - 10, cy - 8, 35, 18, -0.15, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = darkenColor(cushionColors[i % 3], 0.15);
+            c.lineWidth = 1.5;
+            c.beginPath(); c.ellipse(cx, cy, 60, 35, 0, 0, Math.PI * 2); c.stroke();
+            c.fillStyle = "rgba(255,255,255,0.2)";
+            c.beginPath(); c.ellipse(cx - 10, cy - 10, 30, 15, -0.15, 0, Math.PI * 2); c.fill();
             if (this.roundPhase === "pick") {
               c.fillStyle = "rgba(92,68,52,0.5)";
               c.font = '28px "Fredoka One", sans-serif';
@@ -9343,6 +10399,7 @@
         for (let i = this.flyers.length - 1; i >= 0; i--) {
           const f = this.flyers[i];
           if (!f.alive) continue;
+          if (f.x < 42 || f.x > 210 || f.y < 28 || f.y > 238) continue;
           if (dist(x, y, f.x, f.y) < 36) {
             f.alive = false;
             if (f.type === "leaf") {
@@ -9434,6 +10491,20 @@
           else if (f.type === "leaf") this.drawLeafFlyer(c, f);
           c.restore();
         }
+        /* challenge: night watch darkening */
+        if (this.challengeMode) {
+          c.fillStyle = "rgba(15,10,30,0.55)";
+          c.fillRect(42, 28, 168, 210);
+          /* spotlight following mouse */
+          c.save();
+          c.globalCompositeOperation = "destination-out";
+          var grad = c.createRadialGradient(game.mouse.x, game.mouse.y, 0, game.mouse.x, game.mouse.y, 60);
+          grad.addColorStop(0, "rgba(0,0,0,0.7)");
+          grad.addColorStop(1, "rgba(0,0,0,0)");
+          c.fillStyle = grad;
+          c.fillRect(42, 28, 168, 210);
+          c.restore();
+        }
         c.restore();
         c.strokeStyle = "#C8A882";
         c.lineWidth = 6;
@@ -9445,6 +10516,7 @@
           pawBat: this.lunaReact > 0 ? 0.6 : 0,
           blink: blinkSignal(game.time + 1, 0.5), facing: 1
         });
+        if (this.phase === "play" || this.phase === "ending") {
         c.save();
         c.fillStyle = "rgba(255,248,240,0.85)";
         rr(c, 260, 80, 200, 100, 12);
@@ -9458,6 +10530,7 @@
         c.fillStyle = COLORS.warmRed;
         c.fillText("Leaf = -10 pts!", 280, 165);
         c.restore();
+        }
         for (const sp of this.scorePopups) {
           c.save();
           c.globalAlpha = clamp(sp.life, 0, 1);
@@ -9610,7 +10683,8 @@
         for (let i = 0; i < PAWSTEP_BUTTONS.length; i++) {
           if (pointInRect(x, y, PAWSTEP_BUTTONS[i])) {
             const clickedKey = PAWSTEP_ACTIONS[i].key;
-            const expectedKey = this.sequence[this.inputIndex];
+            const seqIdx = this.challengeMode ? (this.sequence.length - 1 - this.inputIndex) : this.inputIndex;
+            const expectedKey = this.sequence[seqIdx];
             this.buttonFlash[clickedKey] = 0.3;
             this.activeAction = { key: clickedKey, timer: 0.4 };
             if (clickedKey === expectedKey) {
@@ -9799,6 +10873,11 @@
         for (let i = this.targets.length - 1; i >= 0; i--) {
           const t = this.targets[i];
           t.life -= dt;
+          /* challenge: invisible targets — fade after 1.5s of life */
+          if (this.challengeMode && !t.fading) {
+            var age = (t.bonus ? 6.2 : 8) - t.life;
+            if (age > 1.5) t.fade = Math.max(0.08, 1.0 - (age - 1.5) * 0.5);
+          }
           if (t.life <= 0 && !t.fading) {
             t.fading = true;
             if (this.combo > 1) {
@@ -10050,20 +11129,21 @@
           if (this.bubble.time <= 0) this.bubble = null;
         }
         const survived = this.score;
-        let minGap = 4;
-        let maxGap = 5;
+        var chalDiv = this.challengeMode ? 2 : 1;
+        let minGap = 4 / chalDiv;
+        let maxGap = 5 / chalDiv;
         let shiftMin = 15;
         let shiftMax = 20;
         let allowDouble = false;
         if (survived >= 30) {
-          minGap = 3;
-          maxGap = 4;
+          minGap = 3 / chalDiv;
+          maxGap = 4 / chalDiv;
           shiftMin = 20;
           shiftMax = 25;
         }
         if (survived >= 60) {
-          minGap = 2;
-          maxGap = 3;
+          minGap = 2 / chalDiv;
+          maxGap = 3 / chalDiv;
           shiftMin = 20;
           shiftMax = 25;
           allowDouble = true;
@@ -10163,11 +11243,11 @@
         rr(c, 266, 22, 320, 20, 10);
         c.stroke();
         const markerX = lerp(276, 576, (this.balance + 100) / 200);
-        c.fillStyle = "#7DB36C";
-        rr(c, 270, 26, 152, 12, 6);
+        c.fillStyle = "#5CAA4A";
+        rr(c, 270, 26, 156, 12, 6);
         c.fill();
-        c.fillStyle = "#D39B6A";
-        rr(c, 422, 26, 160, 12, 6);
+        c.fillStyle = "#D47A4A";
+        rr(c, 426, 26, 156, 12, 6);
         c.fill();
         c.fillStyle = COLORS.cream;
         c.beginPath();
@@ -10251,10 +11331,10 @@
           const rHover = pointInRect(game.mouse.x, game.mouse.y, ab.right);
           const lFlash = this.btnFlash.left > 0;
           const rFlash = this.btnFlash.right > 0;
-          c.fillStyle = lFlash ? "rgba(255,255,255,0.85)" : lHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.55)";
+          c.fillStyle = lFlash ? "rgba(255,255,255,0.85)" : lHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.75)";
           rr(c, ab.left.x, ab.left.y, ab.left.w, ab.left.h, 18);
           c.fill();
-          c.fillStyle = rFlash ? "rgba(255,255,255,0.85)" : rHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.55)";
+          c.fillStyle = rFlash ? "rgba(255,255,255,0.85)" : rHover ? "rgba(92,68,52,0.85)" : "rgba(92,68,52,0.75)";
           rr(c, ab.right.x, ab.right.y, ab.right.w, ab.right.h, 18);
           c.fill();
           c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
@@ -10408,7 +11488,7 @@
       }
       updatePlay(dt) {
         /* slow scroll while sniffing for better feel */
-        const baseSpeed = 120 + (this.duration - this.timeLeft) * 1.5;
+        const baseSpeed = (120 + (this.duration - this.timeLeft) * 1.5) * (this.challengeMode ? 1.4 : 1.0);
         const speed = this.obiSniffTimer > 0 ? baseSpeed * 0.25 : baseSpeed;
         this.scrollX += speed * dt;
         this.missFlash = Math.max(0, this.missFlash - dt * 3);
@@ -10758,8 +11838,9 @@
         /* update sunbeams */
         for (let i = this.beams.length - 1; i >= 0; i--) {
           const b = this.beams[i];
-          b.x += b.vx * dt + Math.sin(game.time * 0.5 + b.phase) * 8 * dt;
-          b.y += b.vy * dt + Math.cos(game.time * 0.3 + b.phase) * 4 * dt;
+          var beamSpeedMult = this.challengeMode ? 2.0 : 1.0;
+          b.x += (b.vx * dt + Math.sin(game.time * 0.5 + b.phase) * 8 * dt) * beamSpeedMult;
+          b.y += (b.vy * dt + Math.cos(game.time * 0.3 + b.phase) * 4 * dt) * beamSpeedMult;
           b.x = clamp(b.x, 60, W - 60);
           b.y = clamp(b.y, 150, 480);
           b.life -= dt;
@@ -10862,7 +11943,7 @@
           const fadeEdge = clamp(b.life / 2, 0, 1);
           c.save();
           /* warm glow area */
-          c.globalAlpha = 0.40 * fadeEdge;
+          c.globalAlpha = 0.65 * fadeEdge;
           const g = c.createRadialGradient(b.x, b.y - b.h * 0.3, 10, b.x, b.y, Math.max(b.w, b.h) * 0.7);
           g.addColorStop(0, "rgba(255,235,150,1)");
           g.addColorStop(0.4, "rgba(255,225,120,0.6)");
@@ -10871,7 +11952,7 @@
           c.fillRect(b.x - b.w, b.y - b.h, b.w * 2, b.h * 2);
 
           /* beam shaft from top — visible light column */
-          c.globalAlpha = 0.16 * fadeEdge;
+          c.globalAlpha = 0.30 * fadeEdge;
           c.fillStyle = "rgba(255,235,140,1)";
           c.beginPath();
           c.moveTo(b.x - b.w * 0.25, 0);
@@ -10882,14 +11963,14 @@
           c.fill();
 
           /* bright center spot on floor */
-          c.globalAlpha = 0.25 * fadeEdge;
+          c.globalAlpha = 0.45 * fadeEdge;
           c.fillStyle = "rgba(255,240,160,0.8)";
           c.beginPath();
           c.ellipse(b.x, b.y, b.w * 0.45, b.h * 0.25, 0, 0, Math.PI * 2);
           c.fill();
 
           /* floating dust motes in beam */
-          c.globalAlpha = 0.55 * fadeEdge;
+          c.globalAlpha = 0.75 * fadeEdge;
           c.fillStyle = "rgba(255,245,200,0.95)";
           for (let m = 0; m < 7; m++) {
             const mx = b.x + Math.sin(game.time * 0.7 + m * 2.3 + b.phase) * b.w * 0.4;
@@ -11109,7 +12190,50 @@
         canvas.style.cursor = (overMute || (activeScene && activeScene.interactiveAt(game.mouse.x, game.mouse.y))) ? "pointer" : "default";
       }
 
-      requestAnimationFrame(loop);
+  
+    // TEST HOOK: expose current scene name globally
+    window.__getScene = () => {
+      if (game.transition) return 'transition:' + (game.transition.to && game.transition.to.name ? game.transition.to.name : 'unknown');
+      if (game.scene) return game.scene.name || 'unknown';
+      return 'none';
+    };
+    window.__getSceneDetails = () => {
+      const s = game.scene;
+      if (!s) return { name: 'none' };
+      const result = { name: s.name || 'unknown' };
+      if (s.menuOpen !== undefined) result.menuOpen = s.menuOpen;
+      if (s.decorOpen !== undefined) result.decorOpen = s.decorOpen;
+      if (s.wardrobeOpen !== undefined) result.wardrobeOpen = s.wardrobeOpen;
+      if (s.scrapbookOpen !== undefined) result.scrapbookOpen = s.scrapbookOpen;
+      if (s.dedication !== undefined) result.dedication = !!s.dedication;
+      if (s.dailyGift !== undefined) result.dailyGift = !!s.dailyGift;
+      if (s.phase !== undefined) result.phase = s.phase;
+      if (s.paused !== undefined) result.paused = s.paused;
+      if (s.timer !== undefined) result.timer = s.timer;
+      if (s.foodBowl) result.foodBowl = {x: s.foodBowl.x, y: s.foodBowl.y, fill: s.foodBowl.fill};
+      if (s.waterBowl) result.waterBowl = {x: s.waterBowl.x, y: s.waterBowl.y, fill: s.waterBowl.fill};
+      if (s.obi) result.obi = {x: s.obi.x, y: s.obi.y, joy: s.obi.joy};
+      if (s.luna) result.luna = {x: s.luna.x, y: s.luna.y, joy: s.luna.joy, perch: s.luna.perch};
+      if (s.annie) result.annie = {x: s.annie.x, y: s.annie.y, pose: s.annie.pose};
+      if (s.tree) result.tree = {x: s.tree.x, y: s.tree.y};
+      if (s.pool) result.pool = {x: s.pool.x, y: s.pool.y};
+      if (s.feeder) result.feeder = {x: s.feeder.x, y: s.feeder.y};
+      if (s.garden) result.garden = {x: s.garden.x, y: s.garden.y};
+      if (s.byDecorButton) result.byDecorButton = s.byDecorButton;
+      return result;
+    };
+    /* Direct scene modification hook for testing */
+    window.__modifyScene = (fn) => {
+      const s = game.scene;
+      if (!s) return false;
+      try { fn(s); return true; } catch(e) { return e.message; }
+    };
+    /* Direct scene transition hook for testing */
+    window.__goToScene = (key) => {
+      try { transitionTo(SceneRegistry.create(key)); return true; } catch(e) { return e.message; }
+    };
+
+    requestAnimationFrame(loop);
     }
 
 
@@ -11189,6 +12313,7 @@
       if (document.hidden) {
         const activeScene = game.transition ? game.transition.from : game.scene;
         if (activeScene instanceof BaseMinigameScene && activeScene.phase === "play") activeScene.paused = true;
+        if (activeScene && activeScene.saveSessionMemory) activeScene.saveSessionMemory();
       }
     });
 
