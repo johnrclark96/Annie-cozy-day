@@ -4290,16 +4290,16 @@
         if (game.transition && game.transition.from instanceof BaseMinigameScene) {
           awardBondXP("obi", "game"); awardBondXP("luna", "game");
         }
-        /* bond level 2+: door greeting — pets run to Annie on arrival */
+        /* bond level 2+: door greeting — pets run toward Annie on arrival */
         if (game.transition && game.transition.from instanceof TitleScene) {
           if (getBondLevel("obi") >= 2) {
-            this.obi.targetX = this.annie.x - 30;
-            this.obi.targetY = this.annie.y + 10;
+            this.obi.targetX = this.annie.x - 40;
+            this.obi.targetY = this.obi.homeY;
             this._obiGreeting = 2.0;
           }
           if (getBondLevel("luna") >= 2) {
-            this.luna.targetX = this.annie.x + 25;
-            this.luna.targetY = this.annie.y + 5;
+            this.luna.targetX = this.annie.x + 40;
+            this.luna.targetY = this.luna.floorY;
             this.luna.perch = "floor";
             this._lunaGreeting = 2.0;
           }
@@ -7302,7 +7302,7 @@
         c.fillStyle = "#D4738C";
         c.font = '9px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "left";
-        drawHeart(c, 22, 103, 5);
+        drawHeart(c, 20, 105, 0.28, "#D4738C");
         c.fillStyle = "#D4738C";
         c.fillText("Lv." + obiBondLvl, 32, 106);
         rr(c, 55, 100, 85, 7, 3);
@@ -7345,7 +7345,7 @@
         c.fillStyle = "#D4738C";
         c.font = '9px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "left";
-        drawHeart(c, 654, 103, 5);
+        drawHeart(c, 652, 105, 0.28, "#D4738C");
         c.fillStyle = "#D4738C";
         c.fillText("Lv." + lunaBondLvl, 664, 106);
         rr(c, 687, 100, 85, 7, 3);
