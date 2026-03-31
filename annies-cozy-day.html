@@ -4646,6 +4646,57 @@
           this.scrapbookFade = 0;
           return;
         }
+        /* clickable ambient events */
+        if (this.ambientEvent && !this.ambientEvent.data.interacted) {
+          if (this.ambientEvent.type === "butterfly") {
+            for (var bi = this.ambientEvent.data.length - 1; bi >= 0; bi--) {
+              var bf = this.ambientEvent.data[bi];
+              if (dist(x, y, bf.x, bf.y) < 20) {
+                this.earnCoins(1);
+                this.addFloatingText("+1 coin!", bf.x, bf.y - 15, COLORS.gold);
+                this.ambientEvent.data.splice(bi, 1);
+                audio.tinyChime();
+                if (this.ambientEvent.data.length === 0) { this.ambientEvent = null; this.ambientEventCooldown = rand(60, 120); }
+                break;
+              }
+            }
+          } else if (this.ambientEvent.type === "bird") {
+            for (var bi = this.ambientEvent.data.length - 1; bi >= 0; bi--) {
+              var bd = this.ambientEvent.data[bi];
+              if (dist(x, y, bd.x, bd.y) < 20) {
+                this.earnCoins(1);
+                this.addFloatingText("+1 coin!", bd.x, bd.y - 15, COLORS.gold);
+                this.ambientEvent.data.splice(bi, 1);
+                audio.tinyChime();
+                if (this.ambientEvent.data.length === 0) { this.ambientEvent = null; this.ambientEventCooldown = rand(60, 120); }
+                break;
+              }
+            }
+          } else if (this.ambientEvent.type === "rain") {
+            if (pointInRect(x, y, this.windowHitbox)) {
+              this.obi.joy = clamp(this.obi.joy + 2, 0, 100);
+              this.luna.joy = clamp(this.luna.joy + 2, 0, 100);
+              this.statusText = "So cozy listening to the rain together!";
+              this.statusPulse = 1;
+              this.addFloatingText("+2 joy!", 126, 120, COLORS.softPink);
+              spawnParticleBurst(126, 120, [COLORS.softPink, "#87CEEB"], 6, ["heart"]);
+              audio.tinyChime();
+              this.ambientEvent.data.interacted = true;
+            }
+          } else if (this.ambientEvent.type === "package") {
+            var pk = this.ambientEvent.data;
+            if (dist(x, y, pk.x, pk.y) < 40) {
+              this.earnCoins(5);
+              this.addFloatingText("+5 coins!", pk.x, pk.y - 20, COLORS.gold);
+              this.statusText = "Collected the package!";
+              this.statusPulse = 1;
+              audio.combo();
+              spawnParticleBurst(pk.x, pk.y, [COLORS.gold, "#FFF4C0"], 8, ["star"]);
+              this.ambientEvent = null;
+              this.ambientEventCooldown = rand(60, 120);
+            }
+          }
+        }
         /* visitor click interaction */
         if (this.ambientEvent && this.ambientEvent.type === "visitor" && !this.ambientEvent.data.interacted) {
           var v = this.ambientEvent.data.visitor;
@@ -4664,6 +4715,29 @@
             this.statusPulse = 1;
             audio.tinyChime();
           }
+        }
+        /* interactive bookshelf — Annie reads a story */
+        if (x > 600 && x < 740 && y > 100 && y < 350 && (!this._bookCooldown || this._bookCooldown <= 0)) {
+          this._bookCooldown = 30;
+          this.obi.joy = clamp(this.obi.joy + 3, 0, 100);
+          this.luna.joy = clamp(this.luna.joy + 3, 0, 100);
+          var stories = ["Annie reads a story about a brave little dog.", "Annie reads a cat adventure story. Luna's ears perk up!", "Story time! Both pets gather around Annie.", "Annie reads aloud. Obi's tail wags to the rhythm."];
+          this.statusText = stories[Math.floor(Math.random() * stories.length)];
+          this.statusPulse = 1;
+          this.addFloatingText("+3 joy!", 670, 200, COLORS.softPink);
+          spawnParticleBurst(670, 200, [COLORS.softPink, "#FFF4C0"], 5, ["heart", "star"]);
+          audio.tinyChime();
+        }
+        /* interactive rug — Luna kneads */
+        if (this.luna.perch === "floor" && x > 300 && x < 500 && y > 430 && y < 500 && (!this._rugCooldown || this._rugCooldown <= 0)) {
+          this._rugCooldown = 20;
+          this.luna.joy = clamp(this.luna.joy + 2, 0, 100);
+          this.luna.targetX = 400;
+          this.statusText = "Luna kneads the rug. Making biscuits!";
+          this.statusPulse = 0.5;
+          this.addFloatingText("+2 Luna joy", 400, 460, COLORS.softPink);
+          spawnParticleBurst(400, 470, [COLORS.softPink], 3, ["heart"]);
+          audio.tinyChime();
         }
         /* backyard door */
         if (pointInRect(x, y, this.backyardDoor)) {
@@ -5450,8 +5524,8 @@
         if (this.cameraFlash > 0) this.cameraFlash = Math.max(0, this.cameraFlash - dt * 2.5);
         /* bowl depletion during play */
         var bowlDrainMult = hasUpgrade("comfyBowls") ? 0.75 : 1.0;
-        this.foodBowl.fill = clamp(this.foodBowl.fill - dt * 0.4 * bowlDrainMult, 0, 100);
-        this.waterBowl.fill = clamp(this.waterBowl.fill - dt * 0.55 * bowlDrainMult, 0, 100);
+        this.foodBowl.fill = clamp(this.foodBowl.fill - dt * 0.8 * bowlDrainMult, 0, 100);
+        this.waterBowl.fill = clamp(this.waterBowl.fill - dt * 1.1 * bowlDrainMult, 0, 100);
         this.bowlSaveTimer += dt;
         if (this.bowlSaveTimer > 10) {
           this.bowlSaveTimer = 0;
@@ -5482,6 +5556,8 @@
         this.updatePetInteraction(dt);
         this.updateThoughtBubbles(dt);
         this.updateAmbientEvents(dt);
+        if (this._bookCooldown > 0) this._bookCooldown -= dt;
+        if (this._rugCooldown > 0) this._rugCooldown -= dt;
         this.updateDecorReactions(dt);
         /* scrapbook goals check (every 2 seconds) */
         if (!this._goalCheckTimer) this._goalCheckTimer = 0;
@@ -5802,6 +5878,29 @@
       earnCoins(amount) {
         addCoins(amount);
         this.coinPopup = { amount: amount, timer: 1.5 };
+      }
+      getNextGoal() {
+        /* check incomplete scrapbook goals */
+        var sg = store.scrapbookGoals.completed || [];
+        for (var gi = 0; gi < SCRAPBOOK_GOALS.length; gi++) {
+          var g = SCRAPBOOK_GOALS[gi];
+          if (sg.indexOf(g.key) < 0) return "Goal: " + g.name + " (+" + g.reward + " coins)";
+        }
+        /* check streak milestones */
+        var streak = store.careStreak.count || 0;
+        var milestones = [3, 7, 14, 21, 30, 45, 60, 90];
+        for (var mi = 0; mi < milestones.length; mi++) {
+          if (streak < milestones[mi]) return (milestones[mi] - streak) + "-day streak to next milestone!";
+        }
+        /* check affordable items */
+        for (var di = 0; di < DECOR_ITEMS.length; di++) {
+          var item = DECOR_ITEMS[di];
+          if (item.price && store.decorPurchased.indexOf(item.key) < 0 && canUnlockDecorItem(item)) {
+            if (store.coins >= item.price) return "Buy " + item.name + " (" + item.price + " coins)!";
+            return "Save for " + item.name + " (need " + (item.price - store.coins) + " more coins)";
+          }
+        }
+        return "Keep playing to unlock more content!";
       }
       saveSessionMemory() {
         store.petMemory.lastActions = this._sessionActions || [];
@@ -6706,6 +6805,15 @@
         this.drawToyBasket(c, this.hoverKey === "toyBasket");
 
         var obiState = this.petSpriteState("obi");
+        /* low joy distress indicator */
+        if (this.obi.joy < 30 && !this.obi.sleepy) {
+          c.save();
+          c.globalAlpha = 0.15 + Math.sin(game.time * 3) * 0.08;
+          c.strokeStyle = "#D04040";
+          c.lineWidth = 2;
+          c.beginPath(); c.arc(this.obi.x, this.obi.y - 20, 30, 0, Math.PI * 2); c.stroke();
+          c.restore();
+        }
         drawObi(c, this.obi.x, this.obi.y, 1.12, obiState);
         drawAccessoryOverlay(c, "obi", this.obi.x, this.obi.y, 1.12, obiState.pose, obiState.facing);
         /* bone carry visual */
@@ -6724,6 +6832,14 @@
         const lunaDrawY = this.luna.perch !== "floor" ? LUNA_PERCHES[this.luna.perch].y : this.luna.y;
         const lunaDrawScale = this.luna.perch === "floor" ? 0.98 : this.luna.perch === "tower" ? 1.06 : 0.92;
         var lunaState = this.petSpriteState("luna");
+        if (this.luna.joy < 30) {
+          c.save();
+          c.globalAlpha = 0.15 + Math.sin(game.time * 3 + 1) * 0.08;
+          c.strokeStyle = "#D04040";
+          c.lineWidth = 2;
+          c.beginPath(); c.arc(this.luna.x, lunaDrawY - 20, 25, 0, Math.PI * 2); c.stroke();
+          c.restore();
+        }
         drawLuna(c, this.luna.x, lunaDrawY, lunaDrawScale, lunaState);
         drawAccessoryOverlay(c, "luna", this.luna.x, lunaDrawY, lunaDrawScale, lunaState.pose, lunaState.facing);
 
@@ -6849,6 +6965,21 @@
         c.restore();
         c.restore();
 
+        /* next goal indicator */
+        if (!this.decorOpen && !this.wardrobeOpen && !this.scrapbookOpen && !this.menuOpen) {
+          c.save();
+          var goalText = this.getNextGoal();
+          c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          var goalW = Math.min(c.measureText(goalText).width + 20, 300);
+          c.fillStyle = "rgba(255,248,240,0.55)";
+          rr(c, 14, H - 30, goalW, 22, 8);
+          c.fill();
+          c.fillStyle = "rgba(122,78,54,0.6)";
+          c.textAlign = "left";
+          c.fillText(goalText, 24, H - 14);
+          c.restore();
+        }
+
         /* camera button */
         c.save();
         var camHover = this.hoverKey === "camera";
@@ -6929,6 +7060,10 @@
           c.textAlign = "center";
           c.font = '30px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("Minigames", W / 2, 110);
+          var totalStars = totalStarsEarned();
+          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillStyle = "rgba(92,61,46,0.5)";
+          c.fillText("\u2605 " + totalStars + " / 36 stars earned", W / 2, 128);
 
           /* close button */
           const closeHover = this.menuHover === "close";
@@ -7207,6 +7342,9 @@
           c.fillStyle = "rgba(92,61,46,0.5)";
           c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("Coins: " + store.coins, W / 2, 116);
+          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillStyle = "rgba(92,61,46,0.5)";
+          c.fillText(store.wardrobe.owned.length + " / " + Object.values(ACCESSORIES).reduce(function(s, a) { return s + a.length; }, 0) + " owned", W / 2, 128);
           /* close button */
           var wchov = this.wardrobeHover === "close";
           var wcx = W / 2 + 218, wcy = 102;
@@ -7483,7 +7621,11 @@
             c.fillText("Accessories Owned: " + store.wardrobe.owned.length + " / " + Object.values(ACCESSORIES).reduce(function(sum, arr) { return sum + arr.length; }, 0), 120, sy); sy += 40;
             c.fillText("Scrapbook Entries: " + store.scrapbook.entries.length, 120, sy);
           } else if (this.scrapbookTab === "goals") {
-            var gy = 150;
+            c.fillStyle = "rgba(92,61,46,0.4)";
+            c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.textAlign = "center";
+            c.fillText((store.scrapbookGoals.completed || []).length + " / " + SCRAPBOOK_GOALS.length + " completed", W / 2, 145);
+            var gy = 155;
             var completedGoals = store.scrapbookGoals.completed || [];
             c.textAlign = "left";
             for (var gi = 0; gi < SCRAPBOOK_GOALS.length; gi++) {
