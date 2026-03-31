@@ -476,7 +476,11 @@
       challengeStars: loadJSON("challengeStars", {}),
       weather: loadJSON("weather", { current: "sunny", lastUpdate: null }),
       scrapbookGoals: loadJSON("scrapbookGoals", { completed: [] }),
-      petMemory: loadJSON("petMemory", { lastActions: [], lastJoy: { obi: 50, luna: 50 }, lastDate: null, memories: [] })
+      petMemory: loadJSON("petMemory", { lastActions: [], lastJoy: { obi: 50, luna: 50 }, lastDate: null, memories: [] }),
+      bond: loadJSON("bond", {
+        obi: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null },
+        luna: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null }
+      })
     };
 
     /* ── Backfill migrations for existing saves ── */
@@ -506,6 +510,19 @@
     if (store.stats.totalBowlsFilled === undefined) store.stats.totalBowlsFilled = 0;
     if (store.stats.petInteractionsSeen === undefined) store.stats.petInteractionsSeen = 0;
 
+    /* ── Bond system migration for existing saves ── */
+    if (!store.bond || !store.bond.obi) {
+      store.bond = { obi: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null }, luna: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null } };
+    }
+    /* retroactive bond XP for veteran players based on stats */
+    if (store.bond.obi.xp === 0 && store.stats.totalSessions > 1) {
+      var retroXP = Math.min(2500, (store.stats.totalBowlsFilled || 0) * 4 + (store.stats.totalTreatCatches || 0) * 2 + (store.careStreak.bestStreak || 0) * 15 + (store.stats.totalSessions || 0) * 5 + (store.stats.petInteractionsSeen || 0) * 8);
+      store.bond.obi.xp = retroXP;
+      store.bond.luna.xp = retroXP;
+      for (var bl = 1; bl <= 10; bl++) { if (retroXP >= bl * bl * 50) { store.bond.obi.level = bl; store.bond.luna.level = bl; } }
+      saveJSON("bond", store.bond);
+    }
+
     /* ── Wardrobe migration: single-slot → multi-slot ── */
     if (typeof store.wardrobe.equipped.obi === "string" || store.wardrobe.equipped.obi === null) {
       var oldObi = store.wardrobe.equipped.obi;
@@ -532,6 +549,32 @@
     function saveDecor() { saveJSON("decor", store.decor); }
     function saveBackyardDecor() { saveJSON("backyardDecor", store.backyardDecor); }
     function saveCareStreak() { saveJSON("careStreak", store.careStreak); }
+    function saveBond() { saveJSON("bond", store.bond); }
+    var BOND_XP_RATES = { pet: { xp: 5, cap: 3 }, brush: { xp: 8, cap: 2 }, treat: { xp: 3, cap: 4 }, toy: { xp: 6, cap: 3 }, feed: { xp: 4, cap: 2 }, water: { xp: 4, cap: 2 }, game: { xp: 10, cap: 3 }, visit: { xp: 5, cap: 1 } };
+    function getBondLevel(pet) { return store.bond[pet] ? store.bond[pet].level : 1; }
+    function getBondXPForLevel(level) { return level * level * 50; }
+    function getBondProgress(pet) {
+      var b = store.bond[pet]; if (!b) return 0;
+      var curThresh = getBondXPForLevel(b.level);
+      var nextThresh = getBondXPForLevel(b.level + 1);
+      if (b.level >= 10) return 1;
+      return clamp((b.xp - curThresh) / (nextThresh - curThresh), 0, 1);
+    }
+    function awardBondXP(pet, actionType) {
+      var b = store.bond[pet]; if (!b || b.level >= 10) return 0;
+      var rate = BOND_XP_RATES[actionType]; if (!rate) return 0;
+      var today = new Date().toDateString();
+      if (b.lastActionDate !== today) { b.dailyActions = {}; b.lastActionDate = today; }
+      var count = b.dailyActions[actionType] || 0;
+      if (count >= rate.cap) return 0;
+      b.dailyActions[actionType] = count + 1;
+      b.xp += rate.xp;
+      var leveled = false;
+      while (b.level < 10 && b.xp >= getBondXPForLevel(b.level + 1)) { b.level++; leveled = true; }
+      saveBond();
+      return leveled ? b.level : 0;
+    }
+    var BOND_LEVEL_NAMES = ["", "", "Familiar", "Friendly", "Companion", "Trusted", "Devoted", "Bonded", "Inseparable", "Soulmates", "Best Friends Forever"];
     function setBest(gameId, value) {
       const key = "best_" + gameId;
       if (value > store[key]) {
@@ -4140,6 +4183,25 @@
         if (game.transition && game.transition.from instanceof TitleScene) {
           store.stats.totalSessions++;
           saveStats();
+          awardBondXP("obi", "visit"); awardBondXP("luna", "visit");
+        }
+        /* bond XP for returning from minigame */
+        if (game.transition && game.transition.from instanceof BaseMinigameScene) {
+          awardBondXP("obi", "game"); awardBondXP("luna", "game");
+        }
+        /* bond level 2+: door greeting — pets run to Annie on arrival */
+        if (game.transition && game.transition.from instanceof TitleScene) {
+          if (getBondLevel("obi") >= 2) {
+            this.obi.targetX = this.annie.x - 30;
+            this.obi.targetY = this.annie.y + 10;
+            this._obiGreeting = 2.0;
+          }
+          if (getBondLevel("luna") >= 2) {
+            this.luna.targetX = this.annie.x + 25;
+            this.luna.targetY = this.annie.y + 5;
+            this.luna.perch = "floor";
+            this._lunaGreeting = 2.0;
+          }
         }
         /* initialize daily moods and weather */
         var obiMoodToday = getDailyMood("obi");
@@ -4427,6 +4489,15 @@
         this.checkBubbleReward(key, source);
         this.checkJoyMilestone(key);
         this.recordCareAction(source);
+        /* bond XP */
+        var bondLevelUp = awardBondXP(key, source);
+        if (bondLevelUp > 0) {
+          this._bondLevelUp = { pet: key, level: bondLevelUp, timer: 4 };
+          this.statusText = this.petName(key) + " bond reached Level " + bondLevelUp + "! " + (BOND_LEVEL_NAMES[bondLevelUp] || "");
+          this.statusPulse = 1;
+          audio.achievement();
+          spawnParticleBurst(pet.x, pet.y - 30, [COLORS.softPink, COLORS.gold, "#FF69B4"], 16, ["heart", "star"]);
+        }
         /* favorite item detection */
         const fav = getCurrentFavorite(key);
         const isFavAction =
@@ -4988,6 +5059,7 @@
             audio.tinyChime();
             this.checkBubbleReward("obi", "feed");
             this.checkBubbleReward("luna", "feed");
+            awardBondXP("obi", "feed"); awardBondXP("luna", "feed");
             store.stats.totalBowlsFilled++;
             saveStats();
             if (store.stats.totalBowlsFilled >= 50 && !store.achievements.wellFed) {
@@ -5011,6 +5083,7 @@
             this.statusPulse = 0.6;
             spawnParticleBurst(this.waterBowl.x, this.waterBowl.y - 10, ["#6CB4EE", "#A0D4FF"], 6, ["star"]);
             audio.tinyChime();
+            awardBondXP("obi", "water"); awardBondXP("luna", "water");
             this.checkBubbleReward("obi", "water");
             this.checkBubbleReward("luna", "water");
             return;
@@ -5459,6 +5532,23 @@
           this._rewardCooldown.obi = Math.max(0, (this._rewardCooldown.obi || 0) - dt * 0.5);
           this._rewardCooldown.luna = Math.max(0, (this._rewardCooldown.luna || 0) - dt * 0.5);
         }
+        /* bond greeting timers */
+        if (this._obiGreeting > 0) {
+          this._obiGreeting -= dt;
+          if (this._obiGreeting <= 0) {
+            this.obi.targetX = this.obi.homeX;
+            this.obi.targetY = this.obi.homeY;
+            spawnParticleBurst(this.obi.x, this.obi.y - 20, [COLORS.softPink, COLORS.gold], 6, ["heart"]);
+          }
+        }
+        if (this._lunaGreeting > 0) {
+          this._lunaGreeting -= dt;
+          if (this._lunaGreeting <= 0) {
+            this.luna.targetX = this.luna.floorX;
+            this.luna.targetY = this.luna.floorY;
+            spawnParticleBurst(this.luna.x, this.luna.y - 20, [COLORS.softPink, "#FF69B4"], 4, ["heart"]);
+          }
+        }
         var joyDecayMult = hasUpgrade("joyfulHome") ? 0.8 : 1.0;
         var obiDecay = getMoodData("obi").decay || 0.5;
         if (this.foodBowl.fill < 20) obiDecay += 0.8;
@@ -5805,6 +5895,11 @@
           this.decorNotification.timer -= dt;
           if (this.decorNotification.timer <= 0) this.decorNotification = null;
         }
+        /* bond level-up notification tick */
+        if (this._bondLevelUp) {
+          this._bondLevelUp.timer -= dt;
+          if (this._bondLevelUp.timer <= 0) this._bondLevelUp = null;
+        }
         /* stroke trail tick */
         for (let i = this.strokeTrail.length - 1; i >= 0; i--) {
           this.strokeTrail[i].life -= dt;
@@ -5995,6 +6090,16 @@
           const canLuna = !this.lunaBubble && !lunaBusy;
           if (!canObi && !canLuna) return;
           const pet = (canObi && canLuna) ? (Math.random() < 0.5 ? "obi" : "luna") : (canObi ? "obi" : "luna");
+          /* bond level 6+: 15% chance of affectionate bubble */
+          if (getBondLevel(pet) >= 6 && Math.random() < 0.15) {
+            var bondMsgs = pet === "obi" ?
+              ["Obi gazes at you with pure adoration.", "Obi's tail wags just from seeing you.", "Obi leans against your leg."] :
+              ["Luna purrs loudly just being near you.", "Luna slow-blinks at you lovingly.", "Luna headbutts your hand."];
+            this.statusText = bondMsgs[Math.floor(Math.random() * bondMsgs.length)];
+            this.statusPulse = 0.3;
+            spawnParticleBurst(pet === "obi" ? this.obi.x : this.luna.x, (pet === "obi" ? this.obi.y : this.luna.y) - 40, ["#FF69B4", COLORS.softPink], 3, ["heart"]);
+            return;
+          }
           /* 10% chance: memory bubble instead of want (flavor only) */
           if (Math.random() < 0.1 && store.petMemory.lastActions && store.petMemory.lastActions.length > 0) {
             var memAct = store.petMemory.lastActions[Math.floor(Math.random() * store.petMemory.lastActions.length)];
@@ -6909,9 +7014,9 @@
           c.restore();
         }
 
-        /* compact pet status - small pills */
+        /* compact pet status - small pills with bond meter */
         c.save();
-        rr(c, 14, 62, 140, 42, 12);
+        rr(c, 14, 62, 140, 56, 12);
         c.fillStyle = "rgba(255,255,255,0.78)";
         c.fill();
         c.strokeStyle = "rgba(146,104,72,0.12)";
@@ -6930,15 +7035,31 @@
           rr(c, 24, 84, obiBarW, 12, 6);
           c.fillStyle = "#4A90D9";
           c.fill();
-          /* bar shine */
           c.fillStyle = "rgba(255,255,255,0.25)";
           rr(c, 24, 84, obiBarW, 5, 6);
+          c.fill();
+        }
+        /* obi bond meter */
+        var obiBondLvl = getBondLevel("obi");
+        var obiBondProg = getBondProgress("obi");
+        c.fillStyle = "#D4738C";
+        c.font = '9px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "left";
+        drawHeart(c, 22, 103, 5);
+        c.fillStyle = "#D4738C";
+        c.fillText("Lv." + obiBondLvl, 32, 106);
+        rr(c, 55, 100, 85, 7, 3);
+        c.fillStyle = "rgba(0,0,0,0.06)";
+        c.fill();
+        if (obiBondProg > 0.01) {
+          rr(c, 55, 100, 85 * obiBondProg, 7, 3);
+          c.fillStyle = "#E88BA7";
           c.fill();
         }
         c.restore();
 
         c.save();
-        rr(c, 646, 62, 140, 42, 12);
+        rr(c, 646, 62, 140, 56, 12);
         c.fillStyle = "rgba(255,255,255,0.78)";
         c.fill();
         c.strokeStyle = "rgba(146,104,72,0.12)";
@@ -6959,6 +7080,23 @@
           c.fill();
           c.fillStyle = "rgba(255,255,255,0.25)";
           rr(c, 656, 84, lunaBarW, 5, 6);
+          c.fill();
+        }
+        /* luna bond meter */
+        var lunaBondLvl = getBondLevel("luna");
+        var lunaBondProg = getBondProgress("luna");
+        c.fillStyle = "#D4738C";
+        c.font = '9px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "left";
+        drawHeart(c, 654, 103, 5);
+        c.fillStyle = "#D4738C";
+        c.fillText("Lv." + lunaBondLvl, 664, 106);
+        rr(c, 687, 100, 85, 7, 3);
+        c.fillStyle = "rgba(0,0,0,0.06)";
+        c.fill();
+        if (lunaBondProg > 0.01) {
+          rr(c, 687, 100, 85 * lunaBondProg, 7, 3);
+          c.fillStyle = "#E88BA7";
           c.fill();
         }
         c.restore();
@@ -7152,6 +7290,33 @@
           c.textAlign = "center";
           c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("\u2605 " + dn.text + " \u2605", 400, 128);
+          c.restore();
+        }
+
+        /* bond level-up celebration */
+        if (this._bondLevelUp) {
+          c.save();
+          var blu = this._bondLevelUp;
+          var bluAlpha = clamp(blu.timer / 0.5, 0, 1) * clamp((4 - blu.timer) / 0.5, 0, 1);
+          c.globalAlpha = bluAlpha;
+          var heartPulse = 1 + 0.08 * Math.sin(game.time * 6);
+          c.fillStyle = "rgba(180,60,100,0.15)";
+          rr(c, 202, 148, 400, 40, 20);
+          c.fill();
+          var bGrad = c.createLinearGradient(200, 145, 600, 145);
+          bGrad.addColorStop(0, "rgba(220,80,130,0.92)");
+          bGrad.addColorStop(1, "rgba(255,140,180,0.92)");
+          rr(c, 200, 145, 400, 40, 20);
+          c.fillStyle = bGrad;
+          c.fill();
+          c.strokeStyle = "rgba(255,255,255,0.35)";
+          c.lineWidth = 1.5;
+          c.stroke();
+          c.fillStyle = "#FFF";
+          c.textAlign = "center";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          var lvlName = BOND_LEVEL_NAMES[blu.level] || "";
+          c.fillText("\u2764 " + (blu.pet === "obi" ? "Obi" : "Luna") + " Bond Lv." + blu.level + (lvlName ? " — " + lvlName : "") + " \u2764", 400, 170);
           c.restore();
         }
 
