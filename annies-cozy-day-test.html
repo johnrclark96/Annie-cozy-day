@@ -12615,7 +12615,7 @@
         super.enter();
         this.scrollSpeed = 120;
         this.obstacles = [];
-        this.obstacleTimer = 2.5;
+        this.obstacleTimer = 3.5;
         this.passed = 0;
         this.gameOver = false;
         this.gameOverTimer = 0;
@@ -12671,7 +12671,7 @@
       onMouseMove(x, y) {
         super.onMouseMove(x, y);
         if (this.phase === "play" && !this.paused && !this.gameOver) {
-          this.anchor.x = clamp(x, 100, 300);
+          this.anchor.x = clamp(x, 80, 280);
           this.anchor.y = clamp(y, 60, H - 60);
         }
       }
@@ -12681,11 +12681,11 @@
           if (this.gameOverTimer > 1.5) this.finishGame();
           return;
         }
-        var elapsed = 300 - this.timeLeft;
+        var elapsed = this.duration - this.timeLeft;
         /* difficulty ramp */
-        this.scrollSpeed = 150 + elapsed * 1.2;
-        var gapSize = Math.max(85, 130 - elapsed * 0.5);
-        if (this.challengeMode) gapSize = Math.max(65, gapSize * 0.7);
+        this.scrollSpeed = 100 + elapsed * 0.8;
+        var gapSize = Math.max(110, 180 - elapsed * 0.6);
+        if (this.challengeMode) gapSize = Math.max(85, gapSize * 0.75);
         /* scroll world */
         this.scrollX += this.scrollSpeed * dt;
         /* spawn obstacles */
@@ -12702,11 +12702,11 @@
             passed: false,
             type: obstType,
             w: 50,
-            bobbing: Math.random() < 0.3,
+            bobbing: Math.random() < 0.15,
             bobPhase: rand(0, Math.PI * 2),
-            narrowing: elapsed > 45 && Math.random() < 0.25
+            narrowing: elapsed > 60 && Math.random() < 0.15
           });
-          var spawnInterval = Math.max(1.3, 2.5 - elapsed * 0.02);
+          var spawnInterval = Math.max(1.6, 3.0 - elapsed * 0.02);
           this.obstacleTimer = spawnInterval;
         }
         /* move obstacles */
@@ -12714,7 +12714,7 @@
           var ob = this.obstacles[i];
           ob.x -= this.scrollSpeed * dt;
           /* bobbing gaps */
-          if (ob.bobbing) ob.gapY = ob.baseGapY + Math.sin(game.time * 2.5 + ob.bobPhase) * 25;
+          if (ob.bobbing) ob.gapY = ob.baseGapY + Math.sin(game.time * 2 + ob.bobPhase) * 18;
           /* narrowing gaps */
           if (ob.narrowing) {
             var progress = 1 - (ob.x / W);
@@ -12751,13 +12751,13 @@
           if (ob.x < -60) this.obstacles.splice(i, 1);
         }
         /* update anchor from mouse */
-        this.anchor.x = clamp(game.mouse.x, 100, 300);
+        this.anchor.x = clamp(game.mouse.x, 80, 280);
         this.anchor.y = clamp(game.mouse.y, 60, H - 60);
         /* lure physics — pendulum/spring from anchor */
-        var stringLen = 80;
-        var springK = 8.0;
-        var damping = 1.4;
-        var gravity = 550;
+        var stringLen = 70;
+        var springK = 6.0;
+        var damping = 1.8;
+        var gravity = 400;
         var dx = this.anchor.x - this.lure.x;
         var dy = (this.anchor.y + stringLen) - this.lure.y;
         var d = Math.hypot(dx, dy);
@@ -12775,7 +12775,7 @@
         var ldx = this.lure.x - this.anchor.x;
         var ldy = this.lure.y - this.anchor.y;
         var ld = Math.hypot(ldx, ldy);
-        var maxLen = 100;
+        var maxLen = 85;
         if (ld > maxLen) {
           this.lure.x = this.anchor.x + ldx / ld * maxLen;
           this.lure.y = this.anchor.y + ldy / ld * maxLen;
@@ -12791,23 +12791,23 @@
         var cdx = chaseX - this.luna.x;
         var cdy = chaseY - this.luna.y;
         var cd = Math.hypot(cdx, cdy);
-        var chaseSpeed = 350;
-        var chaseDamping = 1.5;
+        var chaseSpeed = 420;
+        var chaseDamping = 2.2;
         if (cd > 5) {
           this.luna.vx += (cdx / cd) * chaseSpeed * dt;
           this.luna.vy += (cdy / cd) * chaseSpeed * dt;
         }
         /* strong gravity on Luna — she falls when lure is above */
-        this.luna.vy += 200 * dt;
-        /* cat wobble — small random perturbation */
-        if (Math.random() < dt * 4) {
-          this.luna.vx += rand(-30, 30);
-          this.luna.vy += rand(-20, 20);
+        this.luna.vy += 120 * dt;
+        /* cat wobble — occasional twitch, not constant vibration */
+        if (Math.random() < dt * 8) {
+          this.luna.vx += rand(-15, 15);
+          this.luna.vy += rand(-10, 10);
         }
         /* pounce burst — when close to lure, sudden speed spike */
-        if (cd < 30 && cd > 5 && Math.random() < dt * 3) {
-          this.luna.vx += (cdx / cd) * 120;
-          this.luna.vy += (cdy / cd) * 120;
+        if (cd < 30 && cd > 5 && Math.random() < dt * 2) {
+          this.luna.vx += (cdx / cd) * 80;
+          this.luna.vy += (cdy / cd) * 80;
         }
         /* damping */
         this.luna.vx *= Math.max(0, 1 - chaseDamping * dt);
@@ -12815,9 +12815,9 @@
         this.luna.x += this.luna.vx * dt;
         this.luna.y += this.luna.vy * dt;
         /* keep Luna in bounds */
-        if (this.luna.y < 50) { this.luna.y = 50; this.luna.vy = Math.max(0, this.luna.vy); if (this.combo > 1) { this.combo = 1; this.scorePopups.push({ x: this.luna.x, y: 60, text: "Combo lost!", life: 0.7 }); } }
-        if (this.luna.y > H - 30) { this.luna.y = H - 30; this.luna.vy = Math.min(0, this.luna.vy); if (this.combo > 1) { this.combo = 1; this.scorePopups.push({ x: this.luna.x, y: H - 40, text: "Combo lost!", life: 0.7 }); } }
-        this.luna.x = clamp(this.luna.x, 80, 350);
+        if (this.luna.y < 50) { this.luna.y = 50; this.luna.vy = Math.max(0, this.luna.vy); }
+        if (this.luna.y > H - 30) { this.luna.y = H - 30; this.luna.vy = Math.min(0, this.luna.vy); }
+        this.luna.x = clamp(this.luna.x, 80, 320);
         this.luna.facing = this.luna.vx >= 0 ? 1 : -1;
         this.luna.excitement = clamp(cd / 80, 0, 1);
         this.nearMissTimer = Math.max(0, this.nearMissTimer - dt);
@@ -12832,7 +12832,7 @@
           var ob = this.obstacles[oi];
           var inXRange = this.luna.x > ob.x - 10 && this.luna.x < ob.x + ob.w + 10;
           if (inXRange) {
-            var inGap = this.luna.y > ob.gapY - ob.gapSize / 2 + 12 && this.luna.y < ob.gapY + ob.gapSize / 2 - 12;
+            var inGap = this.luna.y > ob.gapY - ob.gapSize / 2 + 8 && this.luna.y < ob.gapY + ob.gapSize / 2 - 8;
             if (!inGap) {
               /* COLLISION */
               this.gameOver = true;
