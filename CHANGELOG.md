@@ -2,6 +2,46 @@
 
 ## 2026-03-30
 
+### Procedural Music Engine
+- Replaced two-note drone (A2+E3) with full 4-voice procedural music system
+- Voices: sustained bass (sine), detuned pad pair with LFO, procedural melody (triangle, pentatonic random walk), arpeggio (sine)
+- All through a shared lowpass filter for warmth
+- 5 moods with different chord progressions, BPM, and filter settings:
+  - Morning (76bpm, bright), Day (72bpm, warm), Evening (64bpm, mellow), Night (54bpm, lullaby), Backyard (80bpm, playful)
+- Smooth crossfade on scene/time-of-day transitions
+- Web Audio look-ahead scheduling for precise timing
+
+### Pet Bond / Relationship Leveling
+- New bond level 1-10 per pet, growing over days of varied care
+- Bond XP from 8 action types (pet, brush, treat, toy, feed, water, game, visit) with daily caps
+- Level curve: N*N*50 XP, reaching max in ~45 days of dedicated play
+- Retroactive XP for veteran players based on existing stats
+- Bond meter UI: pink heart bar + "Lv.X" badge in pet status pills
+- Level-up celebration banner with particle burst
+- Level 2+: door greeting (pets run to Annie on game open)
+- Level 6+: affectionate thought bubbles ("Obi gazes at you with pure adoration")
+
+### "While You Were Away" Stories
+- 28 story templates shown on return after 2+ hours away
+- Parchment-style overlay with word-wrapped story text and paw print decorations
+- ~20% of stories include bonus coins or joy
+- Stories reference pet personalities and game themes
+
+### Daily Gift Calendar
+- Replaced simple daily gift with 7-day rotating reward calendar
+- Visual calendar grid showing past (checkmark), current (pulsing), and future days
+- Escalating rewards: 10→50 coins, Day 4 bond XP treat, Day 7 mystery gift
+- Streak multiplier: +0.5x per week of consecutive days (capped at 3x)
+- Mystery gifts: bonus coins, bowl refill + joy, or 50 bond XP
+
+### Seasonal Events
+- Real-world season detection (Spring/Summer/Autumn/Winter)
+- 12 seasonal decorations (3 per season), 8 seasonal accessories (2 per pet per season)
+- 4 seasonal visitors: Spring bunny, Summer ice cream truck, Autumn scarecrow, Winter Santa's elf
+- Visual effects: cherry blossoms (spring), fireflies (summer), falling leaves + orange tree (autumn), window frost (winter)
+- Items only purchasable during their season but remain equipped year-round
+- Shop filtering via getVisibleDecorItems() and getVisibleAccessories()
+
 ### Wild Wand Rebalance
 - Rebalanced Luna's Wild Wand for playability: Luna follows lure tighter (chaseSpeed 350→420, chaseDamping 1.5→2.2), less gravity (200→120), wobble is occasional twitches not constant vibration
 - Gaps wider (180 start, 110 floor), speed slower (100 start), spawn interval gentler

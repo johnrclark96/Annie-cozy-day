@@ -101,8 +101,22 @@ The hangout scene is the largest class. Key subsystems within it:
 All prefixed with `anniesCozyDay_`. Key categories:
 
 **Booleans**: muted, firstVisit, bubbleOnboarded
-**Numbers**: coins, pet_obi_joy, pet_luna_joy, pet_food_fill, pet_water_fill, pet_food_lastFill, pet_water_lastFill, backyardFlowers, lastKnownStars, best_treat, best_laser, best_cuddle, best_walk, best_nap, best_bath, best_sort, best_pillow, best_findluna, best_window, best_pawstep, best_wildwand
-**JSON Objects**: stats, achievements, decor, backyardDecor, careStreak, dailyTasks, wardrobe, scrapbook, weeklyChallenge, starMilestonesClaimed, decorPurchased, cozyUpgrades, lastPassiveIncomeDate, petPersonality, challengeStars, weather, scrapbookGoals, petMemory, lastVisitDate
+**Numbers**: coins, pet_obi_joy, pet_luna_joy, pet_food_fill, pet_water_fill, pet_food_lastFill, pet_water_lastFill, backyardFlowers, lastKnownStars, best_treat, best_laser, best_cuddle, best_walk, best_nap, best_bath, best_sort, best_pillow, best_findluna, best_window, best_pawstep, best_wildwand, lastVisitTimestamp
+**JSON Objects**: stats, achievements, decor, backyardDecor, careStreak, dailyTasks, wardrobe, scrapbook, weeklyChallenge, starMilestonesClaimed, decorPurchased, cozyUpgrades, lastPassiveIncomeDate, petPersonality, challengeStars, weather, scrapbookGoals, petMemory, lastVisitDate, bond, dailyCalendar
+
+## New Systems (added 2026-03-30)
+
+### Procedural Music Engine
+Located in `CozyAudio` class. `PENTA_FREQS` array (20 pentatonic frequencies across 4 octaves) + `MUSIC_MOODS` config object (5 moods). Key methods: `startAmbient(mood)`, `stopAmbient()`, `setMusicMood(mood)`, `_scheduleMusicBeat()`, `_nextMelodyNote()`, `_playMusicNote()`. Uses Web Audio look-ahead scheduling with `setInterval` every 180ms.
+
+### Pet Bond System
+`awardBondXP(pet, actionType)` is the core function. `BOND_XP_RATES` defines XP and daily caps per action. `getBondLevel()`, `getBondProgress()`, `BOND_LEVEL_NAMES` for UI. Store key: `bond` (JSON with per-pet xp, level, dailyActions, lastActionDate). Migration grants retroactive XP based on stats.
+
+### Away Stories + Daily Calendar
+`AWAY_STORIES` (28 templates) and `CALENDAR_REWARDS` (7-day cycle). `drawAwayStory(c)` and `drawDailyGift(c)` are the rendering methods. Store keys: `lastVisitTimestamp` (number), `dailyCalendar` (JSON with currentDay, lastClaimDate, streak, weekCycle). Away stories trigger after 2+ hours; calendar triggers on new day.
+
+### Seasonal Events
+`getCurrentSeason()` detects season from system clock. `getVisibleDecorItems()` and `getVisibleAccessories(who)` filter items with `season` property. 12 seasonal decorations + 8 accessories added to existing arrays. 4 seasonal visitors added to `VISITOR_TYPES` with `season` property. Visual effects in backyard update loop + window drawing.
 
 ## Adding a New Minigame — Checklist
 
