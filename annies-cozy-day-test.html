@@ -189,7 +189,20 @@
       { key: "chandelier", name: "\u2728 Crystal Chandelier", desc: "A sparkling centerpiece", stars: 25, type: "toggle", price: 300, tier: 3 },
       { key: "silkPillows", name: "\u2728 Silk Throw Pillows", desc: "Elegant couch upgrade", stars: 25, type: "toggle", price: 250, tier: 3 },
       { key: "antiqueMusicBox", name: "\u2728 Antique Music Box", desc: "Plays a tinkling melody", stars: 25, type: "toggle", price: 350, tier: 4 },
-      { key: "royalThrone", name: "\u2728 Royal Pet Throne", desc: "A throne for the king and queen", stars: 25, type: "toggle", price: 500, tier: 4 }
+      { key: "royalThrone", name: "\u2728 Royal Pet Throne", desc: "A throne for the king and queen", stars: 25, type: "toggle", price: 500, tier: 4 },
+      /* seasonal decorations */
+      { key: "cherryBranch", name: "\u{1F338} Cherry Branch", desc: "Blossoming cherry branch in a vase", type: "toggle", price: 35, tier: 1, season: "spring" },
+      { key: "paintedEggs", name: "\u{1F338} Painted Eggs", desc: "Colorful eggs in a woven basket", type: "toggle", price: 25, tier: 1, season: "spring" },
+      { key: "springWreath", name: "\u{1F338} Spring Wreath", desc: "Fresh flower wreath for the wall", type: "toggle", price: 45, tier: 2, season: "spring" },
+      { key: "lemonadePitcher", name: "\u2600 Lemonade Pitcher", desc: "Cool lemonade on the shelf", type: "toggle", price: 30, tier: 1, season: "summer" },
+      { key: "beachTowel", name: "\u2600 Beach Towel", desc: "Draped over the couch arm", type: "toggle", price: 25, tier: 1, season: "summer" },
+      { key: "seashells", name: "\u2600 Seashell Collection", desc: "A bowl of shells and sand", type: "toggle", price: 40, tier: 2, season: "summer" },
+      { key: "pumpkinDisplay", name: "\u{1F342} Pumpkin Display", desc: "Festive pumpkins on the shelf", type: "toggle", price: 35, tier: 1, season: "autumn" },
+      { key: "leafGarland", name: "\u{1F342} Leaf Garland", desc: "Warm autumn leaf garland", type: "toggle", price: 30, tier: 1, season: "autumn" },
+      { key: "cinnamonCandle", name: "\u{1F342} Cinnamon Candle", desc: "Fills the room with warmth", type: "toggle", price: 45, tier: 2, season: "autumn" },
+      { key: "hotCocoaMug", name: "\u2744 Hot Cocoa Mug", desc: "A steaming mug of cocoa", type: "toggle", price: 30, tier: 1, season: "winter" },
+      { key: "snowglobe", name: "\u2744 Snowglobe", desc: "Shake it and watch the snow fall", type: "toggle", price: 40, tier: 1, season: "winter" },
+      { key: "miniTree", name: "\u2744 Mini Holiday Tree", desc: "A tiny decorated tree", type: "toggle", price: 50, tier: 2, season: "winter" }
     ];
 
     /* ── Backyard decorations ── */
@@ -242,7 +255,11 @@
         { key: "raincoatYellow", name: "Yellow Raincoat", price: 120, slot: "body", tier: 3 },
         { key: "flowerLei", name: "Flower Lei", price: 100, slot: "neck", tier: 3 },
         { key: "jerseyBlue", name: "Sports Jersey", price: 250, slot: "body", tier: 4 },
-        { key: "crownGold", name: "Golden Crown", price: 0, slot: "head", achievementUnlock: "allAchievements" }
+        { key: "crownGold", name: "Golden Crown", price: 0, slot: "head", achievementUnlock: "allAchievements" },
+        { key: "flowerCollar", name: "\u{1F338} Flower Collar", price: 30, slot: "neck", tier: 1, season: "spring" },
+        { key: "sunVisor", name: "\u2600 Sun Visor", price: 25, slot: "head", tier: 1, season: "summer" },
+        { key: "plaidScarf", name: "\u{1F342} Plaid Scarf", price: 30, slot: "neck", tier: 1, season: "autumn" },
+        { key: "antlers", name: "\u2744 Reindeer Antlers", price: 35, slot: "head", tier: 1, season: "winter" }
       ],
       luna: [
         { key: "bowPink", name: "Pink Bow", price: 10, slot: "head", tier: 1 },
@@ -254,7 +271,11 @@
         { key: "tiara", name: "Crystal Tiara", price: 100, slot: "head", tier: 3 },
         { key: "witchHat", name: "Witch Hat", price: 130, slot: "head", tier: 3 },
         { key: "pearlNecklace", name: "Pearl Necklace", price: 250, slot: "neck", tier: 4 },
-        { key: "crownSilver", name: "Silver Crown", price: 0, slot: "head", starUnlock: 33 }
+        { key: "crownSilver", name: "Silver Crown", price: 0, slot: "head", starUnlock: 33 },
+        { key: "butterflyBow", name: "\u{1F338} Butterfly Bow", price: 25, slot: "head", tier: 1, season: "spring" },
+        { key: "sunflowerCrown", name: "\u2600 Sunflower Crown", price: 30, slot: "head", tier: 1, season: "summer" },
+        { key: "harvestBow", name: "\u{1F342} Harvest Bow", price: 30, slot: "head", tier: 1, season: "autumn" },
+        { key: "snowflakeCollar", name: "\u2744 Snowflake Collar", price: 35, slot: "neck", tier: 1, season: "winter" }
       ],
       annie: [
         { key: "headbandFloral", name: "Floral Headband", price: 15, slot: "head", tier: 1 },
@@ -325,7 +346,11 @@
       { key: "mailCarrier", message: "A package delivery!", stayTime: 12, coinReward: 5, drawX: 710, drawY: 430 },
       { key: "neighborCat", message: "A fluffy cat appeared at the window!", stayTime: 15, joyEffect: { luna: 4, obi: 2 }, drawX: 140, drawY: 190 },
       { key: "squirrel", message: "A squirrel on the window sill!", stayTime: 10, joyEffect: { obi: 5, luna: 3 }, drawX: 160, drawY: 185 },
-      { key: "robin", message: "A robin is singing outside!", stayTime: 14, joyEffect: { obi: 2, luna: 2 }, drawX: 100, drawY: 120 }
+      { key: "robin", message: "A robin is singing outside!", stayTime: 14, joyEffect: { obi: 2, luna: 2 }, drawX: 100, drawY: 120 },
+      { key: "bunny", message: "A bunny hopped by with a basket!", stayTime: 15, coinReward: 8, joyEffect: { obi: 3, luna: 3 }, drawX: 140, drawY: 430, season: "spring" },
+      { key: "iceCreamTruck", message: "The ice cream truck is here!", stayTime: 12, coinReward: 6, joyEffect: { obi: 4, luna: 2 }, drawX: 130, drawY: 170, season: "summer" },
+      { key: "scarecrow", message: "A friendly scarecrow appeared!", stayTime: 14, coinReward: 5, joyEffect: { obi: 2, luna: 4 }, drawX: 150, drawY: 420, season: "autumn" },
+      { key: "santaElf", message: "One of Santa's elves stopped by!", stayTime: 16, coinReward: 12, joyEffect: { obi: 5, luna: 5 }, drawX: 140, drawY: 425, season: "winter" }
     ];
 
     /* ── Challenge Star Modifiers (4th star per minigame) ── */
@@ -495,7 +520,7 @@
     if (store.decor.cozyBlanket === undefined) store.decor.cozyBlanket = false;
     if (store.decor.photoWall === undefined) store.decor.photoWall = false;
     /* new decor keys */
-    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait","comfyBowls","treatsJar","cozyBlankets","joyfulHome","luckyCharm","goldenCurtains","chandelier","silkPillows","antiqueMusicBox","royalThrone"];
+    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait","comfyBowls","treatsJar","cozyBlankets","joyfulHome","luckyCharm","goldenCurtains","chandelier","silkPillows","antiqueMusicBox","royalThrone","cherryBranch","paintedEggs","springWreath","lemonadePitcher","beachTowel","seashells","pumpkinDisplay","leafGarland","cinnamonCandle","hotCocoaMug","snowglobe","miniTree"];
     for (var ndi = 0; ndi < newDecorKeys.length; ndi++) {
       if (store.decor[newDecorKeys[ndi]] === undefined) store.decor[newDecorKeys[ndi]] = newDecorKeys[ndi] === "couchPillows" || newDecorKeys[ndi] === "rugPattern" || newDecorKeys[ndi] === "garland" ? 0 : false;
     }
@@ -552,6 +577,21 @@
     function saveBackyardDecor() { saveJSON("backyardDecor", store.backyardDecor); }
     function saveCareStreak() { saveJSON("careStreak", store.careStreak); }
     function saveBond() { saveJSON("bond", store.bond); }
+    function getCurrentSeason() {
+      var month = new Date().getMonth();
+      if (month >= 2 && month <= 4) return "spring";
+      if (month >= 5 && month <= 7) return "summer";
+      if (month >= 8 && month <= 10) return "autumn";
+      return "winter";
+    }
+    function getVisibleDecorItems() {
+      var season = getCurrentSeason();
+      return DECOR_ITEMS.filter(function(item) { return !item.season || item.season === season; });
+    }
+    function getVisibleAccessories(who) {
+      var season = getCurrentSeason();
+      return (ACCESSORIES[who] || []).filter(function(item) { return !item.season || item.season === season; });
+    }
     var BOND_XP_RATES = { pet: { xp: 5, cap: 3 }, brush: { xp: 8, cap: 2 }, treat: { xp: 3, cap: 4 }, toy: { xp: 6, cap: 3 }, feed: { xp: 4, cap: 2 }, water: { xp: 4, cap: 2 }, game: { xp: 10, cap: 3 }, visit: { xp: 5, cap: 1 } };
     function getBondLevel(pet) { return store.bond[pet] ? store.bond[pet].level : 1; }
     function getBondXPForLevel(level) { return level * level * 50; }
@@ -3364,6 +3404,24 @@
         }
       }
 
+      /* seasonal window effects */
+      var seasonNow = getCurrentSeason();
+      if (seasonNow === "winter") {
+        c.save(); c.globalAlpha = 0.12;
+        var frostGrad = c.createRadialGradient(126, 130, 30, 126, 130, 90);
+        frostGrad.addColorStop(0, "rgba(200,220,240,0)");
+        frostGrad.addColorStop(1, "rgba(200,220,240,1)");
+        c.fillStyle = frostGrad;
+        c.fillRect(62, 48, 128, 160);
+        c.restore();
+      }
+      if (seasonNow === "spring") {
+        c.save(); c.globalAlpha = 0.04;
+        c.fillStyle = "#FFE0F0";
+        c.fillRect(0, 0, W, H);
+        c.restore();
+      }
+
       /* animated lamp glow - conditional on lamp state + time-of-day */
       const lampOn = store.decor.lampOn !== false;
       const todMult = tod === 3 ? 1.6 : tod === 2 ? 1.3 : tod === 0 ? 0.7 : 1.0;
@@ -4669,10 +4727,11 @@
         return { x: 130, y: 150 + i * 88, w: 540, h: 78 };
       }
       getDecorPageItems() {
-        return DECOR_ITEMS.slice(this.decorPage * 4, this.decorPage * 4 + 4);
+        var visible = getVisibleDecorItems();
+        return visible.slice(this.decorPage * 4, this.decorPage * 4 + 4);
       }
       decorPageCount() {
-        return Math.ceil(DECOR_ITEMS.length / 4);
+        return Math.ceil(getVisibleDecorItems().length / 4);
       }
       onMouseMove(x, y) {
         this.updateHover(x, y);
@@ -6501,7 +6560,7 @@
         this.trackWeeklyChallenge("photosTaken", 1);
       }
       getWardrobeTabItems() {
-        return ACCESSORIES[this.wardrobeTab] || [];
+        return getVisibleAccessories(this.wardrobeTab);
       }
       getWardrobeItemRect(index) {
         return { x: 80, y: 175 + index * 62 - this.wardrobeScrollOffset, w: 640, h: 54 };
@@ -6903,7 +6962,9 @@
         audio.tinyChime();
       }
       spawnVisitorEvent() {
-        var visitor = VISITOR_TYPES[Math.floor(Math.random() * VISITOR_TYPES.length)];
+        var season = getCurrentSeason();
+        var available = VISITOR_TYPES.filter(function(v) { return !v.season || v.season === season; });
+        var visitor = available[Math.floor(Math.random() * available.length)];
         this.ambientEvent = { type: "visitor", timer: visitor.stayTime, data: { visitor: visitor, interacted: false, fadeIn: 0 } };
         this.statusText = visitor.message;
         audio.tinyChime();
@@ -8466,6 +8527,17 @@
         if (this.cameraFlash > 0) this.cameraFlash = Math.max(0, this.cameraFlash - dt * 2.5);
         if (this.byDecorOpen) this.byDecorFade = clamp(this.byDecorFade + dt * 5, 0, 1);
         else this.byDecorFade = clamp(this.byDecorFade - dt * 5, 0, 1);
+        /* seasonal particles */
+        var season = getCurrentSeason();
+        if (season === "spring" && Math.random() < 0.03) {
+          spawnParticleBurst(rand(100, 700), rand(-10, 20), ["#FFB7C5", "#FFDAE0", "#FFE4E9"], 1, ["heart"]);
+        }
+        if (season === "autumn" && Math.random() < 0.025) {
+          spawnParticleBurst(rand(100, 700), rand(-10, 20), ["#D4763B", "#C5441B", "#E8A82E"], 1, ["star"]);
+        }
+        if (season === "summer" && (store.decor.timeOfDay || 1) === 3 && Math.random() < 0.04) {
+          spawnParticleBurst(rand(150, 650), rand(200, 450), ["#FFFF66", "#AAFFAA"], 1, ["star"]);
+        }
         /* floating texts */
         for (var fi = this.floatingTexts.length - 1; fi >= 0; fi--) {
           this.floatingTexts[fi].life -= dt;
@@ -9388,11 +9460,39 @@
         c.fillRect(this.tree.x - 10, this.tree.y, 20, 320);
         /* branch */
         c.fillRect(this.tree.x - 50, this.tree.y + 30, 60, 8);
-        /* canopy */
-        c.fillStyle = tod === 3 ? "#1E3818" : "#4A8030";
+        /* canopy — seasonal color variation */
+        var season = getCurrentSeason();
+        var canopyColor = tod === 3 ? "#1E3818" : "#4A8030";
+        if (season === "spring") canopyColor = tod === 3 ? "#1E3820" : "#5A9040";
+        else if (season === "autumn") canopyColor = tod === 3 ? "#3A2818" : "#C87030";
+        else if (season === "winter") canopyColor = tod === 3 ? "#2A3828" : "#6A8858";
+        c.fillStyle = canopyColor;
         c.beginPath(); c.arc(this.tree.x, this.tree.y - 20, 60, 0, Math.PI * 2); c.fill();
         c.beginPath(); c.arc(this.tree.x - 30, this.tree.y + 10, 40, 0, Math.PI * 2); c.fill();
         c.beginPath(); c.arc(this.tree.x + 25, this.tree.y + 5, 45, 0, Math.PI * 2); c.fill();
+        /* spring cherry blossoms on tree */
+        if (season === "spring" && tod !== 3) {
+          c.fillStyle = "#FFB7C5";
+          for (var bi = 0; bi < 8; bi++) {
+            var bx = this.tree.x - 40 + Math.sin(bi * 1.7 + game.time * 0.3) * 50;
+            var by = this.tree.y - 30 + Math.cos(bi * 2.1 + game.time * 0.2) * 35;
+            c.globalAlpha = 0.6 + 0.3 * Math.sin(bi * 3 + game.time);
+            c.beginPath(); c.arc(bx, by, 3, 0, Math.PI * 2); c.fill();
+          }
+          c.globalAlpha = 1;
+        }
+        /* autumn scattered leaves on ground */
+        if (season === "autumn") {
+          var leafColors = ["#D4763B", "#C5441B", "#E8A82E"];
+          for (var li = 0; li < 5; li++) {
+            c.fillStyle = leafColors[li % 3];
+            c.globalAlpha = 0.5;
+            var lx = this.tree.x - 60 + li * 28 + Math.sin(li * 2.3) * 15;
+            var ly = this.tree.y + 80 + li * 6;
+            c.beginPath(); c.ellipse(lx, ly, 4, 2.5, li * 0.8, 0, Math.PI * 2); c.fill();
+          }
+          c.globalAlpha = 1;
+        }
       }
       drawInteractiveObjects(c) {
         var tod = store.decor.timeOfDay || 1;
