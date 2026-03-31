@@ -12360,7 +12360,7 @@
         super("wildwand", "Luna's Wild Wand",
           isMobile ? "Drag to move the wand! Guide the dangling toy to lead Luna through gaps!"
                    : "Move your mouse to wave the wand! Guide Luna through the cozy obstacles!",
-          [100, 250, 500], 300);
+          [100, 250, 500], 90);
         this.scrollSpeed = 120;
         this.obstacles = [];
         this.obstacleTimer = 0;
@@ -12408,7 +12408,7 @@
         c.fillRect(pb.x + 13, pb.y + 10, 4, 16);
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
         /* elapsed time instead of countdown */
-        var elapsed = Math.floor(300 - this.timeLeft);
+        var elapsed = Math.floor(this.duration - this.timeLeft);
         c.fillStyle = COLORS.cream;
         c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "left";
@@ -12448,9 +12448,9 @@
         }
         var elapsed = 300 - this.timeLeft;
         /* difficulty ramp */
-        this.scrollSpeed = 120 + elapsed * 0.8;
-        var gapSize = Math.max(140, 210 - elapsed * 0.8);
-        if (this.challengeMode) gapSize = Math.max(100, gapSize * 0.7);
+        this.scrollSpeed = 150 + elapsed * 1.2;
+        var gapSize = Math.max(85, 130 - elapsed * 0.5);
+        if (this.challengeMode) gapSize = Math.max(65, gapSize * 0.7);
         /* scroll world */
         this.scrollX += this.scrollSpeed * dt;
         /* spawn obstacles */
@@ -12461,18 +12461,30 @@
           this.obstacles.push({
             x: W + 40,
             gapY: gapY,
+            baseGapY: gapY,
             gapSize: gapSize,
+            baseGapSize: gapSize,
             passed: false,
             type: obstType,
-            w: 50
+            w: 50,
+            bobbing: Math.random() < 0.3,
+            bobPhase: rand(0, Math.PI * 2),
+            narrowing: elapsed > 45 && Math.random() < 0.25
           });
-          var spawnInterval = Math.max(1.8, 3.2 - elapsed * 0.015);
+          var spawnInterval = Math.max(1.3, 2.5 - elapsed * 0.02);
           this.obstacleTimer = spawnInterval;
         }
         /* move obstacles */
         for (var i = this.obstacles.length - 1; i >= 0; i--) {
           var ob = this.obstacles[i];
           ob.x -= this.scrollSpeed * dt;
+          /* bobbing gaps */
+          if (ob.bobbing) ob.gapY = ob.baseGapY + Math.sin(game.time * 2.5 + ob.bobPhase) * 25;
+          /* narrowing gaps */
+          if (ob.narrowing) {
+            var progress = 1 - (ob.x / W);
+            ob.gapSize = Math.max(70, ob.baseGapSize - progress * 25);
+          }
           /* check if Luna passed this obstacle */
           if (!ob.passed && ob.x + ob.w / 2 < this.luna.x) {
             ob.passed = true;
@@ -12482,6 +12494,10 @@
             this.combo++;
             if (this.combo > 1 && this.combo % 5 === 0) { audio.combo(); this.scorePopups.push({ x: this.luna.x, y: this.luna.y - 55, text: "x" + this.combo + " Combo!", life: 1.2 }); }
             if (this.score >= 500) this.queueAchievement("wandMaster");
+            /* milestone celebrations */
+            if (this.passed === 10) { this.scorePopups.push({ x: W/2, y: H/2, text: "Nice!", life: 1.5 }); spawnParticleBurst(W/2, H/2, [COLORS.gold, "#FFF4C0"], 15, ["star"]); }
+            else if (this.passed === 25) { this.scorePopups.push({ x: W/2, y: H/2, text: "Amazing!", life: 1.5 }); spawnParticleBurst(W/2, H/2, [COLORS.gold, COLORS.softPink, "#87CEEB"], 25, ["star", "heart"]); }
+            else if (this.passed === 50) { this.scorePopups.push({ x: W/2, y: H/2, text: "LEGENDARY!", life: 2.0 }); spawnParticleBurst(W/2, H/2, [COLORS.gold, COLORS.softPink, "#87CEEB", "#A8D870"], 40, ["star", "heart"]); audio.combo(); }
             audio.tinyChime();
             spawnParticleBurst(ob.x + ob.w, ob.gapY, [COLORS.gold, "#FFF4C0"], 6, ["star"]);
             this.scorePopups.push({ x: ob.x + ob.w, y: ob.gapY, text: "+" + pts, life: 1.0 });
@@ -12493,6 +12509,7 @@
               spawnParticleBurst(this.luna.x, this.luna.y, ["#FF69B4"], 4, ["heart"]);
               this.scorePopups.push({ x: this.luna.x + 20, y: this.luna.y - 20, text: "Close! +" + (5 * this.combo), life: 0.8 });
               audio.pounce();
+              screenShake(3, 0.15);
             }
           }
           /* remove off-screen */
@@ -12502,10 +12519,10 @@
         this.anchor.x = clamp(game.mouse.x, 100, 300);
         this.anchor.y = clamp(game.mouse.y, 60, H - 60);
         /* lure physics — pendulum/spring from anchor */
-        var stringLen = 90;
-        var springK = 4.5;
-        var damping = 3.0;
-        var gravity = 320;
+        var stringLen = 80;
+        var springK = 8.0;
+        var damping = 1.4;
+        var gravity = 550;
         var dx = this.anchor.x - this.lure.x;
         var dy = (this.anchor.y + stringLen) - this.lure.y;
         var d = Math.hypot(dx, dy);
@@ -12523,7 +12540,7 @@
         var ldx = this.lure.x - this.anchor.x;
         var ldy = this.lure.y - this.anchor.y;
         var ld = Math.hypot(ldx, ldy);
-        var maxLen = stringLen * 1.4;
+        var maxLen = 100;
         if (ld > maxLen) {
           this.lure.x = this.anchor.x + ldx / ld * maxLen;
           this.lure.y = this.anchor.y + ldy / ld * maxLen;
@@ -12539,22 +12556,32 @@
         var cdx = chaseX - this.luna.x;
         var cdy = chaseY - this.luna.y;
         var cd = Math.hypot(cdx, cdy);
-        var chaseSpeed = 260;
-        var chaseDamping = 2.8;
+        var chaseSpeed = 350;
+        var chaseDamping = 1.5;
         if (cd > 5) {
           this.luna.vx += (cdx / cd) * chaseSpeed * dt;
           this.luna.vy += (cdy / cd) * chaseSpeed * dt;
         }
-        /* slight gravity on Luna */
-        this.luna.vy += 80 * dt;
+        /* strong gravity on Luna — she falls when lure is above */
+        this.luna.vy += 200 * dt;
+        /* cat wobble — small random perturbation */
+        if (Math.random() < dt * 4) {
+          this.luna.vx += rand(-30, 30);
+          this.luna.vy += rand(-20, 20);
+        }
+        /* pounce burst — when close to lure, sudden speed spike */
+        if (cd < 30 && cd > 5 && Math.random() < dt * 3) {
+          this.luna.vx += (cdx / cd) * 120;
+          this.luna.vy += (cdy / cd) * 120;
+        }
         /* damping */
         this.luna.vx *= Math.max(0, 1 - chaseDamping * dt);
         this.luna.vy *= Math.max(0, 1 - chaseDamping * dt);
         this.luna.x += this.luna.vx * dt;
         this.luna.y += this.luna.vy * dt;
         /* keep Luna in bounds */
-        if (this.luna.y < 50) { this.luna.y = 50; this.luna.vy = Math.max(0, this.luna.vy); }
-        if (this.luna.y > H - 30) { this.luna.y = H - 30; this.luna.vy = Math.min(0, this.luna.vy); }
+        if (this.luna.y < 50) { this.luna.y = 50; this.luna.vy = Math.max(0, this.luna.vy); if (this.combo > 1) { this.combo = 1; this.scorePopups.push({ x: this.luna.x, y: 60, text: "Combo lost!", life: 0.7 }); } }
+        if (this.luna.y > H - 30) { this.luna.y = H - 30; this.luna.vy = Math.min(0, this.luna.vy); if (this.combo > 1) { this.combo = 1; this.scorePopups.push({ x: this.luna.x, y: H - 40, text: "Combo lost!", life: 0.7 }); } }
         this.luna.x = clamp(this.luna.x, 80, 350);
         this.luna.facing = this.luna.vx >= 0 ? 1 : -1;
         this.luna.excitement = clamp(cd / 80, 0, 1);
@@ -12621,7 +12648,31 @@
         c.strokeStyle = "rgba(180,160,130,0.15)";
         c.lineWidth = 2;
         c.beginPath(); c.moveTo(0, 30); c.lineTo(W, 30); c.stroke();
+        /* speed lines when going fast */
+        if (this.scrollSpeed > 180) {
+          c.save();
+          c.globalAlpha = Math.min(0.15, (this.scrollSpeed - 180) * 0.001);
+          c.strokeStyle = "rgba(200,180,160,1)";
+          c.lineWidth = 1;
+          for (var sli = 0; sli < 6; sli++) {
+            var sly = 80 + sli * 90 + Math.sin(game.time * 3 + sli) * 20;
+            c.beginPath(); c.moveTo(0, sly); c.lineTo(W, sly); c.stroke();
+          }
+          c.restore();
+        }
         /* ── draw obstacles ── */
+        /* obstacle preview — faint silhouettes at right edge */
+        for (var pi = 0; pi < this.obstacles.length; pi++) {
+          var pob = this.obstacles[pi];
+          if (pob.x > W - 60 && pob.x < W + 40) {
+            c.save();
+            c.globalAlpha = 0.15;
+            c.fillStyle = "#8A7060";
+            c.fillRect(W - 8, 0, 8, pob.gapY - pob.gapSize / 2);
+            c.fillRect(W - 8, pob.gapY + pob.gapSize / 2, 8, H - (pob.gapY + pob.gapSize / 2));
+            c.restore();
+          }
+        }
         for (var oi = 0; oi < this.obstacles.length; oi++) {
           var ob = this.obstacles[oi];
           var topH = ob.gapY - ob.gapSize / 2;
