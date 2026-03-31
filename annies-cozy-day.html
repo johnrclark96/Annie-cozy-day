@@ -480,7 +480,9 @@
       bond: loadJSON("bond", {
         obi: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null },
         luna: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null }
-      })
+      }),
+      lastVisitTimestamp: loadNumber("lastVisitTimestamp", 0),
+      dailyCalendar: loadJSON("dailyCalendar", { currentDay: 0, lastClaimDate: null, streak: 0, weekCycle: 0 })
     };
 
     /* ── Backfill migrations for existing saves ── */
@@ -926,6 +928,47 @@
           { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] }
         ]}
     };
+
+    /* ═══ Away Stories & Daily Calendar Constants ═══ */
+    const AWAY_STORIES = [
+      { text: "While you were away, Obi found a squeaky toy under the couch and carried it around for an hour. Luna watched from the windowsill, unimpressed." },
+      { text: "Luna knocked something off the shelf. Twice. She looked very pleased with herself." },
+      { text: "Obi dreamed about chasing squirrels in the backyard and wagged his tail in his sleep." },
+      { text: "Luna discovered the sunbeam moved across the room and followed it all afternoon." },
+      { text: "A butterfly landed on the windowsill. Luna stared at it for 47 minutes straight." },
+      { text: "Obi and Luna had a staring contest. Luna won. Obviously." },
+      { text: "Obi tried to bring you his leash, but you weren't here. He waited by the door for a while." },
+      { text: "Luna found the coziest spot on the couch cushion and claimed it as her personal throne." },
+      { text: "Obi sniffed every single corner of the living room. Twice. He's very thorough." },
+      { text: "Luna practiced her pouncing technique on a dust bunny. 10/10 form." },
+      { text: "Obi fell asleep on Luna's favorite spot. Luna sat on Obi. Problem solved." },
+      { text: "Luna groomed herself for a solid twenty minutes, then immediately rolled in something." },
+      { text: "Obi heard a noise outside and did his best guard dog impression. It was the wind." },
+      { text: "Luna climbed to the highest point in the room and surveyed her kingdom with satisfaction." },
+      { text: "Obi brought his favorite bone to the couch and fell asleep on it." },
+      { text: "Luna batted a pen off the table. Then waited. Then batted another one." },
+      { text: "Obi tried to befriend a bird through the window. The bird was not interested." },
+      { text: "Luna curled up in a perfect circle and purred herself to sleep." },
+      { text: "Obi did three full spins before lying down. It's a very important ritual." },
+      { text: "Luna discovered that if she sits on the bookshelf, she can see the whole room. New favorite spot." },
+      { text: "Obi's tail knocked over a cup. He looked at it. He looked at you. He looked at it again." },
+      { text: "Luna and Obi napped together on the rug. Don't tell Luna — she'd deny it." },
+      { text: "Obi found a coin behind the couch cushion!", bonus: { type: "coins", amount: 5 } },
+      { text: "A package arrived while you were away! It contained a small gift.", bonus: { type: "coins", amount: 10 } },
+      { text: "Luna caught a dust bunny and left it as a present for you. How thoughtful.", bonus: { type: "coins", amount: 3 } },
+      { text: "Obi was extra good today. He deserves a treat.", bonus: { type: "joy", pet: "obi", amount: 8 } },
+      { text: "Luna purred so loudly the neighbors probably heard. She missed you.", bonus: { type: "joy", pet: "luna", amount: 8 } },
+      { text: "The pets found some spare change between the couch cushions!", bonus: { type: "coins", amount: 8 } }
+    ];
+    const CALENDAR_REWARDS = [
+      { day: 1, coins: 10, label: "10 coins" },
+      { day: 2, coins: 15, label: "15 coins" },
+      { day: 3, coins: 20, label: "20 coins" },
+      { day: 4, coins: 0, bondXP: 25, label: "Bond Treat (+25 XP)" },
+      { day: 5, coins: 30, label: "30 coins" },
+      { day: 6, coins: 40, label: "40 coins" },
+      { day: 7, coins: 50, label: "50 coins + Mystery!", mystery: true }
+    ];
 
     // ═══ 05-audio.js ═══
     class CozyAudio {
@@ -4258,12 +4301,28 @@
           store.lastKnownStars = stars;
           saveNumber("lastKnownStars", stars);
         }
-        /* daily gift check */
+        /* away story + daily calendar */
         const today = new Date().toDateString();
+        var timeSinceVisit = Date.now() - (store.lastVisitTimestamp || 0);
+        /* "while you were away" story if >2 hours */
+        if (store.lastVisitTimestamp > 0 && timeSinceVisit > 7200000 && game.transition && game.transition.from instanceof TitleScene) {
+          var story = AWAY_STORIES[Math.floor(Math.random() * AWAY_STORIES.length)];
+          this._awayStory = { text: story.text, bonus: story.bonus || null, phase: 0 };
+        }
+        store.lastVisitTimestamp = Date.now();
+        saveNumber("lastVisitTimestamp", store.lastVisitTimestamp);
+        /* daily calendar gift */
         if (store.lastVisitDate !== today) {
-          this.dailyGift = { phase: 0, collected: false };
           store.lastVisitDate = today;
           saveJSON("lastVisitDate", today);
+          /* check streak */
+          var cal = store.dailyCalendar;
+          if (cal.lastClaimDate) {
+            var lastClaim = new Date(cal.lastClaimDate);
+            var daysDiff = Math.floor((new Date() - lastClaim) / 86400000);
+            if (daysDiff > 2) { cal.streak = 0; cal.currentDay = 0; }
+          }
+          this.dailyGift = { phase: 0, collected: false, calendarDay: cal.currentDay };
           /* passive decoration income */
           if (store.lastPassiveIncomeDate !== today) {
             var passiveIncome = calculatePassiveIncome();
@@ -4683,26 +4742,51 @@
           }
           return;
         }
-        /* daily gift overlay */
+        /* away story overlay — click to dismiss */
+        if (this._awayStory) {
+          if (this._awayStory.phase > 0.5) {
+            var bonus = this._awayStory.bonus;
+            if (bonus) {
+              if (bonus.type === "coins") { addCoins(bonus.amount); this.statusText = "Found " + bonus.amount + " coins!"; }
+              else if (bonus.type === "joy") { var p = bonus.pet === "obi" ? this.obi : this.luna; p.joy = clamp(p.joy + bonus.amount, 0, 100); }
+              spawnParticleBurst(W / 2, 280, [COLORS.gold, COLORS.softPink], 10, ["star"]);
+            }
+            this._awayStory = null;
+            audio.tinyChime();
+          }
+          return;
+        }
+        /* daily calendar overlay — click to claim */
         if (this.dailyGift && !this.dailyGift.collected) {
           if (this.dailyGift.phase > 0.5) {
             this.dailyGift.collected = true;
             this.dailyGift.phase = 0;
-            var giftCoins = 15 + Math.floor(Math.random() * 11);
-            var gifts = [
-              { text: "+" + giftCoins + " coins & +10 joy for both pets!", effect: () => { this.obi.joy = clamp(this.obi.joy + 10, 0, 100); this.luna.joy = clamp(this.luna.joy + 10, 0, 100); } },
-              { text: "+" + giftCoins + " coins & bowls refilled!", effect: () => { this.foodBowl.fill = 100; this.waterBowl.fill = 100; } },
-              { text: "+" + giftCoins + " coins & +15 joy for Obi!", effect: () => { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); } },
-              { text: "+" + giftCoins + " coins & +15 joy for Luna!", effect: () => { this.luna.joy = clamp(this.luna.joy + 15, 0, 100); } },
-              { text: "+" + giftCoins + " coins & +8 joy for everyone!", effect: () => { this.obi.joy = clamp(this.obi.joy + 8, 0, 100); this.luna.joy = clamp(this.luna.joy + 8, 0, 100); } }
-            ];
-            var gift = gifts[Math.floor(Math.random() * gifts.length)];
-            gift.effect();
-            addCoins(giftCoins);
-            this.dailyGift.rewardText = gift.text;
-            this.statusText = gift.text;
+            var cal = store.dailyCalendar;
+            var reward = CALENDAR_REWARDS[cal.currentDay % 7];
+            var streakMult = 1 + Math.min(2, Math.floor(cal.streak / 7) * 0.5);
+            var coinReward = Math.round((reward.coins || 0) * streakMult);
+            var rewardText = "";
+            if (coinReward > 0) { addCoins(coinReward); rewardText = "+" + coinReward + " coins"; }
+            if (reward.bondXP) { awardBondXP("obi", "visit"); awardBondXP("luna", "visit"); store.bond.obi.xp += reward.bondXP; store.bond.luna.xp += reward.bondXP; saveBond(); rewardText = "+25 Bond XP for both pets!"; }
+            if (reward.mystery) {
+              var mysteries = [
+                { text: " + 25 bonus coins!", effect: function() { addCoins(25); } },
+                { text: " + bowls refilled & +15 joy!", effect: function() { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); this.luna.joy = clamp(this.luna.joy + 15, 0, 100); this.foodBowl.fill = 100; this.waterBowl.fill = 100; }.bind(this) },
+                { text: " + 50 Bond XP!", effect: function() { store.bond.obi.xp += 50; store.bond.luna.xp += 50; saveBond(); } }
+              ];
+              var mystery = mysteries[Math.floor(Math.random() * mysteries.length)];
+              mystery.effect();
+              rewardText += mystery.text;
+            }
+            if (streakMult > 1) rewardText += " (" + streakMult + "x streak!)";
+            cal.currentDay = (cal.currentDay + 1) % 7;
+            cal.streak++;
+            cal.lastClaimDate = new Date().toDateString();
+            saveJSON("dailyCalendar", cal);
+            this.dailyGift.rewardText = rewardText;
+            this.statusText = "Day " + (reward.day) + " gift: " + rewardText;
             this.statusPulse = 1;
-            spawnParticleBurst(W / 2, 260, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 24, ["star", "heart"]);
+            spawnParticleBurst(W / 2, 280, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 24, ["star", "heart"]);
             audio.combo();
             screenShake(5, 0.3);
           }
@@ -5819,7 +5903,12 @@
         this.updateAnnie(dt);
 
         this.statusPulse = Math.max(0, this.statusPulse - dt * 2.6);
-        /* daily gift animation */
+        /* away story animation */
+        if (this._awayStory) {
+          this._awayStory.phase += dt;
+          return;
+        }
+        /* daily calendar animation */
         if (this.dailyGift && !this.dailyGift.collected) {
           this.dailyGift.phase += dt;
           return;
@@ -6538,61 +6627,168 @@
         c.beginPath(); c.moveTo(-2, -9); c.lineTo(4, -9); c.lineTo(1, -13); c.closePath(); c.fill();
         c.restore();
       }
+      drawAwayStory(c) {
+        if (!this._awayStory) return;
+        var as = this._awayStory;
+        c.save();
+        c.fillStyle = "rgba(60,40,28,0.55)";
+        c.fillRect(0, 0, W, H);
+        var alpha = clamp(as.phase / 0.6, 0, 1);
+        c.globalAlpha = alpha;
+        /* parchment panel */
+        rr(c, W / 2 - 220, 140, 440, 300, 18);
+        c.fillStyle = "#FFF8EC";
+        c.fill();
+        c.strokeStyle = "rgba(160,120,70,0.3)";
+        c.lineWidth = 2;
+        c.stroke();
+        /* decorative header line */
+        c.strokeStyle = "rgba(180,140,90,0.2)";
+        c.lineWidth = 1;
+        c.beginPath(); c.moveTo(W / 2 - 180, 195); c.lineTo(W / 2 + 180, 195); c.stroke();
+        /* title */
+        c.fillStyle = "#8B6914";
+        c.textAlign = "center";
+        c.font = '22px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("While You Were Away...", W / 2, 180);
+        /* story text with word wrap */
+        c.fillStyle = "#5A3E2B";
+        c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        wrapText(c, as.text, W / 2 - 190, 220, 380, 22);
+        /* bonus indicator */
+        if (as.bonus) {
+          var bonusText = as.bonus.type === "coins" ? "+" + as.bonus.amount + " coins found!" : "+joy!";
+          c.fillStyle = COLORS.gold;
+          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(bonusText, W / 2, 360);
+        }
+        /* paw prints decoration */
+        c.globalAlpha = alpha * 0.12;
+        c.fillStyle = "#8B6914";
+        for (var pi = 0; pi < 3; pi++) {
+          c.beginPath(); c.arc(W / 2 - 160 + pi * 160, 410, 6, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(W / 2 - 155 + pi * 160, 403, 3, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(W / 2 - 165 + pi * 160, 403, 3, 0, Math.PI * 2); c.fill();
+        }
+        c.globalAlpha = alpha;
+        if (as.phase > 0.6) {
+          c.fillStyle = COLORS.warmRed;
+          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(isMobile ? "Tap to continue" : "Click to continue", W / 2, 420);
+        }
+        c.restore();
+      }
       drawDailyGift(c) {
         if (!this.dailyGift) return;
-        const ph = this.dailyGift.phase;
+        var ph = this.dailyGift.phase;
         c.save();
-        /* backdrop */
         c.fillStyle = "rgba(60,40,28,0.5)";
         c.fillRect(0, 0, W, H);
-        /* panel */
-        const panelAlpha = clamp(ph / 0.5, 0, 1);
+        var panelAlpha = clamp(ph / 0.5, 0, 1);
         c.globalAlpha = panelAlpha;
-        const px = W / 2 - 200, py = 160;
-        rr(c, px, py, 400, 280, 20);
+        /* panel */
+        rr(c, W / 2 - 220, 130, 440, 350, 20);
         c.fillStyle = COLORS.cream;
         c.fill();
         c.strokeStyle = "rgba(146,104,72,0.25)";
         c.lineWidth = 2;
         c.stroke();
-        /* gift box */
-        const giftFrame = spriteArt.frames.items.giftBox;
-        if (spriteArt.ready && giftFrame && !this.dailyGift.collected) {
-          const scaleIn = ph < 1 ? easeOutBack(clamp(ph, 0, 1)) : 1;
-          const wiggle = ph > 1 && ph < 1.5 ? Math.sin(ph * 30) * 4 : 0;
-          const gScale = 0.18 * scaleIn;
-          const gw = giftFrame.w * gScale;
-          const gh = giftFrame.h * gScale;
-          const bob = Math.sin(ph * 2.5) * 4;
-          c.save();
-          c.translate(W / 2 + wiggle, 260 + bob);
-          c.drawImage(spriteArt.image, giftFrame.x, giftFrame.y, giftFrame.w, giftFrame.h, -gw / 2, -gh / 2, gw, gh);
-          c.restore();
-        }
-        if (this.dailyGift.collected) {
-          /* post-collect: show reward text prominently */
-          var fadeOut = clamp((4 - this.dailyGift.phase) / 0.8, 0, 1);
-          c.globalAlpha = panelAlpha * fadeOut;
-          c.fillStyle = COLORS.gold;
-          c.textAlign = "center";
-          c.font = '24px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText(this.dailyGift.rewardText || "", W / 2, 270);
-          c.fillStyle = COLORS.dark;
-          c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Come back tomorrow for another gift!", W / 2, 310);
-        }
         /* title */
         c.fillStyle = COLORS.dark;
         c.textAlign = "center";
-        c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Daily Gift!", W / 2, 200);
-        c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillStyle = "rgba(92,68,52,0.75)";
-        c.fillText("Welcome back! Here's something for Obi and Luna.", W / 2, 225);
-        if (!this.dailyGift.collected && ph > 0.5) {
-          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillStyle = COLORS.warmRed;
-          c.fillText(isMobile ? "Tap to open!" : "Click to open!", W / 2, 400);
+        c.font = '24px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("Daily Gift Calendar", W / 2, 168);
+        /* streak */
+        var cal = store.dailyCalendar;
+        var streakMult = 1 + Math.min(2, Math.floor(cal.streak / 7) * 0.5);
+        c.fillStyle = "rgba(92,68,52,0.6)";
+        c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("Streak: " + cal.streak + " days" + (streakMult > 1 ? " (" + streakMult + "x bonus!)" : ""), W / 2, 188);
+        /* 7-day grid */
+        var gridX = W / 2 - 196;
+        var cellW = 54;
+        var cellH = 64;
+        var gridY = 200;
+        for (var di = 0; di < 7; di++) {
+          var cx = gridX + di * (cellW + 2);
+          var reward = CALENDAR_REWARDS[di];
+          var isCurrent = (di === cal.currentDay % 7);
+          var isPast = false;
+          if (cal.lastClaimDate === new Date().toDateString()) {
+            isPast = di < cal.currentDay % 7 || (cal.currentDay === 0 && di < 7);
+            if (cal.currentDay === 0) isPast = false;
+          } else {
+            isPast = di < cal.currentDay % 7;
+          }
+          /* cell background */
+          rr(c, cx, gridY, cellW, cellH, 8);
+          if (isCurrent && !this.dailyGift.collected) {
+            var pulse = 0.85 + 0.15 * Math.sin(game.time * 4);
+            c.fillStyle = "rgba(255,200,80," + (0.3 * pulse) + ")";
+          } else if (isPast) {
+            c.fillStyle = "rgba(180,220,160,0.3)";
+          } else {
+            c.fillStyle = "rgba(200,190,170,0.15)";
+          }
+          c.fill();
+          c.strokeStyle = isCurrent ? "rgba(220,160,40,0.6)" : "rgba(146,104,72,0.15)";
+          c.lineWidth = isCurrent ? 2 : 1;
+          c.stroke();
+          /* day number */
+          c.fillStyle = isCurrent ? COLORS.gold : "#8B7355";
+          c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("Day " + reward.day, cx + cellW / 2, gridY + 16);
+          /* icon/label */
+          if (isPast) {
+            c.fillStyle = "#6B9B4A";
+            c.font = '20px sans-serif';
+            c.fillText("\u2713", cx + cellW / 2, gridY + 42);
+          } else {
+            c.fillStyle = reward.mystery ? "#B8860B" : (reward.bondXP ? "#D4738C" : "#5A3E2B");
+            c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(reward.label, cx + cellW / 2, gridY + 40);
+            if (reward.mystery) {
+              c.fillStyle = "#FFD700";
+              c.font = '14px sans-serif';
+              c.fillText("\u2605", cx + cellW / 2, gridY + 56);
+            }
+          }
+        }
+        /* collected state */
+        if (this.dailyGift.collected) {
+          var fadeOut = clamp((4 - this.dailyGift.phase) / 0.8, 0, 1);
+          c.globalAlpha = panelAlpha * fadeOut;
+          c.fillStyle = COLORS.gold;
+          c.font = '20px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(this.dailyGift.rewardText || "", W / 2, 320);
+          c.fillStyle = COLORS.dark;
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Come back tomorrow for the next gift!", W / 2, 350);
+        }
+        /* gift box for uncollected */
+        if (!this.dailyGift.collected) {
+          var giftFrame = spriteArt.frames && spriteArt.frames.items ? spriteArt.frames.items.giftBox : null;
+          if (spriteArt.ready && giftFrame) {
+            var scaleIn = ph < 1 ? easeOutBack(clamp(ph, 0, 1)) : 1;
+            var wiggle = ph > 1 && ph < 1.5 ? Math.sin(ph * 30) * 4 : 0;
+            var gScale = 0.14 * scaleIn;
+            var gw = giftFrame.w * gScale;
+            var gh = giftFrame.h * gScale;
+            var bob = Math.sin(ph * 2.5) * 3;
+            c.save();
+            c.translate(W / 2 + wiggle, 330 + bob);
+            c.drawImage(spriteArt.image, giftFrame.x, giftFrame.y, giftFrame.w, giftFrame.h, -gw / 2, -gh / 2, gw, gh);
+            c.restore();
+          }
+          c.fillStyle = "rgba(92,68,52,0.7)";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Welcome back! Here's your Day " + CALENDAR_REWARDS[cal.currentDay % 7].day + " gift.", W / 2, 410);
+          if (ph > 0.5) {
+            c.fillStyle = COLORS.warmRed;
+            c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(isMobile ? "Tap to open!" : "Click to open!", W / 2, 440);
+          }
         }
         c.restore();
       }
@@ -8052,7 +8248,7 @@
         }
 
         /* daily gift overlay — skip if dedication is showing */
-        if (!this.dedication) this.drawDailyGift(c);
+        if (!this.dedication) { this.drawAwayStory(c); this.drawDailyGift(c); }
 
         /* ── First visit dedication screen ── */
         if (this.dedication) {
