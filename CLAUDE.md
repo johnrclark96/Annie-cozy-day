@@ -2,7 +2,11 @@
 
 ## What This Is
 
-A single-file HTML5 Canvas cozy pet game (800x600) featuring Annie (human), Obi (dog), and Luna (cat). All code is inline JS inside an IIFE in `annies-cozy-day-test.html`. The game runs on GitHub Pages at `https://johnrclark96.github.io/Annie-cozy-day/`. This is a personal gift project — the tone is warm, playful, and cozy. No harsh punishment mechanics.
+A single-file HTML5 Canvas cozy pet game (800x600) featuring Annie (human), Obi (golden retriever — loyal, energetic, food-motivated), and Luna (tabby cat — independent, aloof, perch-loving). All code is inline JS inside an IIFE in `annies-cozy-day-test.html`. The game runs on GitHub Pages at `https://johnrclark96.github.io/Annie-cozy-day/` (repo: `github.com/johnrclark96/Annie-cozy-day`). This is a personal gift project — the tone is warm, playful, and cozy. No harsh punishment mechanics.
+
+## Working With the User
+
+The user expects maximum effort and maximum attention to detail on every task. When playtesting, do it step-by-step: one action, visually inspect the screenshot, decide the next action. Never batch test actions. When making changes, always syntax-check and push both files. The user deeply cares about visual polish, playability, and the game feeling complete and professional.
 
 ## Key Files
 

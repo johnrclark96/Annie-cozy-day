@@ -48,6 +48,54 @@ All game code is inline JS inside a single IIFE. The file structure follows this
 | LunaNapScene | "nap" | ~12280 | Place cushions in sunbeams for Luna to nap |
 | WildWandScene | "wildwand" | ~12600 | Flappy-style wand game with physics lure |
 
+## HangoutScene Subsystems (~3,900 lines)
+
+The hangout scene is the largest class. Key subsystems within it:
+
+| Subsystem | Approximate Area | What It Does |
+|-----------|-----------------|--------------|
+| Constructor/Properties | Start of class | Buttons, hitboxes, pet objects, mode state |
+| enter() | After constructor | Daily moods, weather, passive income, welcome messages, pet memory |
+| updateHover() | Early in class | Tooltip and hover detection for all interactive elements |
+| onClick() | After updateHover | Dedication, daily gift, panels (menu/decor/wardrobe/scrapbook), mode actions, pet interactions, ambient event clicks |
+| rewardPet() | Mid-class | Joy reward with mood multipliers, diminishing returns, floating text |
+| petSpriteState() | Mid-class | Determines pose/expression/animation for Obi and Luna |
+| handlePetStroke() | Mid-class | Continuous petting while mouse held down |
+| pickWant() / updateThoughtBubbles() | Mid-class | Thought bubble spawn, mood-weighted wants |
+| updatePetInteraction() | Mid-class | 4 types of pet-to-pet interaction (sniff, bat tail, lie near, both look at Annie) |
+| recordCareAction() | Mid-class | Care streak, daily tasks, weekly challenges |
+| updateAnnie() | Mid-class | Annie's autonomous state machine (sit, walk, kneel, return home) |
+| updateObi/Luna movement | Mid-class | Pet pathfinding, idle behaviors, eating/drinking |
+| checkScrapbookGoals() | Mid-class | Auto-checks 12 scrapbook goals every 2 seconds |
+| updateDecorReactions() | Mid-class | Pets react to owned decorations |
+| draw() | End of class | Full room render, pets, accessories, status bar, all panel overlays |
+
+## Key Object Shapes
+
+**Pet object (this.obi / this.luna):**
+```
+{ x, y, homeX, homeY, targetX, targetY, joy, facing, bounce, petTimer, happyTimer, sleepy, eating, drinking, eatingFrom, carryingToy, shakeTimer, sniffing, ... }
+```
+
+**DECOR_ITEMS entry:**
+```
+{ key: "fairyLights", name: "Fairy Lights", desc: "...", stars: 1, type: "toggle"|"cycle", max: N, labels: [...], price: N, tier: N, isUpgrade: bool, streakUnlock: N, achievementUnlock: "key" }
+```
+
+**ACCESSORIES entry:**
+```
+{ key: "bandanaRed", name: "Red Bandana", price: 10, slot: "neck"|"head"|"body"|"wrist", tier: 1 }
+```
+
+## Common Gotchas
+
+1. **sceneCache.livingRoomBase** — must be set to `null` when decor changes. Currently done automatically on every toggle. If you add a new decor rendering path, verify it reads from `store.decor` (not a cached value).
+2. **canUnlockDecorItem()** — was a past bug source (blocked coin items from being purchasable). The price check was removed; the purchase happens in the click handler.
+3. **Elapsed timers** — always use `this.duration - this.timeLeft`, never hardcode the duration value.
+4. **New store keys** — MUST add to migration backfill section or existing saves will have `undefined` values that crash.
+5. **Luna's perch** — she can be on "floor", "tower", "couch", or "window". Many systems check `this.luna.perch === "floor"` before allowing interactions.
+6. **Obi's homeX** is 164 (hangout) or 300 (backyard). Luna's homeX is 598/floor or LUNA_PERCHES positions.
+
 ## Store Schema (localStorage keys)
 
 All prefixed with `anniesCozyDay_`. Key categories:
