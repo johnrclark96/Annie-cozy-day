@@ -834,10 +834,68 @@
     }
 
 
+    /* ═══ Procedural Music Constants ═══ */
+    const PENTA_FREQS = [
+      65.41, 73.42, 82.41, 98.00, 110.00,
+      130.81, 146.83, 164.81, 196.00, 220.00,
+      261.63, 293.66, 329.63, 392.00, 440.00,
+      523.25, 587.33, 659.26, 783.99, 880.00
+    ];
+    const MUSIC_MOODS = {
+      morning: { bpm: 76, filter: 1800, melRange: [10,17], arpOn: true, restPct: 0.25,
+        vol: { bass: 0.022, pad: 0.012, mel: 0.035, arp: 0.010 },
+        chords: [
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
+          { bass: 196.00, pad: [392.00, 293.66], home: [13,11,14] },
+          { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
+          { bass: 130.81, pad: [261.63, 329.63], home: [10,12,13] }
+        ]},
+      day: { bpm: 72, filter: 1400, melRange: [10,16], arpOn: true, restPct: 0.28,
+        vol: { bass: 0.022, pad: 0.012, mel: 0.032, arp: 0.009 },
+        chords: [
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
+          { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
+          { bass: 196.00, pad: [196.00, 293.66], home: [13,11,10] },
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] }
+        ]},
+      evening: { bpm: 64, filter: 950, melRange: [10,15], arpOn: false, restPct: 0.38,
+        vol: { bass: 0.020, pad: 0.011, mel: 0.026, arp: 0 },
+        chords: [
+          { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
+          { bass: 196.00, pad: [196.00, 293.66], home: [13,11,10] },
+          { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] }
+        ]},
+      night: { bpm: 54, filter: 600, melRange: [10,14], arpOn: false, restPct: 0.55,
+        vol: { bass: 0.016, pad: 0.009, mel: 0.018, arp: 0 },
+        chords: [
+          { bass: 130.81, pad: [261.63, 329.63], home: [10,12,13] },
+          { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
+          { bass: 110.00, pad: [220.00, 261.63], home: [14,10,12] }
+        ]},
+      backyard: { bpm: 80, filter: 2000, melRange: [10,18], arpOn: true, restPct: 0.22,
+        vol: { bass: 0.020, pad: 0.013, mel: 0.034, arp: 0.011 },
+        chords: [
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
+          { bass: 146.83, pad: [293.66, 440.00], home: [11,13,14] },
+          { bass: 196.00, pad: [392.00, 293.66], home: [13,11,10] },
+          { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] }
+        ]}
+    };
+
     // ═══ 05-audio.js ═══
     class CozyAudio {
       constructor() {
         this.ctx = null;
+        this._musicNodes = null;
+        this._musicScheduler = null;
+        this._musicMood = null;
+        this._musicMoodConfig = null;
+        this._musicSubBeat = 0;
+        this._musicNextTime = 0;
+        this._melNoteIdx = 12;
+        this._arpStep = 0;
       }
       ensure() {
         if (!this.ctx) {
@@ -929,49 +987,174 @@
       }
       achievement() { this.chord([261.63, 329.63, 392], 0.3, 0.11); }
       tinyChime() { this.tone(660, 0.09, 0.08, "sine"); }
-      startAmbient() {
+      startAmbient(mood) {
         if (this.ambientActive) return;
         if (!this.ensure()) return;
         if (store.muted) return;
         this.ambientActive = true;
-        const now = this.ctx.currentTime;
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const lfo = this.ctx.createOscillator();
-        const lfoGain = this.ctx.createGain();
-        const g = this.ctx.createGain();
-        osc1.type = "sine";
-        osc1.frequency.value = 110;
-        osc2.type = "sine";
-        osc2.frequency.value = 165;
-        lfo.type = "sine";
-        lfo.frequency.value = 0.15;
-        lfoGain.gain.value = 0.005;
-        lfo.connect(lfoGain);
-        lfoGain.connect(g.gain);
-        g.gain.value = 0.018;
-        osc1.connect(g);
-        osc2.connect(g);
-        g.connect(this.ctx.destination);
-        osc1.start(now);
-        osc2.start(now);
+        var moodKey = mood || this._getMusicMoodKey();
+        this._musicMood = moodKey;
+        this._musicMoodConfig = MUSIC_MOODS[moodKey] || MUSIC_MOODS.day;
+        var mc = this._musicMoodConfig;
+        var now = this.ctx.currentTime;
+        /* audio graph: voices → filter → master → destination */
+        var master = this.ctx.createGain();
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.linearRampToValueAtTime(0.7, now + 1.5);
+        var filter = this.ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(mc.filter, now);
+        filter.Q.setValueAtTime(0.7, now);
+        filter.connect(master);
+        master.connect(this.ctx.destination);
+        /* bass voice — sustained sine */
+        var bass = this.ctx.createOscillator();
+        var bassG = this.ctx.createGain();
+        bass.type = "sine";
+        bass.frequency.setValueAtTime(mc.chords[0].bass, now);
+        bassG.gain.setValueAtTime(mc.vol.bass, now);
+        bass.connect(bassG);
+        bassG.connect(filter);
+        bass.start(now);
+        /* pad — two detuned sines for warmth */
+        var pad1 = this.ctx.createOscillator();
+        var pad2 = this.ctx.createOscillator();
+        var padG = this.ctx.createGain();
+        pad1.type = "sine";
+        pad2.type = "sine";
+        pad1.frequency.setValueAtTime(mc.chords[0].pad[0], now);
+        pad2.frequency.setValueAtTime(mc.chords[0].pad[1] * 1.003, now);
+        padG.gain.setValueAtTime(mc.vol.pad, now);
+        var lfo = this.ctx.createOscillator();
+        var lfoG = this.ctx.createGain();
+        lfo.frequency.value = 0.18;
+        lfoG.gain.value = 0.003;
+        lfo.connect(lfoG);
+        lfoG.connect(padG.gain);
+        pad1.connect(padG);
+        pad2.connect(padG);
+        padG.connect(filter);
+        pad1.start(now);
+        pad2.start(now);
         lfo.start(now);
-        this._ambientNodes = { osc1, osc2, lfo, lfoGain, g };
+        this._musicNodes = { master: master, filter: filter, bass: bass, bassG: bassG, pad1: pad1, pad2: pad2, padG: padG, lfo: lfo, lfoG: lfoG };
+        /* start beat scheduler */
+        this._musicSubBeat = 0;
+        this._musicNextTime = now + 0.5;
+        this._melNoteIdx = mc.melRange[0] + Math.floor((mc.melRange[1] - mc.melRange[0]) / 2);
+        this._arpStep = 0;
+        var self = this;
+        this._musicScheduler = setInterval(function() { self._scheduleMusicBeat(); }, 180);
       }
       stopAmbient() {
         if (!this.ambientActive) return;
         this.ambientActive = false;
-        const n = this._ambientNodes;
-        if (!n) return;
-        this._ambientNodes = null;
+        if (this._musicScheduler) { clearInterval(this._musicScheduler); this._musicScheduler = null; }
+        var n = this._musicNodes;
+        if (!n || !this.ctx) { this._musicNodes = null; return; }
+        this._musicNodes = null;
         try {
-          const now = this.ctx.currentTime;
-          n.g.gain.setTargetAtTime(0, now, 0.1);
-          const osc1 = n.osc1, osc2 = n.osc2, lfo = n.lfo;
-          setTimeout(() => {
-            try { osc1.stop(); osc2.stop(); lfo.stop(); } catch(e) {}
-          }, 300);
+          var now = this.ctx.currentTime;
+          n.master.gain.setTargetAtTime(0, now, 0.15);
+          setTimeout(function() {
+            try { n.bass.stop(); n.pad1.stop(); n.pad2.stop(); n.lfo.stop(); } catch(e) {}
+            try { n.bass.disconnect(); n.pad1.disconnect(); n.pad2.disconnect(); n.lfo.disconnect(); n.lfoG.disconnect(); n.bassG.disconnect(); n.padG.disconnect(); n.filter.disconnect(); n.master.disconnect(); } catch(e) {}
+          }, 500);
         } catch(e) {}
+      }
+      _getMusicMoodKey() {
+        var tod = store.decor.timeOfDay || 1;
+        if (game.scene && game.scene.name === "backyard") return "backyard";
+        return ["morning", "day", "evening", "night"][tod];
+      }
+      setMusicMood(mood) {
+        var key = mood || this._getMusicMoodKey();
+        if (key === this._musicMood && this.ambientActive) return;
+        this.stopAmbient();
+        var self = this;
+        setTimeout(function() { self.startAmbient(key); }, 350);
+      }
+      _scheduleMusicBeat() {
+        if (!this.ctx || !this._musicNodes || !this._musicMoodConfig) return;
+        var mc = this._musicMoodConfig;
+        var eighthDur = 60 / mc.bpm / 2;
+        var lookAhead = 0.4;
+        /* if tab was hidden, jump ahead instead of catching up */
+        if (this._musicNextTime < this.ctx.currentTime - 1.0) {
+          this._musicNextTime = this.ctx.currentTime + 0.1;
+        }
+        var safety = 0;
+        while (this._musicNextTime < this.ctx.currentTime + lookAhead && safety < 16) {
+          safety++;
+          var when = this._musicNextTime;
+          var sub = this._musicSubBeat;
+          var chordIdx = Math.floor(sub / 16) % 4;
+          var chord = mc.chords[chordIdx];
+          var beatInChord = sub % 16;
+          var isDownbeat = (sub % 2 === 0);
+          /* update sustained voices on chord boundaries */
+          if (beatInChord === 0 && this._musicNodes) {
+            var n = this._musicNodes;
+            n.bass.frequency.setTargetAtTime(chord.bass, when, 0.4);
+            n.bassG.gain.setTargetAtTime(mc.vol.bass, when, 0.1);
+            n.pad1.frequency.setTargetAtTime(chord.pad[0], when, 0.35);
+            n.pad2.frequency.setTargetAtTime(chord.pad[1] * 1.003, when, 0.35);
+            n.padG.gain.setTargetAtTime(mc.vol.pad, when, 0.1);
+          }
+          /* melody on quarter-note beats */
+          if (isDownbeat) {
+            var resolving = (beatInChord >= 14);
+            var melFreq = this._nextMelodyNote(chord.home, mc.melRange, mc.restPct, resolving);
+            if (melFreq) {
+              this._playMusicNote(melFreq, when, eighthDur * 1.6, mc.vol.mel, "triangle");
+            }
+          }
+          /* arpeggio on eighth notes */
+          if (mc.arpOn && mc.vol.arp > 0) {
+            if (Math.random() < 0.62) {
+              var arpIdx = chord.home[this._arpStep % chord.home.length];
+              this._playMusicNote(PENTA_FREQS[arpIdx], when, eighthDur * 0.55, mc.vol.arp, "sine");
+            }
+            this._arpStep++;
+          }
+          this._musicSubBeat = (sub + 1) % 64;
+          this._musicNextTime += eighthDur;
+        }
+      }
+      _nextMelodyNote(home, range, restPct, resolve) {
+        if (Math.random() < restPct) return null;
+        var idx = this._melNoteIdx;
+        if (resolve) {
+          idx = home[0];
+          this._melNoteIdx = idx;
+          return PENTA_FREQS[idx];
+        }
+        var r = Math.random();
+        if (r < 0.50) {
+          idx += (Math.random() < 0.5) ? 1 : -1;
+        } else if (r < 0.75) {
+          idx = home[Math.floor(Math.random() * home.length)];
+        } else if (r < 0.88) {
+          idx += (Math.random() < 0.5) ? 2 : -2;
+        }
+        idx = Math.max(range[0], Math.min(range[1], idx));
+        this._melNoteIdx = idx;
+        return PENTA_FREQS[idx];
+      }
+      _playMusicNote(freq, when, dur, gain, type) {
+        if (!this.ctx || !this._musicNodes) return;
+        var osc = this.ctx.createOscillator();
+        var g = this.ctx.createGain();
+        osc.type = type || "triangle";
+        osc.frequency.setValueAtTime(freq, when);
+        osc.connect(g);
+        g.connect(this._musicNodes.filter);
+        var attack = Math.min(0.025, dur * 0.12);
+        g.gain.setValueAtTime(0.0001, when);
+        g.gain.linearRampToValueAtTime(gain, when + attack);
+        g.gain.setTargetAtTime(0.0001, when + dur * 0.55, dur * 0.25);
+        osc.start(when);
+        osc.stop(when + dur + 0.15);
       }
     }
     const audio = new CozyAudio();
@@ -4531,6 +4714,7 @@
               saveDecor();
               audio.tinyChime();
               sceneCache.livingRoomBase = null;
+              if (item.key === "timeOfDay") audio.setMusicMood();
               return;
             }
           }
@@ -7827,7 +8011,7 @@
       enter() {
         this.obi.joy = store.pet_obi_joy;
         this.luna.joy = store.pet_luna_joy;
-        audio.startAmbient();
+        audio.startAmbient("backyard");
         if (!this.checkedFirstVisit) {
           this.checkedFirstVisit = true;
           var entries = store.scrapbook.entries;
@@ -13180,7 +13364,7 @@
         audio.ensure();
         store.muted = !store.muted;
         saveBool("muted", store.muted);
-        if (!store.muted) { audio.menu(); if (game.scene && game.scene.name === "hangout") audio.startAmbient(); }
+        if (!store.muted) { audio.menu(); if (game.scene && (game.scene.name === "hangout" || game.scene.name === "backyard")) audio.startAmbient(); }
         else { audio.stopAmbient(); }
         return true;
       }
