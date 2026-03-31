@@ -183,7 +183,13 @@
       { key: "treatsJar", name: "\u2728 Treats Jar", desc: "Treats give +1 bonus joy", stars: 0, type: "toggle", price: 60, tier: 1, isUpgrade: true },
       { key: "cozyBlankets", name: "\u2728 Extra Blankets", desc: "Pets start each visit +5 joy", stars: 0, type: "toggle", price: 100, tier: 2, isUpgrade: true },
       { key: "joyfulHome", name: "\u2728 Joyful Home", desc: "Joy decays 20% slower", stars: 0, type: "toggle", price: 120, tier: 2, isUpgrade: true },
-      { key: "luckyCharm", name: "\u2728 Lucky Charm", desc: "+2 coins per minigame play", stars: 0, type: "toggle", price: 150, tier: 2, isUpgrade: true }
+      { key: "luckyCharm", name: "\u2728 Lucky Charm", desc: "+2 coins per minigame play", stars: 0, type: "toggle", price: 150, tier: 2, isUpgrade: true },
+      /* Golden Room collection — endgame aspirational items */
+      { key: "goldenCurtains", name: "\u2728 Golden Curtains", desc: "Luxurious golden drapes", stars: 25, type: "toggle", price: 200, tier: 3 },
+      { key: "chandelier", name: "\u2728 Crystal Chandelier", desc: "A sparkling centerpiece", stars: 25, type: "toggle", price: 300, tier: 3 },
+      { key: "silkPillows", name: "\u2728 Silk Throw Pillows", desc: "Elegant couch upgrade", stars: 25, type: "toggle", price: 250, tier: 3 },
+      { key: "antiqueMusicBox", name: "\u2728 Antique Music Box", desc: "Plays a tinkling melody", stars: 25, type: "toggle", price: 350, tier: 4 },
+      { key: "royalThrone", name: "\u2728 Royal Pet Throne", desc: "A throne for the king and queen", stars: 25, type: "toggle", price: 500, tier: 4 }
     ];
 
     /* ── Backyard decorations ── */
@@ -483,7 +489,7 @@
     if (store.decor.cozyBlanket === undefined) store.decor.cozyBlanket = false;
     if (store.decor.photoWall === undefined) store.decor.photoWall = false;
     /* new decor keys */
-    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait","comfyBowls","treatsJar","cozyBlankets","joyfulHome","luckyCharm"];
+    var newDecorKeys = ["floorCushion","corkBoard","bookStack","couchPillows","hangingPlant","candles","wallClock","rugPattern","garland","petToys","musicBox","familyPortrait","comfyBowls","treatsJar","cozyBlankets","joyfulHome","luckyCharm","goldenCurtains","chandelier","silkPillows","antiqueMusicBox","royalThrone"];
     for (var ndi = 0; ndi < newDecorKeys.length; ndi++) {
       if (store.decor[newDecorKeys[ndi]] === undefined) store.decor[newDecorKeys[ndi]] = newDecorKeys[ndi] === "couchPillows" || newDecorKeys[ndi] === "rugPattern" || newDecorKeys[ndi] === "garland" ? 0 : false;
     }
@@ -3448,6 +3454,39 @@
         c.globalAlpha = 0.06;
         c.fillStyle = "#FFFFFF";
         c.beginPath(); c.ellipse(400, 465, 180, 40, 0, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+
+      /* Golden Room collection */
+      if (d.goldenCurtains) {
+        c.fillStyle = "rgba(218,180,80,0.3)";
+        c.fillRect(56, 40, 20, 180); c.fillRect(186, 40, 20, 180);
+        c.fillStyle = "#D4B050"; c.fillRect(56, 40, 20, 10); c.fillRect(186, 40, 20, 10);
+      }
+      if (d.chandelier) {
+        c.save(); c.translate(400, 20);
+        c.strokeStyle = "rgba(218,180,80,0.5)"; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(0, 0); c.lineTo(0, 18); c.stroke();
+        for (var chi = 0; chi < 5; chi++) {
+          var chx = -20 + chi * 10;
+          c.strokeStyle = "rgba(218,180,80,0.4)";
+          c.beginPath(); c.moveTo(0, 18); c.lineTo(chx, 32); c.stroke();
+          c.fillStyle = "rgba(255,240,180," + (0.4 + Math.sin(game.time * 3 + chi) * 0.15) + ")";
+          c.beginPath(); c.arc(chx, 34, 3, 0, Math.PI * 2); c.fill();
+        }
+        c.restore();
+      }
+      if (d.silkPillows) {
+        c.fillStyle = "#C8A8D0"; c.beginPath(); c.ellipse(370, 298, 18, 10, -0.2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#D0B8D8"; c.beginPath(); c.ellipse(430, 300, 16, 9, 0.15, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "rgba(255,255,255,0.2)"; c.beginPath(); c.ellipse(368, 294, 8, 4, -0.2, 0, Math.PI * 2); c.fill();
+      }
+      if (d.royalThrone) {
+        c.save(); c.translate(520, 432);
+        c.fillStyle = "#B08020"; rr(c, -22, -24, 44, 8, 3); c.fill();
+        c.fillStyle = "#C89830"; rr(c, -18, -16, 36, 20, 4); c.fill();
+        c.fillStyle = "#D8A840"; c.beginPath(); c.ellipse(0, -10, 14, 8, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#FFD700"; c.beginPath(); c.arc(0, -28, 4, 0, Math.PI * 2); c.fill();
         c.restore();
       }
 
@@ -10089,17 +10128,23 @@
         this.bowlsSwapped = false;
       }
       spawnTreat() {
-        const isDog = Math.random() < 0.5;
+        var typeRoll = Math.random();
+        var type;
+        if (typeRoll < 0.08) { type = "golden"; }
+        else if (typeRoll < 0.16) { type = "rotten"; }
+        else if (typeRoll < 0.58) { type = "dog"; }
+        else { type = "cat"; }
+        const isDog = type === "dog" || type === "golden";
         const dogSubs = ["bone", "round", "training"];
         const catSubs = ["fish", "roundCat", "premium"];
-        const subs = isDog ? dogSubs : catSubs;
+        const subs = (type === "golden" || type === "rotten") ? dogSubs : (isDog ? dogSubs : catSubs);
         const sub = subs[Math.floor(Math.random() * subs.length)];
         const elapsed = (this.duration - this.timeLeft) / this.duration;
         this.treats.push({
           x: rand(160, 640),
           y: -20,
-          vy: rand(35, 55) * (1 + elapsed * 0.4),
-          type: isDog ? "dog" : "cat",
+          vy: rand(35, 55) * (1 + elapsed * 0.7),
+          type: type,
           subtype: sub,
           points: sub === "premium" || sub === "training" ? 15 : 10,
           dragging: false,
@@ -10170,9 +10215,21 @@
         }
         var obiSide = t.x < W / 2;
         if (this.bowlsSwapped) obiSide = !obiSide;
-        const correct = (t.type === "dog" && obiSide) || (t.type === "cat" && !obiSide);
+        if (t.type === "rotten") {
+          /* rotten treat — should NOT be sorted, just let it fall. Clicking/sorting it is bad */
+          this.addScore(-20);
+          this.combo = 1;
+          this.wrongFlash = 1;
+          audio.miss();
+          this.dragging = null; t.dragging = false;
+          return;
+        }
+        var correct;
+        if (t.type === "golden") { correct = true; /* golden always correct, worth 3x */ }
+        else { correct = (t.type === "dog" && obiSide) || (t.type === "cat" && !obiSide); }
         if (correct) {
-          this.addScore(t.points * this.combo);
+          var sortPts = t.type === "golden" ? 30 * this.combo : 10 * this.combo;
+          this.addScore(sortPts);
           this.combo++;
           this.correctStreak++;
           t.settled = true; t.settleTimer = 0.5;
@@ -10214,30 +10271,44 @@
         c.save();
         c.translate(t.x, t.y);
         if (t.settled) c.globalAlpha = clamp(t.settleTimer / 0.3, 0, 1);
+        if (t.type === "golden") {
+          c.save();
+          c.globalAlpha = 0.5 + Math.sin(game.time * 6) * 0.3;
+          c.fillStyle = "#FFF4C0";
+          c.beginPath(); c.arc(0, 0, 12, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        if (t.type === "rotten") {
+          c.fillStyle = "#D04040";
+          c.font = '10px "Fredoka One", sans-serif';
+          c.textAlign = "center";
+          c.fillText("!", 0, -14);
+        }
         c.scale(1.8, 1.8);
+        var tintOverride = t.type === "golden" ? "#FFD700" : (t.type === "rotten" ? "#8A9A70" : null);
         if (t.subtype === "bone") {
-          drawBone(c, 0, 0, 20, 10, "#D4A44C");
+          drawBone(c, 0, 0, 20, 10, tintOverride || "#D4A44C");
         } else if (t.subtype === "round") {
-          c.fillStyle = "#A07040";
+          c.fillStyle = tintOverride || "#A07040";
           c.beginPath(); c.arc(0, 0, 10, 0, Math.PI * 2); c.fill();
           c.fillStyle = "rgba(255,255,255,0.3)";
           c.beginPath(); c.arc(-3, -3, 4, 0, Math.PI * 2); c.fill();
         } else if (t.subtype === "training") {
-          c.fillStyle = "#D4B88C";
+          c.fillStyle = tintOverride || "#D4B88C";
           rr(c, -8, -5, 16, 10, 3); c.fill();
         } else if (t.subtype === "fish") {
-          c.fillStyle = "#E88070";
+          c.fillStyle = tintOverride || "#E88070";
           c.beginPath();
           c.ellipse(0, 0, 12, 6, 0, 0, Math.PI * 2);
           c.fill();
           c.beginPath(); c.moveTo(12, 0); c.lineTo(18, -6); c.lineTo(18, 6); c.closePath(); c.fill();
         } else if (t.subtype === "roundCat") {
-          c.fillStyle = "#C08070";
+          c.fillStyle = tintOverride || "#C08070";
           c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.fill();
           c.fillStyle = "rgba(255,255,255,0.25)";
           c.beginPath(); c.arc(-2, -2, 3.5, 0, Math.PI * 2); c.fill();
         } else if (t.subtype === "premium") {
-          c.fillStyle = "#E89080";
+          c.fillStyle = tintOverride || "#E89080";
           rr(c, -10, -6, 20, 12, 4); c.fill();
           c.fillStyle = "rgba(255,255,255,0.3)";
           rr(c, -7, -4, 8, 6, 2); c.fill();
@@ -11007,6 +11078,7 @@
         this.buttonFlash = {};
         this.longestSequence = 0;
         this.round = 0;
+        this.scorePopups = [];
       }
       enter() {
         super.enter();
@@ -11014,6 +11086,7 @@
         this.longestSequence = 0;
         this.round = 0;
         this.buttonFlash = {};
+        this.scorePopups = [];
       }
       startPlay() {
         super.startPlay();
@@ -11027,6 +11100,7 @@
         this.beginShowPhase();
       }
       addToSequence() {
+        if (this.sequence.length >= 5) return;
         const keys = PAWSTEP_ACTIONS.map(a => a.key);
         let next;
         do {
@@ -11054,6 +11128,11 @@
         if (this.activeAction) {
           this.activeAction.timer -= dt;
           if (this.activeAction.timer <= 0) this.activeAction = null;
+        }
+        for (let i = this.scorePopups.length - 1; i >= 0; i--) {
+          this.scorePopups[i].life -= dt;
+          this.scorePopups[i].y -= 35 * dt;
+          if (this.scorePopups[i].life <= 0) this.scorePopups.splice(i, 1);
         }
         if (this.roundPhase === "show") {
           this.showTimer += dt;
@@ -11112,12 +11191,17 @@
                 if (this.sequence.length >= 7) this.queueAchievement("goodMemory");
               }
             } else {
-              this.roundPhase = "result";
-              this.resultTimer = 0;
-              this.resultType = "wrong";
-              this.combo = 1;
+              this.addScore(-10);
+              this.inputIndex++;  /* skip to next step instead of resetting */
+              this.scorePopups.push({ x: W/2, y: H/2, text: "-10", color: COLORS.warmRed, life: 0.8 });
               audio.miss();
               screenShake(3, 0.15);
+              /* if all steps attempted (right or wrong), start new round */
+              if (this.inputIndex >= this.sequence.length) {
+                this.round++;
+                this.addToSequence();
+                this.beginShowPhase();
+              }
             }
             return;
           }
@@ -11210,6 +11294,15 @@
         c.font = '13px "Fredoka One", sans-serif';
         c.textAlign = "center";
         c.fillText("Longest: " + this.longestSequence + " steps", W / 2, H - 10);
+        for (const sp of this.scorePopups) {
+          c.save();
+          c.globalAlpha = clamp(sp.life / 0.5, 0, 1);
+          c.fillStyle = sp.color || COLORS.warmRed;
+          c.font = '18px "Fredoka One", sans-serif';
+          c.textAlign = "center";
+          c.fillText(sp.text, sp.x, sp.y);
+          c.restore();
+        }
       }
       drawInstructionIcon(c, x, y) {
         c.save(); c.translate(x, y);
