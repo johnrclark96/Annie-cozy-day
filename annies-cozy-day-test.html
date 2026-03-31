@@ -1919,9 +1919,6 @@
       const bellyRock = pose === "bellyUp" ? Math.sin(game.time * 3) * 0.04 : 0;
       var lunaFrameKey = "luna." + pose;
       var lunaFix = FRAME_SCALE_FIX[lunaFrameKey] || 1;
-      /* Luna's sprite atlas has orange tabby coloring — correct to gray-brown tabby */
-      var prevFilter = c.filter;
-      c.filter = "saturate(0.35) hue-rotate(-18deg) brightness(0.92)";
       drawFrameImage(c, frame, x, y, scale * lunaFix, {
         baseScale: SPRITE_BASE_SCALE.luna,
         flip: (pose === "topdown" ? (game.mouse.x >= x ? 1 : -1) : (s.facing || 1)),
@@ -1931,7 +1928,6 @@
         stretchY: 1 - (s.pounceStretch || 0) * 0.06,
         glow: s.glow
       });
-      c.filter = prevFilter || "none";
       if (pose === "sleeping") drawZzz(c, x + 26, y - 90 * scale, 0.82 * scale);
     }
 
