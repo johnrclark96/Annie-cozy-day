@@ -1454,7 +1454,10 @@
       /* clamp box to canvas */
       var clampedX = clamp(x, w / 2 + 10, 800 - w / 2 - 10);
       var boxLeft = clampedX - w / 2;
-      var boxTop = y - h;
+      /* auto-flip: render below anchor if box would clip top of canvas */
+      var flipBelow = (y - h) < 4;
+      var pointerGap = 12;
+      var boxTop = flipBelow ? y + pointerGap : y - h;
       /* shadow */
       c.fillStyle = "rgba(60,40,25,0.15)";
       rr(c, boxLeft + 3, boxTop + 3, w, h, 14);
@@ -1479,8 +1482,13 @@
       var pointerX = clamp(x, boxLeft + 14, boxLeft + w - 14);
       c.fillStyle = "rgba(82,58,42,0.94)";
       c.beginPath();
-      c.moveTo(pointerX - 8, y);
-      c.quadraticCurveTo(pointerX, y + 12, pointerX + 8, y);
+      if (flipBelow) {
+        c.moveTo(pointerX - 8, y + pointerGap);
+        c.quadraticCurveTo(pointerX, y, pointerX + 8, y + pointerGap);
+      } else {
+        c.moveTo(pointerX - 8, y);
+        c.quadraticCurveTo(pointerX, y + 12, pointerX + 8, y);
+      }
       c.closePath();
       c.fill();
       c.restore();
