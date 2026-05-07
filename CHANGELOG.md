@@ -1,5 +1,22 @@
 # Changelog — Annie's Cozy Day
 
+## 2026-05-07
+
+### Audit Q1–Q13 quick wins
+- Hub tab row: renamed "Wardrobe" → "Closet" (storage key unchanged), trimmed button width 100→90, unified all panel/mode buttons to neutral `#C7A37B` with single `#A05A3C` active accent
+- Added `SAFE = 16` canvas-edge gutter constant; goal pill, "Cleared:" pill, and "Longest:" text now respect the gutter
+- Standardized top-right HUD buttons (sound, camera, scrapbook) to a single 28×28 cream chip stack at `x = W - SAFE - 28`, 6px vertical gap
+- Backyard "← Go Inside" button moved top-left, cream pill on cocoa text, pill style; backyard Decor button shifted right to make room
+- Unified minigame intro modal scrim to single `INTRO_SCRIM = "rgba(58,42,30,0.55)"` constant
+- Time HUD now reads as `m:ss` (e.g. `0:42`); Time/Score labels use mono uppercase caps above the value, dark text on cream pill
+- Removed "Made with love and way too much JavaScript" from title subtitle rotation
+- Trimmed all 12 minigame instruction strings to ≤8 words per sentence (no isMobile branches except Cuddle Pile)
+- Bonus chip rewritten: now reads "Obi & Luna are happy today. Bonus time." or "Pets are content. Small bonus." (numeric tail dropped)
+- Where's Luna: round counter never displays "Round 0" (uses `Math.max(1, this.round)`)
+- Hub: dropped the "Lv.X" bond badge under each pet's joy bar; pill heights shrunk 56→38; bond progression system itself untouched
+- Esc on dedication card now respects the 1.5s phase gate (matches click behavior)
+- Verified `roomPreset` cycle handler at line 4934: `(x+1) % (max+1)` — `max:4` with 5 labels yields all five reachable; no change needed
+
 ## 2026-03-30
 
 ### Procedural Music Engine

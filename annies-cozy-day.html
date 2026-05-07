@@ -79,6 +79,8 @@
     const ctx = canvas.getContext("2d");
     const W = canvas.width;
     const H = canvas.height;
+    const SAFE = 16;
+    const INTRO_SCRIM = "rgba(58, 42, 30, 0.55)";
     const STORE_PREFIX = "anniesCozyDay_";
 
     const COLORS = {
@@ -148,8 +150,7 @@
       "Everyone's favorite nap spot",
       "A game about the important things",
       "Obi found something interesting to sniff",
-      "Luna claims this is her couch now",
-      "Made with love and way too much JavaScript"
+      "Luna claims this is her couch now"
     ];
 
     /* ── Living room decorations ── */
@@ -1412,6 +1413,56 @@
       return "#" + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
     }
 
+    const HUD_MONO = 'ui-monospace, "SF Mono", Menlo, monospace';
+
+    function formatMSS(seconds) {
+      const s = Math.max(0, Math.ceil(seconds));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return m + ":" + (r < 10 ? "0" + r : r);
+    }
+
+    function drawHudTime(c, x, y, seconds) {
+      c.save();
+      c.textAlign = "left";
+      c.textBaseline = "top";
+      if ("letterSpacing" in c) c.letterSpacing = "0.14em";
+      c.fillStyle = "#807366";
+      c.font = '10px ' + HUD_MONO;
+      c.fillText("TIME", x, y);
+      if ("letterSpacing" in c) c.letterSpacing = "0px";
+      c.fillStyle = "#3A2A1E";
+      c.font = '600 22px ' + HUD_MONO;
+      c.fillText(formatMSS(seconds), x, y + 14);
+      c.restore();
+    }
+
+    function drawHudScore(c, x, y, score) {
+      c.save();
+      c.textAlign = "right";
+      c.textBaseline = "top";
+      if ("letterSpacing" in c) c.letterSpacing = "0.14em";
+      c.fillStyle = "#807366";
+      c.font = '10px ' + HUD_MONO;
+      c.fillText("SCORE", x, y);
+      if ("letterSpacing" in c) c.letterSpacing = "0px";
+      c.fillStyle = "#3A2A1E";
+      c.font = '600 22px ' + HUD_MONO;
+      c.fillText(String(score), x, y + 14);
+      c.restore();
+    }
+
+    function drawHudChip(c, x, y, hovered) {
+      c.save();
+      c.fillStyle = hovered ? "rgba(255,248,240,0.98)" : "rgba(255,248,240,0.88)";
+      rr(c, x, y, 28, 28, 8);
+      c.fill();
+      c.strokeStyle = "rgba(58,42,30,0.45)";
+      c.lineWidth = 1;
+      c.stroke();
+      c.restore();
+    }
+
     function drawButton(c, r, label, hovered, fill = COLORS.warmRed, textColor = "#fff") {
       c.save();
       const shadowY = hovered ? 4 : 6;
@@ -1496,38 +1547,32 @@
 
     function drawSpeakerIcon(c, x, y, muted, hovered) {
       c.save();
-      c.translate(x, y);
-      if (hovered) drawGlowCircle(c, 0, 0, 26, "rgba(255,215,0,ALPHA)", 0.18);
-      c.fillStyle = "rgba(92,68,52,0.9)";
-      rr(c, -20, -20, 40, 40, 12);
-      c.fill();
-      c.strokeStyle = "rgba(255,255,255,0.6)";
-      c.lineWidth = 1.5;
-      c.stroke();
-      c.strokeStyle = "#FFF8F0";
-      c.lineWidth = 3;
+      drawHudChip(c, x, y, hovered);
+      c.translate(x + 14, y + 14);
+      c.strokeStyle = "#3A2A1E";
+      c.lineWidth = 2;
       c.beginPath();
-      c.moveTo(-8, -6);
-      c.lineTo(-2, -6);
-      c.lineTo(6, -14);
-      c.lineTo(6, 14);
-      c.lineTo(-2, 6);
-      c.lineTo(-8, 6);
+      c.moveTo(-6, -4);
+      c.lineTo(-2, -4);
+      c.lineTo(4, -10);
+      c.lineTo(4, 10);
+      c.lineTo(-2, 4);
+      c.lineTo(-6, 4);
       c.stroke();
       if (!muted) {
         c.beginPath();
-        c.arc(7, 0, 7, -0.7, 0.7);
+        c.arc(5, 0, 5, -0.7, 0.7);
         c.stroke();
         c.beginPath();
-        c.arc(7, 0, 12, -0.8, 0.8);
+        c.arc(5, 0, 9, -0.8, 0.8);
         c.stroke();
       } else {
-        c.strokeStyle = COLORS.softPink;
+        c.strokeStyle = "#B86A58";
         c.beginPath();
-        c.moveTo(10, -10);
-        c.lineTo(20, 10);
-        c.moveTo(20, -10);
-        c.lineTo(10, 10);
+        c.moveTo(7, -7);
+        c.lineTo(13, 7);
+        c.moveTo(13, -7);
+        c.lineTo(7, 7);
         c.stroke();
       }
       c.restore();
@@ -4135,7 +4180,7 @@
         super("hangout");
         this.gamesButton = { x: 20, y: 16, w: 122, h: 40 };
         this.decorButton = { x: 524, y: 16, w: 90, h: 40 };
-        this.wardrobeButton = { x: 620, y: 16, w: 100, h: 40 };
+        this.wardrobeButton = { x: 620, y: 16, w: 90, h: 40 };
         this.wardrobeOpen = false;
         this.wardrobeHover = null;
         this.wardrobeFade = 0;
@@ -4265,8 +4310,8 @@
         /* backyard door */
         this.backyardDoor = { x: 740, y: 300, w: 60, h: 100 };
         /* camera + scrapbook buttons — positioned below mute icon */
-        this.cameraButton = { x: W - 54, y: 56, w: 40, h: 40 };
-        this.scrapbookButton = { x: W - 54, y: 100, w: 40, h: 40 };
+        this.cameraButton = { x: W - SAFE - 28, y: SAFE + 34, w: 28, h: 28 };
+        this.scrapbookButton = { x: W - SAFE - 28, y: SAFE + 68, w: 28, h: 28 };
         this.scrapbookOpen = false;
         this.scrapbookHover = null;
         this.scrapbookFade = 0;
@@ -5350,6 +5395,7 @@
       }
       onKeyDown(key) {
         if (key === "Escape") {
+          if (this.dedication && this.dedication.phase < 1.5) return;
           audio.menu();
           if (this.dedication) { this.dedication = null; store.firstVisit = false; saveBool("firstVisit", false); }
           else if (this.menuOpen) { this.menuOpen = false; }
@@ -5950,7 +5996,7 @@
         this.tooltip = null;
         if (this.hoverKey === "games") this.tooltip = { x: 82, y: 66, title: "Minigames", body: "Play cozy games with Obi and Luna!" };
         else if (this.hoverKey === "decor") this.tooltip = { x: 570, y: 66, title: "Decorate", body: "Customize the living room with unlockable items!" };
-        else if (this.hoverKey === "wardrobe") this.tooltip = { x: 670, y: 66, title: "Wardrobe", body: "Buy and equip accessories for Obi and Luna!" };
+        else if (this.hoverKey === "wardrobe") this.tooltip = { x: 665, y: 66, title: "Closet", body: "Buy and equip accessories for Obi and Luna!" };
         else if (this.hoverKey === "backyardDoor") this.tooltip = { x: 740, y: 290, title: "Backyard", body: "Go outside to the backyard!" };
         else if (this.hoverKey === "camera") this.tooltip = { x: W - 74, y: 100, title: "Camera", body: "Take a screenshot!" };
         else if (this.hoverKey === "scrapbook") this.tooltip = { x: W - 74, y: 144, title: "Scrapbook", body: "View photos, milestones, and stats!" };
@@ -7180,12 +7226,12 @@
         }
 
         /* buttons row */
-        drawButton(c, this.gamesButton, "Games", this.hoverKey === "games", "#A86D3F");
-        drawButton(c, this.decorButton, "Decor", this.hoverKey === "decor", "#9B7DBD");
-        drawButton(c, this.wardrobeButton, "Wardrobe", this.hoverKey === "wardrobe", "#C07850");
+        drawButton(c, this.gamesButton, "Games", this.hoverKey === "games", "#C7A37B");
+        drawButton(c, this.decorButton, "Decor", this.hoverKey === "decor", "#C7A37B");
+        drawButton(c, this.wardrobeButton, "Closet", this.hoverKey === "wardrobe", "#C7A37B");
         for (const btn of this.modeButtons) {
           const active = this.mode === btn.key;
-          drawButton(c, btn, btn.label, this.hoverKey === btn.key || active, active ? "#B84B3A" : "#C7A37B");
+          drawButton(c, btn, btn.label, this.hoverKey === btn.key || active, active ? "#A05A3C" : "#C7A37B");
         }
 
         /* coin pill */
@@ -7279,9 +7325,9 @@
           c.restore();
         }
 
-        /* compact pet status - small pills with bond meter */
+        /* compact pet status - small pills */
         c.save();
-        rr(c, 14, 62, 140, 56, 12);
+        rr(c, 14, 62, 140, 38, 12);
         c.fillStyle = "rgba(255,255,255,0.78)";
         c.fill();
         c.strokeStyle = "rgba(146,104,72,0.12)";
@@ -7304,27 +7350,10 @@
           rr(c, 24, 84, obiBarW, 5, 6);
           c.fill();
         }
-        /* obi bond meter */
-        var obiBondLvl = getBondLevel("obi");
-        var obiBondProg = getBondProgress("obi");
-        c.fillStyle = "#D4738C";
-        c.font = '9px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "left";
-        drawHeart(c, 20, 105, 0.28, "#D4738C");
-        c.fillStyle = "#D4738C";
-        c.fillText("Lv." + obiBondLvl, 32, 106);
-        rr(c, 55, 100, 85, 7, 3);
-        c.fillStyle = "rgba(0,0,0,0.06)";
-        c.fill();
-        if (obiBondProg > 0.01) {
-          rr(c, 55, 100, 85 * obiBondProg, 7, 3);
-          c.fillStyle = "#E88BA7";
-          c.fill();
-        }
         c.restore();
 
         c.save();
-        rr(c, 646, 62, 140, 56, 12);
+        rr(c, 646, 62, 140, 38, 12);
         c.fillStyle = "rgba(255,255,255,0.78)";
         c.fill();
         c.strokeStyle = "rgba(146,104,72,0.12)";
@@ -7345,23 +7374,6 @@
           c.fill();
           c.fillStyle = "rgba(255,255,255,0.25)";
           rr(c, 656, 84, lunaBarW, 5, 6);
-          c.fill();
-        }
-        /* luna bond meter */
-        var lunaBondLvl = getBondLevel("luna");
-        var lunaBondProg = getBondProgress("luna");
-        c.fillStyle = "#D4738C";
-        c.font = '9px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "left";
-        drawHeart(c, 652, 105, 0.28, "#D4738C");
-        c.fillStyle = "#D4738C";
-        c.fillText("Lv." + lunaBondLvl, 664, 106);
-        rr(c, 687, 100, 85, 7, 3);
-        c.fillStyle = "rgba(0,0,0,0.06)";
-        c.fill();
-        if (lunaBondProg > 0.01) {
-          rr(c, 687, 100, 85 * lunaBondProg, 7, 3);
-          c.fillStyle = "#E88BA7";
           c.fill();
         }
         c.restore();
@@ -7625,45 +7637,39 @@
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           var goalW = Math.min(c.measureText(goalText).width + 20, 300);
           c.fillStyle = "rgba(255,248,240,0.55)";
-          rr(c, 14, H - 30, goalW, 22, 8);
+          rr(c, SAFE, 510, goalW, 22, 8);
           c.fill();
           c.fillStyle = "rgba(122,78,54,0.6)";
           c.textAlign = "left";
-          c.fillText(goalText, 24, H - 14);
+          c.fillText(goalText, SAFE + 10, 526);
           c.restore();
         }
 
         /* camera button */
         c.save();
         var camHover = this.hoverKey === "camera";
-        c.fillStyle = camHover ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
-        rr(c, this.cameraButton.x, this.cameraButton.y, this.cameraButton.w, this.cameraButton.h, 10);
+        drawHudChip(c, this.cameraButton.x, this.cameraButton.y, camHover);
+        c.fillStyle = "#3A2A1E";
+        rr(c, this.cameraButton.x + 5, this.cameraButton.y + 9, 18, 13, 3);
         c.fill();
-        /* camera icon */
-        c.fillStyle = COLORS.cream;
-        rr(c, this.cameraButton.x + 8, this.cameraButton.y + 12, 24, 18, 4);
-        c.fill();
-        c.fillStyle = camHover ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
-        c.beginPath(); c.arc(this.cameraButton.x + 20, this.cameraButton.y + 21, 5, 0, Math.PI * 2); c.fill();
-        c.fillStyle = COLORS.cream;
-        rr(c, this.cameraButton.x + 14, this.cameraButton.y + 8, 12, 5, 2);
+        c.fillStyle = "rgba(255,248,240,0.88)";
+        c.beginPath(); c.arc(this.cameraButton.x + 14, this.cameraButton.y + 16, 4, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#3A2A1E";
+        rr(c, this.cameraButton.x + 10, this.cameraButton.y + 6, 8, 4, 2);
         c.fill();
         c.restore();
 
         /* scrapbook button */
         c.save();
         var bookHover = this.hoverKey === "scrapbook";
-        c.fillStyle = bookHover ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
-        rr(c, this.scrapbookButton.x, this.scrapbookButton.y, this.scrapbookButton.w, this.scrapbookButton.h, 10);
-        c.fill();
-        /* book icon */
-        c.fillStyle = COLORS.cream;
-        c.fillRect(this.scrapbookButton.x + 12, this.scrapbookButton.y + 8, 16, 24);
-        c.strokeStyle = COLORS.cream;
-        c.lineWidth = 2;
+        drawHudChip(c, this.scrapbookButton.x, this.scrapbookButton.y, bookHover);
+        c.fillStyle = "#3A2A1E";
+        c.fillRect(this.scrapbookButton.x + 7, this.scrapbookButton.y + 6, 14, 16);
+        c.strokeStyle = "rgba(255,248,240,0.88)";
+        c.lineWidth = 1.5;
         c.beginPath();
-        c.moveTo(this.scrapbookButton.x + 20, this.scrapbookButton.y + 8);
-        c.lineTo(this.scrapbookButton.x + 20, this.scrapbookButton.y + 32);
+        c.moveTo(this.scrapbookButton.x + 14, this.scrapbookButton.y + 6);
+        c.lineTo(this.scrapbookButton.x + 14, this.scrapbookButton.y + 22);
         c.stroke();
         c.restore();
 
@@ -7991,7 +7997,7 @@
           c.fillStyle = "#7A4E36";
           c.textAlign = "center";
           c.font = '26px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Wardrobe", W / 2, 98);
+          c.fillText("Closet", W / 2, 98);
           c.fillStyle = "rgba(92,61,46,0.5)";
           c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("Coins: " + store.coins, W / 2, 116);
@@ -8396,7 +8402,7 @@
           pose: "sit", actionTimer: rand(3, 6), action: "idle",
           inTree: false, stalking: false
         };
-        this.goInsideButton = { x: 10, y: 300, w: 60, h: 80 };
+        this.goInsideButton = { x: SAFE, y: SAFE, w: 120, h: 34 };
         this.hoverKey = null;
         this.statusText = "Welcome to the backyard!";
         this.statusPulse = 0;
@@ -8414,9 +8420,9 @@
         /* tooltip */
         this.tooltip = null;
         /* camera — below mute icon */
-        this.cameraButton = { x: W - 54, y: 56, w: 40, h: 40 };
+        this.cameraButton = { x: W - SAFE - 28, y: SAFE + 34, w: 28, h: 28 };
         /* backyard decor */
-        this.byDecorButton = { x: 10, y: 16, w: 90, h: 36 };
+        this.byDecorButton = { x: SAFE + 128, y: SAFE - 1, w: 90, h: 36 };
         this.byDecorOpen = false;
         this.byDecorHover = null;
         this.byDecorFade = 0;
@@ -9249,14 +9255,17 @@
         /* go inside button */
         c.save();
         var insideHover = this.hoverKey === "inside";
-        c.fillStyle = insideHover ? "rgba(255,248,240,0.85)" : "rgba(255,248,240,0.5)";
-        rr(c, this.goInsideButton.x, this.goInsideButton.y, this.goInsideButton.w, this.goInsideButton.h, 10);
+        c.fillStyle = insideHover ? "#FFFFFF" : "#F4EBDC";
+        rr(c, this.goInsideButton.x, this.goInsideButton.y, this.goInsideButton.w, this.goInsideButton.h, 999);
         c.fill();
-        c.fillStyle = insideHover ? "#7A4E36" : "rgba(122,78,54,0.6)";
+        c.strokeStyle = "rgba(58,42,30,0.45)";
+        c.lineWidth = 1;
+        c.stroke();
+        c.fillStyle = "#3A2A1E";
         c.textAlign = "center";
-        c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("\u2190 Go", 40, this.goInsideButton.y + 35);
-        c.fillText("Inside", 40, this.goInsideButton.y + 50);
+        c.textBaseline = "middle";
+        c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("\u2190 Go Inside", this.goInsideButton.x + this.goInsideButton.w / 2, this.goInsideButton.y + this.goInsideButton.h / 2);
         c.restore();
 
         /* floating texts */
@@ -9274,16 +9283,14 @@
         /* camera button */
         c.save();
         var camH = this.hoverKey === "camera";
-        c.fillStyle = camH ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
-        rr(c, this.cameraButton.x, this.cameraButton.y, this.cameraButton.w, this.cameraButton.h, 10);
+        drawHudChip(c, this.cameraButton.x, this.cameraButton.y, camH);
+        c.fillStyle = "#3A2A1E";
+        rr(c, this.cameraButton.x + 5, this.cameraButton.y + 9, 18, 13, 3);
         c.fill();
-        c.fillStyle = COLORS.cream;
-        rr(c, this.cameraButton.x + 8, this.cameraButton.y + 12, 24, 18, 4);
-        c.fill();
-        c.fillStyle = camH ? "rgba(92,68,52,0.82)" : "rgba(92,68,52,0.45)";
-        c.beginPath(); c.arc(this.cameraButton.x + 20, this.cameraButton.y + 21, 5, 0, Math.PI * 2); c.fill();
-        c.fillStyle = COLORS.cream;
-        rr(c, this.cameraButton.x + 14, this.cameraButton.y + 8, 12, 5, 2);
+        c.fillStyle = "rgba(255,248,240,0.88)";
+        c.beginPath(); c.arc(this.cameraButton.x + 14, this.cameraButton.y + 16, 4, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#3A2A1E";
+        rr(c, this.cameraButton.x + 10, this.cameraButton.y + 6, 8, 4, 2);
         c.fill();
         c.restore();
 
@@ -9989,10 +9996,10 @@
       }
       drawTopHud(c, showCombo = true) {
         c.save();
-        c.fillStyle = "rgba(92,68,52,0.82)";
-        rr(c, 14, 12, 130, 42, 16);
+        c.fillStyle = "rgba(255,248,240,0.88)";
+        rr(c, SAFE, 12, 130, 46, 12);
         c.fill();
-        rr(c, W - 146, 12, 132, showCombo ? 70 : 42, 16);
+        rr(c, W - SAFE - 132, 12, 132, showCombo ? 72 : 46, 12);
         c.fill();
 
         /* pause button */
@@ -10005,33 +10012,27 @@
         c.fillRect(pb.x + 13, pb.y + 10, 4, 16);
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
 
-        c.fillStyle = COLORS.cream;
-        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "left";
-        c.fillText("Time: " + Math.ceil(this.timeLeft), 28, 39);
+        drawHudTime(c, SAFE + 12, 24, this.timeLeft);
 
         c.save();
         const scoreScale = 1 + this.scorePop * 0.2;
-        c.translate(W - 80, 35);
+        c.translate(W - SAFE - 12, 24);
         c.scale(scoreScale, scoreScale);
-        c.fillStyle = COLORS.cream;
-        c.textAlign = "center";
-        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Score " + Math.round(this.score), 0, 0);
+        drawHudScore(c, 0, 0, Math.round(this.score));
         c.restore();
 
         if (showCombo && this.phase === "play") {
-          c.fillStyle = "#FFEAA7";
+          c.fillStyle = "#A05A3C";
           c.textAlign = "center";
-          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Combo x" + this.combo, W - 80, 59);
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Combo x" + this.combo, W - SAFE - 66, 76);
         }
         c.restore();
       }
       pauseButtonRect() { return { x: 152, y: 16, w: 38, h: 36 }; }
       drawInstructionCard(c, iconFn) {
         c.save();
-        c.fillStyle = "rgba(92,68,52,0.22)";
+        c.fillStyle = INTRO_SCRIM;
         c.fillRect(0, 0, W, H);
         rr(c, 145, 150, 510, 260, 24);
         c.fillStyle = "rgba(255,248,240,0.97)";
@@ -10059,11 +10060,10 @@
         if (this.careBonus && this.careBonus.label) {
           c.fillStyle = "#7DB36C";
           c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          var bonusParts = [];
-          if (this.careBonus.timerBonus > 0) bonusParts.push("+" + this.careBonus.timerBonus + "s");
-          if (this.careBonus.scoreMultiplier > 1.05) bonusParts.push("+" + Math.round((this.careBonus.scoreMultiplier - 1) * 100) + "% score");
-          if (this.careBonus.comboStartBonus) bonusParts.push("combo x2 start");
-          c.fillText(this.careBonus.label + " " + bonusParts.join(", "), W / 2, careBonusY);
+          var bonusMsg = this.careBonus.label === "Well-Loved Bonus!"
+            ? "Obi & Luna are happy today. Bonus time."
+            : "Pets are content. Small bonus.";
+          c.fillText(bonusMsg, W / 2, careBonusY);
           careBonusY += 18;
         }
         c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
@@ -10258,7 +10258,7 @@
     // ═══ 15-scene-treat-toss.js ═══
     class TreatTossScene extends BaseMinigameScene {
       constructor() {
-        super("treat", "Treat Toss", isMobile ? "Tap to toss treats to Obi! Consecutive catches build combos!" : "Click to toss treats to Obi! Consecutive catches build combos!", [300, 700, 1400], 60);
+        super("treat", "Treat Toss", "Toss treats to Obi. Catches in a row build combos.", [300, 700, 1400], 60);
         this.treat = null;
         this.obiX = 120;
         this.obiPhase = 0;
@@ -10515,7 +10515,7 @@
     // ═══ 15b-scene-bath-time.js ═══
     class BathTimeScene extends BaseMinigameScene {
       constructor() {
-        super("bath", "Bath Time", isMobile ? "Tap and drag to scrub! Tap the tub to rinse! Drag to dry!" : "Click and drag to scrub! Click the tub to rinse! Drag to dry!", [120, 280, 500], 45);
+        super("bath", "Bath Time", "Drag to scrub. Tap to rinse. Drag to dry.", [120, 280, 500], 45);
         this.currentPet = "obi";
         this.washPhase = "scrub"; // scrub → rinse → dry
         this.cleanMeter = 0;
@@ -10767,7 +10767,7 @@
     // ═══ 15c-scene-snack-sort.js ═══
     class SnackSortScene extends BaseMinigameScene {
       constructor() {
-        super("sort", "Snack Sort", isMobile ? "Drag dog treats LEFT to Obi, cat treats RIGHT to Luna!" : "Drag dog treats LEFT to Obi, cat treats RIGHT to Luna!", [120, 280, 550], 60);
+        super("sort", "Snack Sort", "Drag bones to Obi. Drag fish to Luna.", [120, 280, 550], 60);
         this.treats = [];
         this.spawnTimer = 0;
         this.spawnInterval = 2.4;
@@ -11054,10 +11054,7 @@
 
     class PillowPopScene extends BaseMinigameScene {
       constructor() {
-        super("pillow", "Pillow Pop",
-          isMobile ? "Tap Luna when she pops up! Don't tap Obi!"
-                   : "Click Luna when she pops up! Don't click Obi!",
-          [150, 350, 650], 45);
+        super("pillow", "Pillow Pop", "Tap when Luna pops up. Obi loves naps.", [150, 350, 650], 45);
         this.popups = [];
         this.spawnTimer = 0;
         this.spawnRate = 1.4;
@@ -11238,10 +11235,7 @@
     // ═══ 15e-scene-wheres-luna.js ═══
     class WheresLunaScene extends BaseMinigameScene {
       constructor() {
-        super("findluna", "Where's Luna?",
-          isMobile ? "Watch where Luna hides, then tap the right cushion!"
-                   : "Watch where Luna hides, then click the right cushion!",
-          [100, 250, 500], 60);
+        super("findluna", "Where's Luna?", "Watch where Luna hides. Tap her cushion.", [100, 250, 500], 60);
         this.cushions = [
           { x: 200, y: 380, targetX: 200 },
           { x: 400, y: 380, targetX: 400 },
@@ -11443,7 +11437,7 @@
         c.fillStyle = "rgba(92,68,52,0.4)";
         c.font = '13px "Fredoka One", sans-serif';
         c.textAlign = "center";
-        c.fillText("Round " + this.round, W / 2, 86);
+        c.fillText("Round " + Math.max(1, this.round), W / 2, 86);
       }
       drawInstructionIcon(c, x, y) {
         c.save(); c.translate(x, y);
@@ -11467,10 +11461,7 @@
     // ═══ 15f-scene-window-watch.js ═══
     class WindowWatchScene extends BaseMinigameScene {
       constructor() {
-        super("window", "Window Watch",
-          isMobile ? "Tap birds and butterflies! Don't tap the leaves!"
-                   : "Click birds and butterflies! Don't click the leaves!",
-          [150, 400, 750], 60);
+        super("window", "Window Watch", "Tap birds and butterflies. Skip the leaves.", [150, 400, 750], 60);
         this.flyers = [];
         this.spawnTimer = 0;
         this.spawnRate = 1.2;
@@ -11715,10 +11706,7 @@
 
     class PawstepPatternsScene extends BaseMinigameScene {
       constructor() {
-        super("pawstep", "Pawstep Patterns",
-          isMobile ? "Watch the pets, then tap the actions in the same order!"
-                   : "Watch the pets, then click the actions in the same order!",
-          [80, 200, 400], 90);
+        super("pawstep", "Pawstep Patterns", "Repeat the pet sequence.", [80, 200, 400], 90);
         this.sequence = [];
         this.playbackIndex = 0;
         this.inputIndex = 0;
@@ -11946,7 +11934,7 @@
         c.fillStyle = "rgba(92,68,52,0.4)";
         c.font = '13px "Fredoka One", sans-serif';
         c.textAlign = "center";
-        c.fillText("Longest: " + this.longestSequence + " steps", W / 2, H - 10);
+        c.fillText("Longest: " + this.longestSequence + " steps", W / 2, H - SAFE - 2);
         for (const sp of this.scorePopups) {
           c.save();
           c.globalAlpha = clamp(sp.life / 0.5, 0, 1);
@@ -11976,7 +11964,7 @@
     // ═══ 16-scene-laser-chase.js ═══
     class LaserChaseScene extends BaseMinigameScene {
       constructor() {
-        super("laser", "Luna's Laser Chase", isMobile ? "Drag your finger to control the laser dot! Lead Luna through the glowing targets!" : "Move your mouse to control the laser dot! Lead Luna through the glowing targets!", [200, 500, 1000], 60);
+        super("laser", "Luna's Laser Chase", "Lead Luna with your laser.", [200, 500, 1000], 60);
         this.luna = { x: 220, y: 320, vx: 0, vy: 0, wiggle: 0, pounceTimer: 0, pounceTarget: null, pawBat: 0, facing: 1 };
         this.targets = [];
         this.spawnedTargetCap = 1;
@@ -12212,7 +12200,7 @@
     // ═══ 17-scene-cuddle-pile.js ═══
     class CuddlePileScene extends BaseMinigameScene {
       constructor() {
-        super("cuddle", "Cuddle Pile", isMobile ? "Keep everyone balanced on the couch! Tap the LEFT and RIGHT buttons to shift Annie's weight!" : "Keep everyone balanced on the couch! Press LEFT and RIGHT arrow keys to shift Annie's weight!", [30, 60, 90], 90);
+        super("cuddle", "Cuddle Pile", isMobile ? "Tap LEFT or RIGHT to keep the pile balanced." : "Press ← / → to keep the pile balanced.", [30, 60, 90], 90);
         this.balance = 0;
         this.balanceTarget = 0;
         this.eventTimer = 0;
@@ -12370,10 +12358,10 @@
       }
       drawTopHud(c) {
         c.save();
-        c.fillStyle = "rgba(92,68,52,0.82)";
-        rr(c, 14, 12, 140, 42, 16);
+        c.fillStyle = "rgba(255,248,240,0.88)";
+        rr(c, SAFE, 12, 140, 46, 12);
         c.fill();
-        rr(c, 200, 12, 430, 42, 16);
+        rr(c, 200, 12, 430, 46, 12);
         c.fill();
 
         /* pause button */
@@ -12386,26 +12374,25 @@
         c.fillRect(pb.x + 13, pb.y + 10, 4, 16);
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
 
-        c.fillStyle = COLORS.cream;
-        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "left";
-        c.fillText("Time: " + Math.floor(this.score) + "s", 28, 39);
+        drawHudTime(c, SAFE + 12, 24, Math.floor(this.score));
+        c.fillStyle = "#3A2A1E";
+        c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
-        c.fillText("Balance Meter", 415, 39);
-        c.strokeStyle = "#FFF8F0";
-        c.lineWidth = 3;
-        rr(c, 266, 22, 320, 20, 10);
+        c.fillText("Balance Meter", 415, 22);
+        c.strokeStyle = "rgba(58,42,30,0.45)";
+        c.lineWidth = 2;
+        rr(c, 266, 30, 320, 16, 8);
         c.stroke();
         const markerX = lerp(276, 576, (this.balance + 100) / 200);
         c.fillStyle = "#5CAA4A";
-        rr(c, 270, 26, 156, 12, 6);
+        rr(c, 270, 32, 156, 12, 6);
         c.fill();
         c.fillStyle = "#D47A4A";
-        rr(c, 426, 26, 156, 12, 6);
+        rr(c, 426, 32, 156, 12, 6);
         c.fill();
         c.fillStyle = COLORS.cream;
         c.beginPath();
-        c.arc(markerX, 32, 10, 0, Math.PI * 2);
+        c.arc(markerX, 38, 10, 0, Math.PI * 2);
         c.fill();
         c.strokeStyle = "#7A4E36";
         c.stroke();
@@ -12575,7 +12562,7 @@
        ═══════════════════════════════════════════════════════ */
     class ObiWalkScene extends BaseMinigameScene {
       constructor() {
-        super("walk", "Obi's Walk", isMobile ? "Tap items along the path to let Obi sniff them! Tap squirrels before Obi chases them!" : "Click items along the path to let Obi sniff them! Click squirrels before Obi chases them!", [200, 450, 800], 45);
+        super("walk", "Obi's Walk", "Stop Obi from chasing squirrels into the road.", [200, 450, 800], 45);
         this.scrollX = 0;
         this.obiY = 440;
         this.obiPose = "run";
@@ -12930,7 +12917,7 @@
        ═══════════════════════════════════════════════════════ */
     class LunaNapScene extends BaseMinigameScene {
       constructor() {
-        super("nap", "Luna's Nap Spot", isMobile ? "Tap the golden sunbeams to place cushions! Luna earns points while napping. Move cushions to follow the light!" : "Place cushions in the golden sunbeams! Luna earns points while napping on warm spots. Move cushions to follow the light!", [250, 550, 1000], 60);
+        super("nap", "Luna's Nap Spot", "Place cushions in the sun. Move them to follow the light.", [250, 550, 1000], 60);
         this.beams = [];
         this.cushions = [];
         this.luna = { x: 400, y: 350, targetX: 400, targetY: 350, napping: false, napTimer: 0, facing: 1 };
@@ -13245,10 +13232,7 @@
     // ═══ Luna's Wild Wand — Flappy-Bird-inspired wand toy minigame ═══
     class WildWandScene extends BaseMinigameScene {
       constructor() {
-        super("wildwand", "Luna's Wild Wand",
-          isMobile ? "Drag to move the wand! Guide the dangling toy to lead Luna through gaps!"
-                   : "Move your mouse to wave the wand! Guide Luna through the cozy obstacles!",
-          [100, 250, 500], 90);
+        super("wildwand", "Luna's Wild Wand", "Tap to wiggle the wand. Lead Luna through the gaps.", [100, 250, 500], 90);
         this.scrollSpeed = 120;
         this.obstacles = [];
         this.obstacleTimer = 0;
@@ -13284,9 +13268,9 @@
       extraInteractiveAt() { return true; }
       drawTopHud(c) {
         c.save();
-        c.fillStyle = "rgba(92,68,52,0.82)";
-        rr(c, 14, 12, 130, 42, 16); c.fill();
-        rr(c, W - 146, 12, 132, 70, 16); c.fill();
+        c.fillStyle = "rgba(255,248,240,0.88)";
+        rr(c, SAFE, 12, 130, 46, 12); c.fill();
+        rr(c, W - SAFE - 132, 12, 132, 72, 12); c.fill();
         /* pause button */
         var pb = this.pauseButtonRect();
         var pbH = pointInRect(game.mouse.x, game.mouse.y, pb);
@@ -13297,26 +13281,20 @@
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
         /* elapsed time instead of countdown */
         var elapsed = Math.floor(this.duration - this.timeLeft);
-        c.fillStyle = COLORS.cream;
-        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "left";
-        c.fillText("Time: " + elapsed + "s", 28, 39);
+        drawHudTime(c, SAFE + 12, 24, elapsed);
         /* score */
         c.save();
         var ss = 1 + this.scorePop * 0.2;
-        c.translate(W - 80, 35);
+        c.translate(W - SAFE - 12, 24);
         c.scale(ss, ss);
-        c.fillStyle = COLORS.cream;
-        c.textAlign = "center";
-        c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Score " + Math.round(this.score), 0, 0);
+        drawHudScore(c, 0, 0, Math.round(this.score));
         c.restore();
         /* combo */
         if (this.phase === "play" && this.combo > 1) {
-          c.fillStyle = "#FFEAA7";
+          c.fillStyle = "#A05A3C";
           c.textAlign = "center";
-          c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Combo x" + this.combo, W - 80, 59);
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Combo x" + this.combo, W - SAFE - 66, 76);
         }
         c.restore();
       }
@@ -13744,12 +13722,12 @@
         /* HUD: obstacles passed counter */
         if (!this.gameOver) {
           c.fillStyle = "rgba(255,248,240,0.7)";
-          rr(c, W / 2 - 60, H - 36, 120, 26, 10);
+          rr(c, W / 2 - 60, H - SAFE - 26, 120, 26, 10);
           c.fill();
           c.fillStyle = "#7A4E36";
           c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText("Cleared: " + this.passed, W / 2, H - 18);
+          c.fillText("Cleared: " + this.passed, W / 2, H - SAFE - 8);
         }
       }
       drawInstructionIcon(c, x, y) {
@@ -13823,12 +13801,13 @@
 
     // ═══ 21-loop.js ═══
     function drawMuteIcon(c) {
-      const hovered = pointInRect(game.mouse.x, game.mouse.y, { x: W - 54, y: 12, w: 40, h: 40 });
-      drawSpeakerIcon(c, W - 34, 32, store.muted, hovered);
+      const rect = { x: W - SAFE - 28, y: SAFE, w: 28, h: 28 };
+      const hovered = pointInRect(game.mouse.x, game.mouse.y, rect);
+      drawSpeakerIcon(c, rect.x, rect.y, store.muted, hovered);
     }
 
     function handleMuteClick(x, y) {
-      const rect = { x: W - 54, y: 12, w: 40, h: 40 };
+      const rect = { x: W - SAFE - 28, y: SAFE, w: 28, h: 28 };
       if (pointInRect(x, y, rect)) {
         audio.ensure();
         store.muted = !store.muted;
