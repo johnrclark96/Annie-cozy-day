@@ -1430,6 +1430,13 @@
     }
 
     const HUD_MONO = 'ui-monospace, "SF Mono", Menlo, monospace';
+    /* Font role constants (Phase A.6) — used per-site, not by mass rewrite.
+       FONT_DISPLAY: titles only (the soft display face).
+       FONT_BODY: body text (welcome banner, panel descriptions, decor card subtitles).
+       FONT_MONO: HUD digits (Time, Score, Combo, label-stacks). */
+    const FONT_DISPLAY = '"Fredoka One", "Comic Sans MS", cursive, sans-serif';
+    const FONT_BODY = 'system-ui, "Segoe UI", -apple-system, sans-serif';
+    const FONT_MONO = HUD_MONO;
 
     function formatMSS(seconds) {
       const s = Math.max(0, Math.ceil(seconds));
@@ -1476,6 +1483,30 @@
       c.strokeStyle = "rgba(58,42,30,0.45)";
       c.lineWidth = 1;
       c.stroke();
+      c.restore();
+    }
+
+    /* drawLabelStack (Phase A.6) — generic mono label-stack widget.
+       opts: { size?=22, side?="left", labelColor?, valueColor? }
+       Mirrors drawHudTime/Score: small caps label, then mono value below.
+       Use for HUD readouts like NEXT, COMBO, GOAL, etc. */
+    function drawLabelStack(c, x, y, label, value, opts) {
+      opts = opts || {};
+      var size = opts.size != null ? opts.size : 22;
+      var side = opts.side || "left";
+      var labelColor = opts.labelColor || "#807366";
+      var valueColor = opts.valueColor || "#3A2A1E";
+      c.save();
+      c.textAlign = side === "right" ? "right" : "left";
+      c.textBaseline = "top";
+      if ("letterSpacing" in c) c.letterSpacing = "0.14em";
+      c.fillStyle = labelColor;
+      c.font = '10px ' + FONT_MONO;
+      c.fillText(String(label).toUpperCase(), x, y);
+      if ("letterSpacing" in c) c.letterSpacing = "0px";
+      c.fillStyle = valueColor;
+      c.font = '600 ' + size + 'px ' + FONT_MONO;
+      c.fillText(String(value), x, y + 14);
       c.restore();
     }
 
