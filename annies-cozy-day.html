@@ -3210,8 +3210,8 @@
       return null;
     }
 
-    function drawAccessoryOverlay(c, pet, x, y, scale, pose, facing) {
-      var equipped = store.wardrobe.equipped[pet];
+    function drawAccessoryOverlay(c, pet, x, y, scale, pose, facing, equippedOverride) {
+      var equipped = (equippedOverride !== undefined) ? equippedOverride : store.wardrobe.equipped[pet];
       if (!equipped || typeof equipped !== "object") return;
       if (!spriteArt.ready) return;
       var mainAccFrames = spriteArt.frames.accessories || {};
@@ -5160,12 +5160,12 @@
           if (pointInRect(x, y, panelClose(WARDROBE_PANEL))) { this.wardrobeHover = "close"; return; }
           /* tabs flat per drawPanelTabs convention (no hover state) */
           var wMaxScroll = this.wardrobeMaxScroll();
-          if (wMaxScroll > 0 && this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 380, y: 160, w: 40, h: 20 })) { this.wardrobeHover = "scrollUp"; return; }
-          if (wMaxScroll > 0 && this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 380, y: 563, w: 40, h: 20 })) { this.wardrobeHover = "scrollDown"; return; }
+          if (wMaxScroll > 0 && this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 520, y: 175, w: 40, h: 20 })) { this.wardrobeHover = "scrollUp"; return; }
+          if (wMaxScroll > 0 && this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 520, y: 562, w: 40, h: 20 })) { this.wardrobeHover = "scrollDown"; return; }
           var tabItems = this.getWardrobeTabItems();
           for (var ai = 0; ai < tabItems.length; ai++) {
             var wr = this.getWardrobeItemRect(ai);
-            if (wr.y + wr.h < 165 || wr.y > 565) continue;
+            if (wr.y + wr.h < 180 || wr.y > 560) continue;
             if (pointInRect(x, y, wr)) { this.wardrobeHover = ai; break; }
           }
           return;
@@ -5468,14 +5468,14 @@
             audio.tinyChime();
             return;
           }
-          /* scroll arrow clicks */
+          /* scroll arrow clicks (D.4 — relocated to right column) */
           var wMaxScroll = this.wardrobeMaxScroll();
           if (wMaxScroll > 0) {
-            if (this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 380, y: 160, w: 40, h: 20 })) {
+            if (this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 520, y: 175, w: 40, h: 20 })) {
               this.wardrobeScrollOffset = Math.max(0, this.wardrobeScrollOffset - 62);
               return;
             }
-            if (this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 380, y: 563, w: 40, h: 20 })) {
+            if (this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 520, y: 562, w: 40, h: 20 })) {
               this.wardrobeScrollOffset = Math.min(wMaxScroll, this.wardrobeScrollOffset + 62);
               return;
             }
@@ -7109,12 +7109,14 @@
         return getVisibleAccessories(this.wardrobeTab);
       }
       getWardrobeItemRect(index) {
-        return { x: 80, y: 175 + index * 62 - this.wardrobeScrollOffset, w: 640, h: 54 };
+        /* Phase D.4 — narrowed to right column to leave the left half of
+           the panel for the hero portrait (x=60..320). */
+        return { x: 340, y: 190 + index * 62 - this.wardrobeScrollOffset, w: 400, h: 54 };
       }
       wardrobeMaxScroll() {
         var tabItems = this.getWardrobeTabItems();
         var totalH = tabItems.length * 62;
-        var visibleH = 565 - 175;
+        var visibleH = 555 - 190;
         return Math.max(0, totalH - visibleH);
       }
       drawTreat(c, t) {
@@ -8486,15 +8488,46 @@
           var tabItems = this.getWardrobeTabItems();
           var pet = this.wardrobeTab;
           var equippedSlots = store.wardrobe.equipped[pet] || {};
+          /* Phase D.4 — hero portrait on the left half. Preview the hovered
+             item by overlaying it onto the active equipped state. */
+          var previewEquipped = null;
+          if (typeof this.wardrobeHover === "number" && tabItems[this.wardrobeHover]) {
+            var hovAcc = tabItems[this.wardrobeHover];
+            if (store.wardrobe.owned.indexOf(hovAcc.key) >= 0) {
+              previewEquipped = {};
+              for (var _slk in equippedSlots) previewEquipped[_slk] = equippedSlots[_slk];
+              previewEquipped[hovAcc.slot] = hovAcc.key;
+            }
+          }
+          c.save();
+          rr(c, 60, 180, 260, 380, 14);
+          c.fillStyle = "rgba(122,78,54,0.04)";
+          c.fill();
+          c.strokeStyle = "rgba(146,104,72,0.12)";
+          c.lineWidth = 1;
+          c.stroke();
+          var _heroCx = 190, _heroBase = 480;
+          var _portraitState = { facing: 1, tail: 0 };
+          if (pet === "obi") {
+            drawObi(c, _heroCx, _heroBase, 2.0, { pose: "sit", expression: "happy", tail: Math.sin(game.time * 1.5) * 0.5, bounce: 0.02, facing: 1 });
+            drawAccessoryOverlay(c, "obi", _heroCx, _heroBase, 2.0, "sit", 1, previewEquipped);
+          } else if (pet === "luna") {
+            drawLuna(c, _heroCx, _heroBase, 1.9, { pose: "sit", tail: Math.sin(game.time * 1.5) * 0.4, earTwitch: 0, facing: 1 });
+            drawAccessoryOverlay(c, "luna", _heroCx, _heroBase, 1.9, "sit", 1, previewEquipped);
+          } else if (pet === "annie") {
+            drawAnnie(c, _heroCx, _heroBase, 1.7, { facing: 1 });
+            drawAccessoryOverlay(c, "annie", _heroCx, _heroBase, 1.7, "stand", 1, previewEquipped);
+          }
+          c.restore();
           c.save();
           c.beginPath();
-          c.rect(60, 165, 680, 400);
+          c.rect(340, 180, 400, 380);
           c.clip();
           for (var ai = 0; ai < tabItems.length; ai++) {
             var acc = tabItems[ai];
             var wr = this.getWardrobeItemRect(ai);
-            if (wr.y + wr.h < 165) continue;
-            if (wr.y > 565) continue;
+            if (wr.y + wr.h < 180) continue;
+            if (wr.y > 560) continue;
             var owned = store.wardrobe.owned.indexOf(acc.key) >= 0;
             var equipped = equippedSlots[acc.slot] === acc.key;
             var hover = this.wardrobeHover === ai;
@@ -8555,11 +8588,11 @@
             c.textAlign = "center";
             if (this.wardrobeScrollOffset > 0) {
               c.fillStyle = this.wardrobeHover === "scrollUp" ? "#C07850" : "#7A4E36";
-              c.fillText("\u25B2", 400, 172);
+              c.fillText("\u25B2", 540, 188);
             }
             if (this.wardrobeScrollOffset < wMaxScroll) {
               c.fillStyle = this.wardrobeHover === "scrollDown" ? "#C07850" : "#7A4E36";
-              c.fillText("\u25BC", 400, 575);
+              c.fillText("\u25BC", 540, 575);
             }
           }
           c.restore();
