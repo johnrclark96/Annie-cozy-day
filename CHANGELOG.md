@@ -9,6 +9,7 @@
 - A.4: Added `drawPanelTabs(c, panel, tabs, activeKey)` segmented-pill row helper anchored to panel.x+24, panel.y+60, with companion `panelTabHit(panel, tabs, x, y)` for click handlers. Synthetic `__panelTabsTest` hook validates hit geometry. Additive — tabs migrate to this helper in 2.4 (Decor) / 3.3 (Wardrobe) / 3.5 (Scrapbook).
 - A.5: Added `drawIntroModal(c, {eyebrow?, title, body, iconFn?, challengeText?, bonusText?, metaText?})` and `drawKeyGlyph(c, x, y, char, w?, h?)` helpers. Drop-in superset of `drawInstructionCard` with eyebrow + structured args + single thin meta line. Existing `drawInstructionCard` unchanged. Wired in G.1.a (Bath Time canary) and G.1.b (batch).
 - A.6: Added `FONT_DISPLAY` / `FONT_BODY` / `FONT_MONO` role constants and `drawLabelStack(c, x, y, label, value, opts)` helper modeled on `drawHudTime`. No mass font rewrite — chunks that touch a specific HUD widget swap inline as part of their own DoD.
+- A.7: Added `drawCharacterUnderModal(c)` framing-transform helper (scale 0.85 around canvas center, shift +60 down) so per-minigame characters drawn at normal y-coords compose below the intro modal at y=150-410. Wired in G.1+ as part of per-minigame intro polish.
 
 ## 2026-05-07
 
