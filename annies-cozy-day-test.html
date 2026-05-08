@@ -1751,6 +1751,15 @@
       { key: "luna", label: "Luna" },
       { key: "annie", label: "Annie" }
     ];
+    /* Phase D.5 — Scrapbook panel; panel.y = 50 so drawPanelTabs (panel.y+60)
+       lands at the original tab row y=110, preserving all content offsets. */
+    const SCRAPBOOK_PANEL = { x: 40, y: 50, w: 720, h: 530 };
+    const SCRAPBOOK_TABS = [
+      { key: "photos", label: "Photos" },
+      { key: "milestones", label: "Milestones" },
+      { key: "stats", label: "Stats" },
+      { key: "goals", label: "Goals" }
+    ];
 
     /* drawLockChip (Phase B.5) — small chip top-right of a card rect indicating
        why a card is gated. kind ∈ {"stars","coins","achievement","season","streak"}.
@@ -5172,12 +5181,8 @@
         }
         if (this.scrapbookOpen) {
           this.scrapbookHover = null;
-          var scClose = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, scClose)) this.scrapbookHover = "close";
-          else if (pointInRect(x, y, { x: 80, y: 110, w: 70, h: 24 })) this.scrapbookHover = "photos";
-          else if (pointInRect(x, y, { x: 158, y: 110, w: 90, h: 24 })) this.scrapbookHover = "milestones";
-          else if (pointInRect(x, y, { x: 256, y: 110, w: 50, h: 24 })) this.scrapbookHover = "stats";
-          else if (pointInRect(x, y, { x: 314, y: 110, w: 55, h: 24 })) this.scrapbookHover = "goals";
+          if (pointInRect(x, y, panelClose(SCRAPBOOK_PANEL))) this.scrapbookHover = "close";
+          /* tabs flat per drawPanelTabs convention (no hover state) */
           return;
         }
         this.hoverKey = null;
@@ -5253,10 +5258,8 @@
           return panelTabHit(WARDROBE_PANEL, WARDROBE_TABS, x, y) != null;
         }
         if (this.scrapbookOpen) {
-          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 }) ||
-            pointInRect(x, y, { x: 80, y: 110, w: 80, h: 24 }) ||
-            pointInRect(x, y, { x: 170, y: 110, w: 100, h: 24 }) ||
-            pointInRect(x, y, { x: 280, y: 110, w: 60, h: 24 });
+          if (pointInRect(x, y, panelClose(SCRAPBOOK_PANEL))) return true;
+          return panelTabHit(SCRAPBOOK_PANEL, SCRAPBOOK_TABS, x, y) != null;
         }
         if (pointInRect(x, y, this.gamesButton)) return true;
         if (pointInRect(x, y, this.decorButton)) return true;
@@ -5546,12 +5549,15 @@
           return;
         }
         if (this.scrapbookOpen) {
-          var scClose = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, scClose)) { audio.menu(); this.scrapbookOpen = false; this.hoverKey = null; return; }
-          if (pointInRect(x, y, { x: 80, y: 110, w: 70, h: 24 })) { this.scrapbookTab = "photos"; this.scrapbookPhotoScroll = 0; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 158, y: 110, w: 90, h: 24 })) { this.scrapbookTab = "milestones"; this.scrapbookMilestoneScroll = 0; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 256, y: 110, w: 50, h: 24 })) { this.scrapbookTab = "stats"; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 314, y: 110, w: 55, h: 24 })) { this.scrapbookTab = "goals"; audio.tinyChime(); return; }
+          if (pointInRect(x, y, panelClose(SCRAPBOOK_PANEL))) { audio.menu(); this.scrapbookOpen = false; this.hoverKey = null; return; }
+          var sbTabKey = panelTabHit(SCRAPBOOK_PANEL, SCRAPBOOK_TABS, x, y);
+          if (sbTabKey && sbTabKey !== this.scrapbookTab) {
+            this.scrapbookTab = sbTabKey;
+            if (sbTabKey === "photos") this.scrapbookPhotoScroll = 0;
+            else if (sbTabKey === "milestones") this.scrapbookMilestoneScroll = 0;
+            audio.tinyChime();
+            return;
+          }
           /* scrapbook scroll arrows */
           if (pointInRect(x, y, { x: 380, y: 136, w: 40, h: 20 })) {
             if (this.scrapbookTab === "photos") { this.scrapbookPhotoScroll = Math.max(0, this.scrapbookPhotoScroll - 140); return; }
@@ -8598,50 +8604,13 @@
           c.restore();
         }
 
-        /* ── Scrapbook panel overlay ── */
+        /* ── Scrapbook panel overlay (Phase D.5 — drawPanelFrame + tabs + close) ── */
         if (this.scrapbookFade > 0.01) {
           c.save();
           c.globalAlpha = this.scrapbookFade;
-          c.fillStyle = "rgba(40,28,18,0.55)";
-          c.fillRect(0, 0, W, H);
-          rr(c, 40, 60, 720, 520, 28);
-          c.fillStyle = "rgba(255,248,240,0.97)";
-          c.fill();
-          c.strokeStyle = "rgba(146,104,72,0.2)";
-          c.lineWidth = 3;
-          c.stroke();
-          c.fillStyle = "#7A4E36";
-          c.textAlign = "center";
-          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Scrapbook", W / 2, 100);
-          /* close button */
-          var schov = this.scrapbookHover === "close";
-          var scx = W / 2 + 218, scy = 102;
-          if (schov) drawGlowCircle(c, scx, scy, 24, "rgba(180,80,60,ALPHA)", 0.2);
-          c.fillStyle = schov ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
-          c.beginPath(); c.arc(scx, scy, schov ? 18 : 16, 0, Math.PI * 2); c.fill();
-          c.strokeStyle = "#FFF8F0"; c.lineWidth = schov ? 3 : 2.5;
-          c.beginPath(); c.moveTo(scx - 6, scy - 6); c.lineTo(scx + 6, scy + 6); c.stroke();
-          c.beginPath(); c.moveTo(scx + 6, scy - 6); c.lineTo(scx - 6, scy + 6); c.stroke();
-          /* tabs */
-          var tabs = [
-            { key: "photos", label: "Photos", x: 80, w: 70 },
-            { key: "milestones", label: "Milestones", x: 158, w: 90 },
-            { key: "stats", label: "Stats", x: 256, w: 50 },
-            { key: "goals", label: "Goals", x: 314, w: 55 }
-          ];
-          for (var ti = 0; ti < tabs.length; ti++) {
-            var tab = tabs[ti];
-            var active = this.scrapbookTab === tab.key;
-            var thov = this.scrapbookHover === tab.key;
-            rr(c, tab.x, 110, tab.w, 24, 8);
-            c.fillStyle = active ? "#7A4E36" : thov ? "rgba(122,78,54,0.3)" : "rgba(122,78,54,0.1)";
-            c.fill();
-            c.fillStyle = active ? "#FFF8F0" : "#7A4E36";
-            c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.textAlign = "center";
-            c.fillText(tab.label, tab.x + tab.w / 2, 126);
-          }
+          drawPanelFrame(c, { x: SCRAPBOOK_PANEL.x, y: SCRAPBOOK_PANEL.y, w: SCRAPBOOK_PANEL.w, h: SCRAPBOOK_PANEL.h, title: "Scrapbook" });
+          drawPanelTabs(c, SCRAPBOOK_PANEL, SCRAPBOOK_TABS, this.scrapbookTab);
+          drawPanelClose(c, SCRAPBOOK_PANEL, this.scrapbookHover === "close");
           /* tab content */
           if (this.scrapbookTab === "photos") {
             var photos = loadJSON("photos", []);
