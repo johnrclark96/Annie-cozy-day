@@ -83,6 +83,22 @@
     const INTRO_SCRIM = "rgba(58, 42, 30, 0.55)";
     const STORE_PREFIX = "anniesCozyDay_";
 
+    /* ── HUD anchor grid (Phase A.1) ──
+       Single source of truth for HUD pill positions across hub, backyard, and minigames.
+       row1 = top header row (y=SAFE); row2 = second row (clears a 28-tall element + gap).
+       slot 0 = primary header pill (h=primaryH=46, used by minigame Time/Score).
+       slot 1+ = small pills (h=pillH=22, used by hangout coin/star/streak/etc).
+       chipCol = x of the right-edge 28×28 chip stack (sound/camera/scrapbook). */
+    const HUD_GRID = {
+      row1: SAFE,                 // 16 — top row baseline
+      row2: SAFE + 28 + 6,         // 50 — second row baseline
+      pillH: 22,                  // standard small-pill height
+      pillGap: 6,                 // gap between rows (and between pills horizontally)
+      primaryH: 46,               // h for slot-0 header pill (minigame Time/Score)
+      chipCol: W - SAFE - 28,     // x for the right-edge 28×28 chip stack
+      bottomY: H - SAFE - 22      // y for bottom-anchored small pills (goal pill, etc)
+    };
+
     const COLORS = {
       cream: "#FFF8F0",
       peach: "#FFDAB9",
@@ -1461,6 +1477,25 @@
       c.lineWidth = 1;
       c.stroke();
       c.restore();
+    }
+
+    /* placePill (Phase A.1) — single source of truth for HUD pill anchor points.
+       side: "tl" | "tr" | "bl" | "br"
+       slot: 0 = primary header row (h defaults to HUD_GRID.primaryH = 46);
+             1+ = small-pill rows below (h defaults to HUD_GRID.pillH = 22)
+       w: explicit width; h: optional, derived from slot if omitted. */
+    function placePill(side, slot, w, h) {
+      if (h == null) h = (slot === 0 ? HUD_GRID.primaryH : HUD_GRID.pillH);
+      var y;
+      if (side === "bl" || side === "br") {
+        y = HUD_GRID.bottomY - slot * (HUD_GRID.pillH + HUD_GRID.pillGap);
+      } else {
+        y = (slot === 0)
+          ? HUD_GRID.row1
+          : HUD_GRID.row2 + (slot - 1) * (HUD_GRID.pillH + HUD_GRID.pillGap);
+      }
+      var x = (side === "tl" || side === "bl") ? SAFE : (W - SAFE - w);
+      return { x: x, y: y, w: w, h: h };
     }
 
     function drawButton(c, r, label, hovered, fill = COLORS.warmRed, textColor = "#fff") {

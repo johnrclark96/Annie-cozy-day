@@ -1,5 +1,10 @@
 # Changelog — Annie's Cozy Day
 
+## 2026-05-08
+
+### Phase A · Foundation helpers (additive only — no live wiring yet)
+- A.1: Added `HUD_GRID` constants (row1, row2, pillH, pillGap, primaryH, chipCol, bottomY) and `placePill(side, slot, w, h?)` helper as single source of truth for HUD pill anchor points across hub, backyard, and minigames
+
 ## 2026-05-07
 
 ### Audit Q1–Q13 quick wins
