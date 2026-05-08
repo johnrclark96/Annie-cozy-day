@@ -3,6 +3,7 @@
 ## 2026-05-08
 
 ### Phase E · Heart tier
+- E.2: Soft chord plays once on dedication entry, plus a faint paper-grain texture overlay on the dedication card. New `audio.softChord()` plays a C major triad with octave (C-E-G-C) at 1.5s sustain and 0.05 gain — about a quarter of `combo()`'s loudness so it sits behind any music. Triggered from `HangoutScene.enter` when `this.dedication` is set, gated by `_dedicationChordPlayed` so it fires exactly once. Paper grain renders ~120 stable-PRNG-seeded 1px dots at `rgba(0,0,0,0.022)` clipped to the card rect (120, 120, 560, 360); seeded with `(i * 1973) % 560` and `(i * 3299) % 360` so the grain is identical every frame (no shimmer).
 - E.1: Dedication card now reveals as three staggered lines — "For Annie." (phase 0.6 fade-in), "For Obi." (phase 1.1), "For Luna." (phase 1.6). Replaces the single "Made with Love / for Annie, Obi, and Luna" two-line block. Each character sprite gets a brief warm glow circle as their name lands and fades after the next name. Click + Esc dismiss gates raised from `phase >= 1.5` to `phase >= 2.2` so the Luna line has its full 0.5s fade-in before the player can dismiss. The "Click anywhere to begin" hint now only appears at phase >= 2.1 (with a 0.5s fade-in) so it doesn't promise an action that won't fire. Phase progression unchanged at +1.0/sec, so total reveal duration goes from ~1.5s to ~2.2s.
 
 ### Phase D · Remaining three panels

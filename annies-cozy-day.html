@@ -1186,6 +1186,12 @@
       }
       achievement() { this.chord([261.63, 329.63, 392], 0.3, 0.11); }
       tinyChime() { this.tone(660, 0.09, 0.08, "sine"); }
+      /* Phase E.2 — soft, long-sustain chord for the dedication entry. C major
+         triad with octave; ~1.5s sustain at very low gain (0.05). */
+      softChord() {
+        if (!this.canPlay()) return;
+        [261.63, 329.63, 392.00, 523.25].forEach((f) => this.tone(f, 1.5, 0.05, "sine"));
+      }
       startAmbient(mood) {
         if (this.ambientActive) return;
         if (!this.ensure()) return;
@@ -4774,6 +4780,11 @@
            when ambient was already running, so backyard mood persisted). */
         var _hsTod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
         audio.setMusicMood(["morning", "day", "evening", "night"][_hsTod]);
+        /* E.2 — soft chord on dedication entry. */
+        if (this.dedication && !this._dedicationChordPlayed) {
+          this._dedicationChordPlayed = true;
+          audio.softChord();
+        }
         /* record returning from a minigame as a "game" care action */
         if (game.transition && game.transition.from instanceof BaseMinigameScene) {
           this.recordCareAction("game");
@@ -8828,6 +8839,22 @@
           c.strokeStyle = "rgba(200,160,120,0.25)";
           c.lineWidth = 3;
           c.stroke();
+
+          /* E.2 — paper-grain overlay. Seeded with a fixed multiplier-product
+             pattern so dots don't shimmer between frames. ~120 dots in the
+             card rect at very low alpha. */
+          c.save();
+          c.beginPath();
+          rr(c, 120, 120, 560, 360, 32);
+          c.clip();
+          c.fillStyle = "rgba(0,0,0,0.022)";
+          for (var _pgi = 0; _pgi < 120; _pgi++) {
+            /* Stable PRNG via two coprime multipliers + modulo. */
+            var _pgX = 120 + ((_pgi * 1973) % 560);
+            var _pgY = 120 + ((_pgi * 3299) % 360);
+            c.fillRect(_pgX, _pgY, 1, 1);
+          }
+          c.restore();
 
           /* heart decorations */
           for (let i = 0; i < 8; i++) {
