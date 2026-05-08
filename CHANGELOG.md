@@ -4,6 +4,7 @@
 
 ### Phase C · Save-touching bug fixes
 - C.B2: Bond migration (~line 560) now triggers on missing `luna` as well as missing `obi`. Previously a partial save with only `obi` would crash on first `awardBondXP("luna", ...)` because `store.bond.luna` was undefined. The migration writes the full default shape for both pets if either is missing. Pure migration fix; no impact on healthy saves.
+- C.B5: Visitor double-joy on auto-apply + click. `spawnVisitorEvent` already auto-applies `joyEffect` for visitors without `coinReward`, but left `data.interacted = false`, so a curious click within the visitor window granted the joy bump a second time. Auto-apply branch now sets `data.interacted = true` so the click handler at the existing visitor-click guard short-circuits.
 - C.B14: Visitor / ambient event no longer disappears on every scene round-trip. New module-level holder `persistedHangoutAmbient` (after `SceneRegistry`) snapshots `{event, cooldown, savedAt}` from the last `updateAmbientEvents` tick. New HangoutScene constructor restores the event with a wall-clock-elapsed decrement on the timer; if the event has expired during the away window, the cooldown is decremented instead so visitors don't re-roll instantly. New `_persistAmbient()` method is called at the end of both branches in `updateAmbientEvents`. Module-level holder rather than `store` keeps the change migration-free; persistence resets only on page reload, which is the correct semantic.
 
 ### Phase B · Hub HUD + Decor migration

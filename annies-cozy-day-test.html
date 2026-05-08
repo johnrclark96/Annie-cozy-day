@@ -7467,10 +7467,12 @@
         this.ambientEvent = { type: "visitor", timer: visitor.stayTime, data: { visitor: visitor, interacted: false, fadeIn: 0 } };
         this.statusText = visitor.message;
         audio.tinyChime();
-        /* auto-apply joy effects for non-clickable visitors */
+        /* auto-apply joy effects for non-clickable visitors. Mark
+           interacted so a later click can't grant joy again (C.B5). */
         if (visitor.joyEffect && !visitor.coinReward) {
           if (visitor.joyEffect.obi) this.obi.joy = clamp(this.obi.joy + visitor.joyEffect.obi, 0, 100);
           if (visitor.joyEffect.luna) this.luna.joy = clamp(this.luna.joy + visitor.joyEffect.luna, 0, 100);
+          this.ambientEvent.data.interacted = true;
         }
       }
       spawnSnowEvent() {
