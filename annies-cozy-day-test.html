@@ -499,6 +499,14 @@
         sundial: false, dogHouse: false, butterflyGarden: false, fountain: false
       }),
       firstVisit: loadBool("firstVisit", true),
+      /* E.4 — anniversary re-trigger of dedication.
+         firstVisitDate: ISO yyyy-mm-dd of when the dedication first showed.
+           null for existing players (migration backfill — they don't get an
+           anniversary because we don't know when they started).
+         lastDedicationYear: year the dedication last fired, prevents
+           re-firing more than once per year. */
+      firstVisitDate: loadJSON("firstVisitDate", null),
+      lastDedicationYear: loadNumber("lastDedicationYear", 0),
       pet_obi_joy: loadNumber("pet_obi_joy", 54),
       pet_luna_joy: loadNumber("pet_luna_joy", 56),
       lastKnownStars: loadNumber("lastKnownStars", 0),
@@ -4637,6 +4645,23 @@
         this.menuHover = null;
         this.menuFade = 0;
         this.dedication = store.firstVisit ? { phase: 0, alpha: 0 } : null;
+        /* E.4 — anniversary re-trigger. If today's month+day match the first
+           visit date and we haven't already re-shown the dedication this year,
+           show it again. firstVisitDate is null for pre-E.4 players → no
+           re-trigger until they reset save. */
+        if (!this.dedication && store.firstVisitDate) {
+          var _aTd = new Date();
+          var _aFv = new Date(store.firstVisitDate);
+          if (!isNaN(_aFv.getTime())
+              && _aTd.getMonth() === _aFv.getMonth()
+              && _aTd.getDate() === _aFv.getDate()
+              && _aTd.getFullYear() > store.lastDedicationYear
+              && _aTd.getFullYear() !== _aFv.getFullYear()) {
+            this.dedication = { phase: 0, alpha: 0 };
+            store.lastDedicationYear = _aTd.getFullYear();
+            saveNumber("lastDedicationYear", store.lastDedicationYear);
+          }
+        }
         this.gameCards = [
           { key: "treat", title: "Treat Toss", desc: "Toss treats to Obi and build catch combos!", color: "#E8A84C", icon: "bone", best: () => { const s = store.best_treat; const st = (s>=1400?3:s>=700?2:s>=300?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
           { key: "laser", title: "Laser Chase", desc: "Guide Luna's laser dot through glowing targets!", color: "#D44040", icon: "catEye", best: () => { const s = store.best_laser; const st = (s>=1000?3:s>=500?2:s>=200?1:0); return "Best: " + s + "  " + "\u2605".repeat(st) + "\u2606".repeat(3-st); } },
@@ -5372,8 +5397,19 @@
              at phase 1.6 has its full 0.5s fade-in before any click can fire. */
           if (this.dedication.phase >= 2.2 && this.dedication.alpha > 0.5) {
             this.dedication = null;
+            var _ddWasFirst = store.firstVisit;
             store.firstVisit = false;
             saveBool("firstVisit", false);
+            /* E.4 — stamp firstVisitDate on first-time dismissal so the
+               anniversary check on next year's same date can re-show. */
+            if (_ddWasFirst && !store.firstVisitDate) {
+              var _ddToday = new Date();
+              var _ddIso = _ddToday.getFullYear() + "-" + String(_ddToday.getMonth() + 1).padStart(2, "0") + "-" + String(_ddToday.getDate()).padStart(2, "0");
+              store.firstVisitDate = _ddIso;
+              saveJSON("firstVisitDate", _ddIso);
+              store.lastDedicationYear = _ddToday.getFullYear();
+              saveNumber("lastDedicationYear", store.lastDedicationYear);
+            }
             audio.tinyChime();
             addScrapbookEntry("milestone", "Played Annie's Cozy Day for the first time!", "heart");
             store.stats.totalSessions++;
@@ -5911,7 +5947,21 @@
           if (this._awayStory) { this._tryDismissAwayStory(); return; }
           if (this.dailyGift) { this._tryClaimDailyGift(); return; }
           audio.menu();
-          if (this.dedication) { this.dedication = null; store.firstVisit = false; saveBool("firstVisit", false); }
+          if (this.dedication) {
+            var _eddWasFirst = store.firstVisit;
+            this.dedication = null;
+            store.firstVisit = false;
+            saveBool("firstVisit", false);
+            /* E.4 — stamp firstVisitDate (mirrors click-dismiss path). */
+            if (_eddWasFirst && !store.firstVisitDate) {
+              var _eddToday = new Date();
+              var _eddIso = _eddToday.getFullYear() + "-" + String(_eddToday.getMonth() + 1).padStart(2, "0") + "-" + String(_eddToday.getDate()).padStart(2, "0");
+              store.firstVisitDate = _eddIso;
+              saveJSON("firstVisitDate", _eddIso);
+              store.lastDedicationYear = _eddToday.getFullYear();
+              saveNumber("lastDedicationYear", store.lastDedicationYear);
+            }
+          }
           else if (this.menuOpen) { this.menuOpen = false; }
           else if (this.decorOpen) { this.decorOpen = false; }
           else if (this.wardrobeOpen) { this.wardrobeOpen = false; }
