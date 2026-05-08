@@ -525,6 +525,14 @@
         sundial: false, dogHouse: false, butterflyGarden: false, fountain: false
       }),
       firstVisit: loadBool("firstVisit", true),
+      /* V8 — first-visit tutorial overlay flag (independent of `firstVisit`,
+         which gates the dedication card; tutorial fires after dedication on
+         the first session, then persists). */
+      tutorialSeen: loadBool("tutorialSeen", false),
+      /* V9 — settings panel: music vol, sfx vol, reduced-motion. Defaults to
+         {music:1, sfx:1, reducedMotion:false} so behavior is unchanged for
+         existing players until they touch the panel. */
+      settings: loadJSON("settings", { music: 1, sfx: 1, reducedMotion: false }),
       /* F.NEW.2 — set true when a meaningful (>= 3-day) streak breaks; the
          next title→hangout transition shows a one-time welcome line then clears. */
       streakBreakPending: loadBool("streakBreakPending", false),
@@ -598,6 +606,11 @@
     if (store.stats.totalFlowersPlanted === undefined) store.stats.totalFlowersPlanted = 0;
     if (store.stats.totalBowlsFilled === undefined) store.stats.totalBowlsFilled = 0;
     if (store.stats.petInteractionsSeen === undefined) store.stats.petInteractionsSeen = 0;
+    /* V9 — settings backfill (existing partial saves may have any subset). */
+    if (!store.settings || typeof store.settings !== "object") store.settings = { music: 1, sfx: 1, reducedMotion: false };
+    if (typeof store.settings.music !== "number") store.settings.music = 1;
+    if (typeof store.settings.sfx !== "number") store.settings.sfx = 1;
+    if (typeof store.settings.reducedMotion !== "boolean") store.settings.reducedMotion = false;
 
     /* ── Bond system migration for existing saves ── */
     if (!store.bond || !store.bond.obi || !store.bond.luna) {
@@ -1135,6 +1148,21 @@
         this._musicNextTime = 0;
         this._melNoteIdx = 12;
         this._arpStep = 0;
+        /* V9 — independent volume rails (1 = unity). Set from store.settings
+           after store is initialized; mute is still gated separately by
+           store.muted. */
+        this._sfxVol = 1;
+        this._musicVol = 1;
+      }
+      setVolume(musicVol, sfxVol) {
+        if (typeof musicVol === "number") this._musicVol = clamp(musicVol, 0, 1);
+        if (typeof sfxVol === "number") this._sfxVol = clamp(sfxVol, 0, 1);
+        if (this._musicNodes && this._musicNodes.master && this.ctx) {
+          /* live-update the music master gain to the new target without abrupt jumps */
+          var now = this.ctx.currentTime;
+          this._musicNodes.master.gain.cancelScheduledValues(now);
+          this._musicNodes.master.gain.linearRampToValueAtTime(0.7 * this._musicVol, now + 0.4);
+        }
       }
       ensure() {
         if (!this.ctx) {
@@ -1149,9 +1177,11 @@
         return !!this.ctx && !store.muted;
       }
       envGain(gainNode, when, attack, sustain, release, gain) {
+        /* V9 — apply SFX volume rail to all envelope-driven SFX */
+        var g = Math.max(0.0001, gain * this._sfxVol);
         gainNode.gain.cancelScheduledValues(when);
         gainNode.gain.setValueAtTime(0.0001, when);
-        gainNode.gain.exponentialRampToValueAtTime(gain, when + attack);
+        gainNode.gain.exponentialRampToValueAtTime(g, when + attack);
         gainNode.gain.setTargetAtTime(0.0001, when + attack + sustain, release);
       }
       tone(freq, duration = 0.1, gain = 0.18, type = "sine", endFreq = null, whenOffset = 0) {
@@ -1245,7 +1275,7 @@
         /* audio graph: voices → filter → master → destination */
         var master = this.ctx.createGain();
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.linearRampToValueAtTime(0.7, now + 1.5);
+        master.gain.linearRampToValueAtTime(0.7 * this._musicVol, now + 1.5);
         var filter = this.ctx.createBiquadFilter();
         filter.type = "lowpass";
         filter.frequency.setValueAtTime(mc.filter, now);
@@ -1403,6 +1433,7 @@
       }
     }
     const audio = new CozyAudio();
+    audio.setVolume(store.settings.music, store.settings.sfx);
 
     const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || ("ontouchstart" in window);
 
@@ -1805,6 +1836,8 @@
        (decor, wardrobe, scrapbook, backyard decor) share this rect.
        Future divergent panels can register their own frame in panelClose. */
     const PANEL_STD = { x: 100, y: 70, w: 600, h: 480 };
+    /* V9 — settings panel uses the standard panel frame */
+    const SETTINGS_PANEL = { x: 130, y: 90, w: 540, h: 420 };
     /* Phase D.1 — Game Menu uses a wider/taller frame to fit 6 cards × 720 wide. */
     const MENU_PANEL = { x: 40, y: 60, w: 720, h: 540 };
     /* Phase D.3 — Wardrobe panel matches Game Menu width but is shorter. */
@@ -4917,6 +4950,11 @@
         this.scrapbookButton = { x: W - SAFE - 28, y: SAFE + 68, w: 28, h: 28 };
         /* F.3 — weather chip in chip stack slot 3 */
         this.weatherButton = { x: W - SAFE - 28, y: SAFE + 102, w: 28, h: 28 };
+        /* V8 — help/tutorial re-open chip in chip stack slot 4 */
+        this.helpButton = { x: W - SAFE - 28, y: SAFE + 136, w: 28, h: 28 };
+        /* V9 — settings (gear) chip in chip stack slot 5 */
+        this.gearButton = { x: W - SAFE - 28, y: SAFE + 170, w: 28, h: 28 };
+        this.settingsOpen = false;
         this.scrapbookOpen = false;
         this.scrapbookHover = null;
         this.scrapbookFade = 0;
@@ -4952,6 +4990,13 @@
           store.stats.totalSessions++;
           saveStats();
           awardBondXP("obi", "visit"); awardBondXP("luna", "visit");
+        }
+        /* V8 — first-visit tutorial overlay (gated on session count so we
+           don't re-open it for veteran players whose tutorialSeen defaults
+           to false in the migration backfill; the help chip in the chip
+           column lets veterans re-open it on demand). */
+        if (!store.tutorialSeen && store.stats.totalSessions <= 1 && !this.dedication) {
+          this.tutorial = { phase: 0 };
         }
         /* bond XP for returning from minigame */
         if (game.transition && game.transition.from instanceof BaseMinigameScene) {
@@ -5196,6 +5241,13 @@
         return parts.length ? "  " + parts.join(", ") + " today" : "";
       }
       petSpriteState(key) {
+        /* V9 — reduced-motion damping reverts V4's amplification toward
+           the pre-V4 amplitudes when the player opts in. */
+        const __reduced = !!(store.settings && store.settings.reducedMotion);
+        const __bAmp = __reduced ? 0.012 : 0.022;
+        const __tHigh = __reduced ? 1.0 : 1.4;
+        const __tLow = __reduced ? 0.6 : 0.85;
+        const __lAmp = __reduced ? 0.01 : 0.022;
         if (key === "obi") {
           let pose = "sit";
           if (this.obi.carryingToy) pose = "carryToy";
@@ -5205,11 +5257,11 @@
           else if (this.obi.sleepy) pose = "sleeping";
           else if (this.obi.sniffing) pose = "sniff";
           else if (this.toy && this.toy.pet === "obi") pose = "run";
-          /* idle breathing bob (V4 — amplified) */
-          const obiBreathe = pose === "sit" ? Math.sin(game.time * 2.2) * 0.022 : 0;
+          /* idle breathing bob */
+          const obiBreathe = pose === "sit" ? Math.sin(game.time * 2.2) * __bAmp : 0;
           /* tail wags continuously with varying speed based on mood */
           const tailSpeed = this.obi.happyTimer > 0.1 ? 10 : (this.obi.joy > 65 ? 7 : this.obi.joy > 40 ? 5 : 3);
-          const tailAmp = this.obi.sleepy ? 0.2 : (this.obi.joy > 65 ? 1.4 : 0.85);
+          const tailAmp = this.obi.sleepy ? 0.2 : (this.obi.joy > 65 ? __tHigh : __tLow);
           /* occasional head tilt fidget */
           const obiHeadBob = pose === "sit" ? Math.sin(game.time * 0.7) * 0.015 : 0;
           return {
@@ -5223,7 +5275,7 @@
         }
         /* Luna idle micro-animations */
         const lunaPose = this.luna.eating ? "eat" : this.luna.drinking ? "drink" : this.luna.stretching ? "stretch" : this.luna.bellyUp ? "bellyUp" : this.luna.grooming ? "groom" : this.luna.perch !== "floor" ? "lounge" : "sit";
-        const lunaBreathe = (lunaPose === "sit" || lunaPose === "lounge") ? Math.sin(game.time * 1.8 + 0.5) * 0.022 : 0;
+        const lunaBreathe = (lunaPose === "sit" || lunaPose === "lounge") ? Math.sin(game.time * 1.8 + 0.5) * __lAmp : 0;
         /* tail sways with more organic motion (two overlapping sine waves) */
         const lunaTail = Math.sin(game.time * 1.7 + 1.2) * 0.7 + Math.sin(game.time * 2.9 + 0.4) * 0.3;
         /* periodic ear flick */
@@ -5384,6 +5436,14 @@
           /* tabs flat per drawPanelTabs convention (no hover state) */
           return;
         }
+        if (this.settingsOpen) {
+          this.settingsHover = null;
+          if (pointInRect(x, y, panelClose(SETTINGS_PANEL))) { this.settingsHover = "close"; return; }
+          if (pointInRect(x, y, { x: SETTINGS_PANEL.x + 160, y: SETTINGS_PANEL.y + 280, w: 220, h: 32 })) {
+            this.settingsHover = "resetTutorial";
+          }
+          return;
+        }
         this.hoverKey = null;
         if (pointInRect(x, y, this.gamesButton)) this.hoverKey = "games";
         else if (pointInRect(x, y, this.decorButton)) this.hoverKey = "decor";
@@ -5404,6 +5464,8 @@
           else if (pointInRect(x, y, this.cameraButton)) this.hoverKey = "camera";
           else if (pointInRect(x, y, this.scrapbookButton)) this.hoverKey = "scrapbook";
           else if (pointInRect(x, y, this.weatherButton)) this.hoverKey = "weather";
+          else if (pointInRect(x, y, this.helpButton)) this.hoverKey = "help";
+          else if (pointInRect(x, y, this.gearButton)) this.hoverKey = "gear";
           else if (store.decor.petBed && pointInRect(x, y, this.petBedHitbox)) this.hoverKey = "petBed";
           else if (pointInRect(x, y, this.getPetRect("obi"))) this.hoverKey = "obi";
           else if (pointInRect(x, y, this.getPetRect("luna"))) this.hoverKey = "luna";
@@ -5461,6 +5523,15 @@
           if (pointInRect(x, y, panelClose(SCRAPBOOK_PANEL))) return true;
           return panelTabHit(SCRAPBOOK_PANEL, SCRAPBOOK_TABS, x, y) != null;
         }
+        if (this.settingsOpen) {
+          if (pointInRect(x, y, panelClose(SETTINGS_PANEL))) return true;
+          const _sxi = SETTINGS_PANEL.x, _syi = SETTINGS_PANEL.y;
+          if (pointInRect(x, y, { x: _sxi + 160, y: _syi + 122, w: 280, h: 14 })) return true;
+          if (pointInRect(x, y, { x: _sxi + 160, y: _syi + 172, w: 280, h: 14 })) return true;
+          if (pointInRect(x, y, { x: _sxi + 260, y: _syi + 220, w: 80, h: 28 })) return true;
+          if (pointInRect(x, y, { x: _sxi + 160, y: _syi + 280, w: 220, h: 32 })) return true;
+          return false;
+        }
         if (pointInRect(x, y, this.gamesButton)) return true;
         if (pointInRect(x, y, this.decorButton)) return true;
         if (pointInRect(x, y, this.wardrobeButton)) return true;
@@ -5468,6 +5539,8 @@
         if (pointInRect(x, y, this.cameraButton)) return true;
         if (pointInRect(x, y, this.scrapbookButton)) return true;
         if (pointInRect(x, y, this.weatherButton)) return true;
+        if (pointInRect(x, y, this.helpButton)) return true;
+        if (pointInRect(x, y, this.gearButton)) return true;
         /* V7 — coin and star pills are clickable nav (B.6) — surface for cursor */
         if (this.hubHudRects && this.hubHudRects.coin && pointInRect(x, y, this.hubHudRects.coin)) return true;
         if (this.hubHudRects && this.hubHudRects.star && pointInRect(x, y, this.hubHudRects.star)) return true;
@@ -5580,6 +5653,14 @@
             store.stats.totalSessions++;
             saveStats();
           }
+          return;
+        }
+        /* V8 — tutorial overlay: click anywhere dismisses */
+        if (this.tutorial) {
+          this.tutorial = null;
+          store.tutorialSeen = true;
+          saveBool("tutorialSeen", true);
+          audio.tinyChime();
           return;
         }
         /* away story overlay — click to dismiss */
@@ -5765,6 +5846,49 @@
           this.wardrobeOpen = false;
           return;
         }
+        if (this.settingsOpen) {
+          if (pointInRect(x, y, panelClose(SETTINGS_PANEL))) {
+            audio.menu();
+            this.settingsOpen = false;
+            return;
+          }
+          const _sxc = SETTINGS_PANEL.x, _syc = SETTINGS_PANEL.y;
+          const _trkXc = _sxc + 160, _trkWc = 280;
+          /* Music track click */
+          if (pointInRect(x, y, { x: _trkXc, y: _syc + 122, w: _trkWc, h: 14 })) {
+            store.settings.music = clamp((x - _trkXc) / _trkWc, 0, 1);
+            saveJSON("settings", store.settings);
+            audio.setVolume(store.settings.music, store.settings.sfx);
+            return;
+          }
+          /* SFX track click */
+          if (pointInRect(x, y, { x: _trkXc, y: _syc + 172, w: _trkWc, h: 14 })) {
+            store.settings.sfx = clamp((x - _trkXc) / _trkWc, 0, 1);
+            saveJSON("settings", store.settings);
+            audio.setVolume(store.settings.music, store.settings.sfx);
+            audio.tinyChime();
+            return;
+          }
+          /* Reduced motion toggle */
+          if (pointInRect(x, y, { x: _trkXc + 100, y: _syc + 220, w: 80, h: 28 })) {
+            store.settings.reducedMotion = !store.settings.reducedMotion;
+            saveJSON("settings", store.settings);
+            audio.tinyChime();
+            return;
+          }
+          /* Reset tutorial */
+          if (pointInRect(x, y, { x: _sxc + 160, y: _syc + 280, w: 220, h: 32 })) {
+            store.tutorialSeen = false;
+            saveBool("tutorialSeen", false);
+            this.tutorial = { phase: 0 };
+            this.settingsOpen = false;
+            audio.tinyChime();
+            return;
+          }
+          /* click outside dismisses */
+          if (!pointInRect(x, y, SETTINGS_PANEL)) { this.settingsOpen = false; return; }
+          return;
+        }
         if (this.scrapbookOpen) {
           if (pointInRect(x, y, panelClose(SCRAPBOOK_PANEL))) { audio.menu(); this.scrapbookOpen = false; this.hoverKey = null; return; }
           var sbTabKey = panelTabHit(SCRAPBOOK_PANEL, SCRAPBOOK_TABS, x, y);
@@ -5856,6 +5980,19 @@
           this.scrapbookOpen = true;
           this.scrapbookFade = 0;
           this.scrapbookTab = "goals";
+          return;
+        }
+        /* V8 — help chip re-opens tutorial overlay */
+        if (pointInRect(x, y, this.helpButton)) {
+          audio.menu();
+          this.tutorial = { phase: 0 };
+          return;
+        }
+        /* V9 — gear chip opens settings panel */
+        if (pointInRect(x, y, this.gearButton)) {
+          audio.menu();
+          this.menuOpen = false; this.decorOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
+          this.settingsOpen = true;
           return;
         }
         /* clickable ambient events */
@@ -6118,6 +6255,14 @@
       onKeyDown(key) {
         if (key === "Escape") {
           if (this.dedication && this.dedication.phase < 2.2) return; /* E.1 — match click gate */
+          /* V8 — Esc on tutorial dismisses just like click */
+          if (this.tutorial) {
+            this.tutorial = null;
+            store.tutorialSeen = true;
+            saveBool("tutorialSeen", true);
+            audio.tinyChime();
+            return;
+          }
           /* C.B7 — Esc applies/claims overlays before any panel cascade or exit. */
           if (this._awayStory) { this._tryDismissAwayStory(); return; }
           if (this.dailyGift) { this._tryClaimDailyGift(); return; }
@@ -6141,6 +6286,7 @@
           else if (this.decorOpen) { this.decorOpen = false; }
           else if (this.wardrobeOpen) { this.wardrobeOpen = false; }
           else if (this.scrapbookOpen) { this.scrapbookOpen = false; }
+          else if (this.settingsOpen) { this.settingsOpen = false; }
           else { audio.stopAmbient(); transitionTo(SceneRegistry.create("title")); }
         }
         if (!this.menuOpen && !this.decorOpen && !this.wardrobeOpen && !this.scrapbookOpen && !this.dedication) {
@@ -8655,6 +8801,37 @@
         }
         c.restore();
 
+        /* V8 — help/tutorial chip */
+        c.save();
+        var helpHover = this.hoverKey === "help";
+        drawHudChip(c, this.helpButton.x, this.helpButton.y, helpHover);
+        c.fillStyle = helpHover ? "#3A2A1E" : "#5C4434";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.font = 'bold 18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("?", this.helpButton.x + 14, this.helpButton.y + 16);
+        c.restore();
+
+        /* V9 — gear/settings chip */
+        c.save();
+        var gearHover = this.hoverKey === "gear";
+        drawHudChip(c, this.gearButton.x, this.gearButton.y, gearHover);
+        var _gx = this.gearButton.x + 14, _gy = this.gearButton.y + 14;
+        c.strokeStyle = gearHover ? "#3A2A1E" : "#5C4434";
+        c.fillStyle = gearHover ? "#3A2A1E" : "#5C4434";
+        c.lineWidth = 1.5;
+        /* gear body */
+        c.beginPath(); c.arc(_gx, _gy, 5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "rgba(255,248,240,0.9)";
+        c.beginPath(); c.arc(_gx, _gy, 2, 0, Math.PI * 2); c.fill();
+        /* gear teeth */
+        c.fillStyle = gearHover ? "#3A2A1E" : "#5C4434";
+        for (var _gt = 0; _gt < 6; _gt++) {
+          var _gta = _gt * Math.PI / 3;
+          c.fillRect(_gx + Math.cos(_gta) * 7 - 1.4, _gy + Math.sin(_gta) * 7 - 1.4, 2.8, 2.8);
+        }
+        c.restore();
+
         /* backyard door indicator */
         c.save();
         var doorHover = this.hoverKey === "backyardDoor";
@@ -9315,6 +9492,68 @@
           c.restore();
         }
 
+        /* V9 — Settings panel overlay */
+        if (this.settingsOpen) {
+          drawPanelFrame(c, { x: SETTINGS_PANEL.x, y: SETTINGS_PANEL.y, w: SETTINGS_PANEL.w, h: SETTINGS_PANEL.h, title: "Settings" });
+          drawPanelClose(c, SETTINGS_PANEL, this.settingsHover === "close");
+          const _sxp = SETTINGS_PANEL.x, _syp = SETTINGS_PANEL.y;
+          const _trkX = _sxp + 160, _trkW = 280;
+          /* Music volume */
+          c.fillStyle = "#5C4434"; c.textAlign = "left"; c.textBaseline = "alphabetic";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Music", _sxp + 40, _syp + 134);
+          rr(c, _trkX, _syp + 122, _trkW, 14, 7);
+          c.fillStyle = "rgba(0,0,0,0.10)"; c.fill();
+          if (store.settings.music > 0) {
+            rr(c, _trkX, _syp + 122, _trkW * store.settings.music, 14, 7);
+            c.fillStyle = "#A05A3C"; c.fill();
+          }
+          c.fillStyle = "#7A5040"; c.textAlign = "right";
+          c.font = '12px "Fredoka One", sans-serif';
+          c.fillText(Math.round(store.settings.music * 100) + "%", _sxp + SETTINGS_PANEL.w - 40, _syp + 134);
+          /* SFX volume */
+          c.fillStyle = "#5C4434"; c.textAlign = "left";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("SFX", _sxp + 40, _syp + 184);
+          rr(c, _trkX, _syp + 172, _trkW, 14, 7);
+          c.fillStyle = "rgba(0,0,0,0.10)"; c.fill();
+          if (store.settings.sfx > 0) {
+            rr(c, _trkX, _syp + 172, _trkW * store.settings.sfx, 14, 7);
+            c.fillStyle = "#A05A3C"; c.fill();
+          }
+          c.fillStyle = "#7A5040"; c.textAlign = "right";
+          c.font = '12px "Fredoka One", sans-serif';
+          c.fillText(Math.round(store.settings.sfx * 100) + "%", _sxp + SETTINGS_PANEL.w - 40, _syp + 184);
+          /* Reduced motion toggle */
+          c.fillStyle = "#5C4434"; c.textAlign = "left";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Reduced motion", _sxp + 40, _syp + 234);
+          const _tgOn = !!store.settings.reducedMotion;
+          rr(c, _trkX + 100, _syp + 220, 80, 28, 14);
+          c.fillStyle = _tgOn ? "#7DB36C" : "rgba(180,160,140,0.55)"; c.fill();
+          c.fillStyle = "#FFF8F0";
+          c.beginPath(); c.arc(_trkX + 100 + (_tgOn ? 64 : 16), _syp + 234, 11, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "#FFF8F0"; c.textAlign = "center"; c.textBaseline = "middle";
+          c.font = 'bold 11px "Fredoka One", sans-serif';
+          c.fillText(_tgOn ? "ON" : "OFF", _trkX + 100 + (_tgOn ? 26 : 54), _syp + 234);
+          c.textBaseline = "alphabetic";
+          /* Reset tutorial */
+          const _rtX = _sxp + 160, _rtY = _syp + 280, _rtW = 220, _rtH = 32;
+          const _rtHov = this.settingsHover === "resetTutorial";
+          rr(c, _rtX, _rtY, _rtW, _rtH, 16);
+          c.fillStyle = _rtHov ? "#A05A3C" : "#C7A37B"; c.fill();
+          c.fillStyle = "#FFF8F0";
+          c.textAlign = "center"; c.textBaseline = "middle";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Reset tutorial", _rtX + _rtW / 2, _rtY + _rtH / 2);
+          c.textBaseline = "alphabetic";
+          /* Footer hint */
+          c.fillStyle = "rgba(92,61,46,0.45)";
+          c.textAlign = "center";
+          c.font = '10px "Fredoka One", sans-serif';
+          c.fillText("Click a track to set volume  ·  Esc to close", _sxp + SETTINGS_PANEL.w / 2, _syp + SETTINGS_PANEL.h - 28);
+        }
+
         /* daily gift overlay — skip if dedication is showing */
         if (!this.dedication) { this.drawAwayStory(c); this.drawDailyGift(c); }
 
@@ -9410,6 +9649,16 @@
           }
 
           c.restore();
+        }
+
+        /* V8 — first-visit tutorial overlay (renders above everything else) */
+        if (this.tutorial) {
+          drawIntroModal(c, {
+            eyebrow: "Welcome",
+            title: "Annie's Cozy Day",
+            body: "Pet, feed, and play with Obi & Luna.",
+            metaText: "Use the mode buttons below • Tap to dismiss"
+          });
         }
       }
     }
