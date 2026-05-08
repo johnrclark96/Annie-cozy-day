@@ -338,19 +338,22 @@
     };
 
     /* ── Scrapbook Goals ── */
+    /* Phase D.7 — `hint` is a short actionable how-to surfaced in the
+       Scrapbook Goals tab. Falls back to `desc` if a goal hasn't been
+       given a hint yet. */
     const SCRAPBOOK_GOALS = [
-      { key: "obiSleepPhoto", name: "Dreaming Obi", desc: "Take a photo while Obi is napping", reward: 10, icon: "star" },
-      { key: "lunaGroomPhoto", name: "Grooming Session", desc: "Take a photo while Luna is grooming", reward: 10, icon: "catEye" },
-      { key: "both80Joy", name: "Double Happiness", desc: "Both pets at 80+ joy at once", reward: 15, icon: "heart" },
-      { key: "rainWindow", name: "Rainy Day", desc: "See rain outside the window", reward: 5, icon: "star" },
-      { key: "fiveGames3Star", name: "Star Student", desc: "Earn 3 stars in 5 different games", reward: 20, icon: "star" },
-      { key: "allDecor5", name: "Interior Designer", desc: "Activate 5 decorations at once", reward: 15, icon: "star" },
-      { key: "petInteraction", name: "Best Friends", desc: "Witness Obi and Luna interact", reward: 10, icon: "heart" },
-      { key: "backyardVisit", name: "Outdoor Explorer", desc: "Visit the backyard", reward: 5, icon: "bone" },
-      { key: "tenPhotos", name: "Shutterbug Deluxe", desc: "Take 10 photos total", reward: 15, icon: "star" },
-      { key: "snowDay", name: "Let It Snow", desc: "See snow outside the window", reward: 10, icon: "star" },
-      { key: "visitorMet", name: "Friendly Neighbor", desc: "Interact with a visitor", reward: 10, icon: "heart" },
-      { key: "challengeAttempt", name: "Brave Heart", desc: "Try a challenge mode minigame", reward: 10, icon: "star" }
+      { key: "obiSleepPhoto", name: "Dreaming Obi", desc: "Take a photo while Obi is napping", hint: "Open camera while Obi is curled up asleep.", reward: 10, icon: "star" },
+      { key: "lunaGroomPhoto", name: "Grooming Session", desc: "Take a photo while Luna is grooming", hint: "Watch for Luna's grooming pose, then snap.", reward: 10, icon: "catEye" },
+      { key: "both80Joy", name: "Double Happiness", desc: "Both pets at 80+ joy at once", hint: "Pet, treat, brush, and play to lift both joy bars above 80.", reward: 15, icon: "heart" },
+      { key: "rainWindow", name: "Rainy Day", desc: "See rain outside the window", hint: "Just be present when the weather turns rainy.", reward: 5, icon: "star" },
+      { key: "fiveGames3Star", name: "Star Student", desc: "Earn 3 stars in 5 different games", hint: "Replay each minigame until you hit the third star score.", reward: 20, icon: "star" },
+      { key: "allDecor5", name: "Interior Designer", desc: "Activate 5 decorations at once", hint: "Buy decor in the Decor panel and toggle five on.", reward: 15, icon: "star" },
+      { key: "petInteraction", name: "Best Friends", desc: "Witness Obi and Luna interact", hint: "Just hang out — Obi and Luna play together on their own.", reward: 10, icon: "heart" },
+      { key: "backyardVisit", name: "Outdoor Explorer", desc: "Visit the backyard", hint: "Click the door on the right side of the hangout.", reward: 5, icon: "bone" },
+      { key: "tenPhotos", name: "Shutterbug Deluxe", desc: "Take 10 photos total", hint: "Use the camera chip in the top-right HUD.", reward: 15, icon: "star" },
+      { key: "snowDay", name: "Let It Snow", desc: "See snow outside the window", hint: "Snow only happens in winter — check the window in cold months.", reward: 10, icon: "star" },
+      { key: "visitorMet", name: "Friendly Neighbor", desc: "Interact with a visitor", hint: "Click visitors (squirrels, cats, mail) when they appear.", reward: 10, icon: "heart" },
+      { key: "challengeAttempt", name: "Brave Heart", desc: "Try a challenge mode minigame", hint: "On a 3-star card, click the gold star top-right to enter challenge mode.", reward: 10, icon: "star" }
     ];
 
     /* ── Weather & Visitor System ── */
@@ -8788,7 +8791,8 @@
               c.fillText(goal.name, 114, gy + 2);
               c.fillStyle = "rgba(92,61,46,0.45)";
               c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-              c.fillText(goal.desc, 114, gy + 16);
+              /* D.7 — render goal.hint when present (more actionable than desc). */
+              c.fillText(goal.hint || goal.desc, 114, gy + 16);
               /* reward */
               c.textAlign = "right";
               c.fillStyle = done ? "rgba(92,61,46,0.35)" : COLORS.gold;
