@@ -1535,6 +1535,50 @@
       c.restore();
     }
 
+    /* drawPanelFrame (Phase A.3) — unified scrim + cream rounded card + optional title.
+       opts: { x, y, w, h, title?, radius?=28 }
+       Replaces hand-coded panel frames in HangoutScene (decor/wardrobe/scrapbook/menu) and
+       BackyardScene (decor) once those panels migrate in B.3 / D.1 / D.3 / D.5. */
+    function drawPanelFrame(c, opts) {
+      var radius = (opts.radius != null) ? opts.radius : 28;
+      c.save();
+      c.fillStyle = "rgba(40,28,18,0.55)";
+      c.fillRect(0, 0, W, H);
+      rr(c, opts.x, opts.y, opts.w, opts.h, radius);
+      c.fillStyle = "rgba(255,248,240,0.97)";
+      c.fill();
+      c.strokeStyle = "rgba(146,104,72,0.2)";
+      c.lineWidth = 3;
+      c.stroke();
+      if (opts.title) {
+        c.fillStyle = "#7A4E36";
+        c.textAlign = "center";
+        c.textBaseline = "alphabetic";
+        c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText(opts.title, opts.x + opts.w / 2, opts.y + 40);
+      }
+      c.restore();
+    }
+
+    /* drawPanelClose (Phase A.3) — unified close-button circle anchored to a panel.
+       Center at (panel.x + panel.w - 22, panel.y + 22). Reads hovered to swell + tint.
+       Returns the hit circle {cx, cy, r} so the click handler can read the same source. */
+    function drawPanelClose(c, panel, hovered) {
+      var cx = panel.x + panel.w - 22;
+      var cy = panel.y + 22;
+      var r = hovered ? 18 : 16;
+      c.save();
+      if (hovered) drawGlowCircle(c, cx, cy, 24, "rgba(180,80,60,ALPHA)", 0.2);
+      c.fillStyle = hovered ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
+      c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = "#FFF8F0";
+      c.lineWidth = hovered ? 3 : 2.5;
+      c.beginPath(); c.moveTo(cx - 6, cy - 6); c.lineTo(cx + 6, cy + 6); c.stroke();
+      c.beginPath(); c.moveTo(cx + 6, cy - 6); c.lineTo(cx - 6, cy + 6); c.stroke();
+      c.restore();
+      return { cx: cx, cy: cy, r: r };
+    }
+
     function drawTooltip(c, x, y, title, body, alpha = 1) {
       c.save();
       c.globalAlpha = alpha;
