@@ -13118,14 +13118,23 @@
       }
       drawEndingOverlay(c) {
         if (this.winState) {
+          /* Phase E.5 — soft fade-in for the hero shot text, hold, then a
+             short fade-out so the transition to results crossfades softly.
+             phaseTime runs 0 → 2.3 (results trigger). */
+          var _pt = this.phaseTime || 0;
+          var _fadeIn = clamp(_pt / 0.6, 0, 1);
+          var _fadeOut = 1 - clamp((_pt - 2.0) / 0.3, 0, 1);
+          var _heroAlpha = _fadeIn * _fadeOut;
           c.save();
-          c.fillStyle = "rgba(255,248,240,0.18)";
+          c.globalAlpha = _heroAlpha;
+          c.fillStyle = "rgba(255,248,240,0.32)";
           c.fillRect(0, 0, W, H);
           c.fillStyle = "#B84B3A";
           c.textAlign = "center";
           c.font = '42px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("Maximum Cozy!", W / 2, 120);
           c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillStyle = "#7A4E36";
           c.fillText("Everyone drifts into the happiest little cuddle nap.", W / 2, 154);
           c.restore();
         }
