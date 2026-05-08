@@ -689,6 +689,28 @@
       return true;
     }
 
+    /* decorLockState (Phase B.5) — returns the most-relevant lock chip data,
+       or null if the item is fully owned. Priority: achievement > streak >
+       stars > season > coins (the same order canUnlockDecorItem walks). */
+    function decorLockState(item) {
+      if (item.achievementUnlock && !store.achievements[item.achievementUnlock]) {
+        return { kind: "achievement", value: item.achievementUnlock };
+      }
+      if (item.streakUnlock && store.careStreak.count < item.streakUnlock) {
+        return { kind: "streak", value: item.streakUnlock };
+      }
+      if (item.stars > 0 && totalStarsEarned() < item.stars) {
+        return { kind: "stars", value: item.stars, current: totalStarsEarned() };
+      }
+      if (item.season && item.season !== getCurrentSeason()) {
+        return { kind: "season", value: item.season };
+      }
+      if (item.price && (store.decorPurchased || []).indexOf(item.key) < 0) {
+        return { kind: "coins", value: item.price };
+      }
+      return null;
+    }
+
     /* check if player has purchased a coin-gated decor item */
     function isDecorPurchased(item) {
       if (!item.price) return true;
@@ -1704,6 +1726,63 @@
        (menu, decor, wardrobe, scrapbook, backyard decor) share this rect.
        Future divergent panels can register their own frame in panelClose. */
     const PANEL_STD = { x: 100, y: 70, w: 600, h: 480 };
+
+    /* drawLockChip (Phase B.5) — small chip top-right of a card rect indicating
+       why a card is gated. kind ∈ {"stars","coins","achievement","season","streak"}.
+       value: required value for the gate. current?: optional progress (used for stars). */
+    function drawLockChip(c, rect, kind, value, current) {
+      var fillColor, textColor, label, dotColor;
+      if (kind === "stars") {
+        label = (current != null ? current : 0) + " / " + value;
+        fillColor = "rgba(255,215,0,0.18)"; textColor = "#8A6045"; dotColor = "#E8A020";
+      } else if (kind === "coins") {
+        label = String(value);
+        fillColor = "rgba(255,200,80,0.22)"; textColor = "#8A6045"; dotColor = "#E8A020";
+      } else if (kind === "achievement") {
+        var aLabel = String(value);
+        if (aLabel.length > 12) aLabel = aLabel.slice(0, 12);
+        label = aLabel;
+        fillColor = "rgba(180,130,200,0.18)"; textColor = "#6B3F8C"; dotColor = "#9B7DBD";
+      } else if (kind === "streak") {
+        label = value + "d";
+        fillColor = "rgba(255,107,53,0.20)"; textColor = "#A0501C"; dotColor = "#FF6B35";
+      } else if (kind === "season") {
+        label = String(value).charAt(0).toUpperCase() + String(value).slice(1);
+        fillColor = "rgba(125,179,108,0.22)"; textColor = "#5C8A4A"; dotColor = "#7DB36C";
+      } else {
+        return;
+      }
+      c.save();
+      c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      var textW = c.measureText(label).width;
+      var iconW = 14;
+      var pad = 8;
+      var chipW = Math.ceil(textW + iconW + pad * 2);
+      var chipH = 22;
+      var x = rect.x + rect.w - chipW - 8;
+      var y = rect.y + 8;
+      rr(c, x, y, chipW, chipH, 11);
+      c.fillStyle = fillColor;
+      c.fill();
+      c.strokeStyle = "rgba(146,104,72,0.25)";
+      c.lineWidth = 1;
+      c.stroke();
+      // Icon
+      var ix = x + pad;
+      var iy = y + chipH / 2;
+      if (kind === "stars") {
+        drawStar(c, ix + 5, iy, 5, dotColor);
+      } else {
+        c.fillStyle = dotColor;
+        c.beginPath(); c.arc(ix + 5, iy, kind === "streak" ? 4 : 5, 0, Math.PI * 2); c.fill();
+      }
+      // Label
+      c.fillStyle = textColor;
+      c.textAlign = "left";
+      c.textBaseline = "middle";
+      c.fillText(label, x + pad + iconW, y + chipH / 2 + 1);
+      c.restore();
+    }
 
     /* panelClose (Phase B.3) — hit rect for the close button of a named panel.
        Argument can be either a panel-key string (defaults to PANEL_STD) or a
@@ -8256,8 +8335,11 @@
             c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
             c.fillText(item.desc, ir.x + 64, ir.y + 50);
 
+            /* lock chip (Phase B.5) — computed before the toggle/cycle render so they
+               can be made mutually exclusive (chip when gated, toggle when fully owned). */
+            var lockState = decorLockState(item);
             /* toggle/cycle state */
-            if (have) {
+            if (have && !lockState) {
               if (item.type === "toggle") {
                 const tx = ir.x + ir.w - 60;
                 const ty = ir.y + ir.h / 2;
@@ -8272,15 +8354,9 @@
                 c.textAlign = "right";
                 c.fillText(item.labels[store.decor[item.key]] + " ▸", ir.x + ir.w - 24, ir.y + ir.h / 2 + 5);
               }
-            } else {
-              c.fillStyle = "rgba(160,140,120,0.4)";
-              c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-              c.textAlign = "right";
-              if (item.streakUnlock) {
-                c.fillText("Need " + item.streakUnlock + "-day streak", ir.x + ir.w - 24, ir.y + ir.h / 2 + 5);
-              } else {
-                c.fillText("Need " + item.stars + " \u2605", ir.x + ir.w - 24, ir.y + ir.h / 2 + 5);
-              }
+            }
+            if (lockState) {
+              drawLockChip(c, ir, lockState.kind, lockState.value, lockState.current);
             }
             c.restore();
           }
