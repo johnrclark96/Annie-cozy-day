@@ -5357,7 +5357,9 @@
       onClick(x, y) {
         /* dedication screen - click anywhere to dismiss (after 1.5s) */
         if (this.dedication) {
-          if (this.dedication.phase >= 1.5 && this.dedication.alpha > 0.5) {
+          /* E.1 — dismiss gate raised to 2.2 so the third line ("For Luna.")
+             at phase 1.6 has its full 0.5s fade-in before any click can fire. */
+          if (this.dedication.phase >= 2.2 && this.dedication.alpha > 0.5) {
             this.dedication = null;
             store.firstVisit = false;
             saveBool("firstVisit", false);
@@ -5893,7 +5895,7 @@
       }
       onKeyDown(key) {
         if (key === "Escape") {
-          if (this.dedication && this.dedication.phase < 1.5) return;
+          if (this.dedication && this.dedication.phase < 2.2) return; /* E.1 — match click gate */
           /* C.B7 — Esc applies/claims overlays before any panel cascade or exit. */
           if (this._awayStory) { this._tryDismissAwayStory(); return; }
           if (this.dailyGift) { this._tryClaimDailyGift(); return; }
@@ -8837,27 +8839,45 @@
             c.restore();
           }
 
+          /* Phase E.1 — three-line reveal staggered at phase 0.6 / 1.1 / 1.6.
+             Each name line fades in over 0.5s; dismissal allowed at phase >= 2.2. */
+          var _ph = this.dedication.phase;
+          var _annieAlpha = clamp((_ph - 0.6) / 0.5, 0, 1);
+          var _obiAlpha = clamp((_ph - 1.1) / 0.5, 0, 1);
+          var _lunaAlpha = clamp((_ph - 1.6) / 0.5, 0, 1);
           c.fillStyle = "#7A4E36";
           c.textAlign = "center";
           c.font = '36px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Made with Love", W / 2, 220);
-          c.font = '18px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillStyle = "rgba(122,78,54,0.8)";
-          c.fillText("for Annie, Obi, and Luna", W / 2, 256);
+          c.save(); c.globalAlpha = a * _annieAlpha; c.fillText("For Annie.", W / 2, 200); c.restore();
+          c.save(); c.globalAlpha = a * _obiAlpha; c.fillText("For Obi.", W / 2, 244); c.restore();
+          c.save(); c.globalAlpha = a * _lunaAlpha; c.fillText("For Luna.", W / 2, 288); c.restore();
 
-          /* small characters */
+          /* characters fade in with the first name line; the active name's
+             character gets a brief warm glow as their line lands. */
           c.save();
-          c.globalAlpha = a * clamp(this.dedication.phase - 0.5, 0, 1);
+          c.globalAlpha = a * _annieAlpha;
+          /* Annie glow: active 0.6 → 1.1 */
+          var _annieGlow = clamp((_ph - 0.6) * 2 - Math.max(0, (_ph - 1.1)) * 4, 0, 1);
+          if (_annieGlow > 0.01) drawGlowCircle(c, 320, 370, 60, "rgba(255,200,140,ALPHA)", 0.18 * _annieGlow);
           drawAnnie(c, 320, 370, 0.8, { pose: "cheer", breath: Math.sin(game.time * 2), blink: blinkSignal(game.time, 0.5), hairSway: Math.sin(game.time * 1.2) });
+          c.globalAlpha = a * _obiAlpha;
+          var _obiGlow = clamp((_ph - 1.1) * 2 - Math.max(0, (_ph - 1.6)) * 4, 0, 1);
+          if (_obiGlow > 0.01) drawGlowCircle(c, 420, 390, 50, "rgba(255,200,140,ALPHA)", 0.18 * _obiGlow);
           drawObi(c, 420, 390, 0.7, { pose: "sit", expression: "happy", tail: Math.sin(game.time * 8) });
+          c.globalAlpha = a * _lunaAlpha;
+          var _lunaGlow = clamp((_ph - 1.6) * 2 - Math.max(0, (_ph - 2.1)) * 4, 0, 1);
+          if (_lunaGlow > 0.01) drawGlowCircle(c, 500, 382, 50, "rgba(255,200,140,ALPHA)", 0.18 * _lunaGlow);
           drawLuna(c, 500, 382, 0.65, { pose: "sit", tail: Math.sin(game.time * 2), earTwitch: earSignal(game.time) });
           c.restore();
 
-          /* click to continue */
-          c.globalAlpha = a * (0.4 + Math.sin(game.time * 2.5) * 0.3);
-          c.fillStyle = "#8A6045";
-          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText(isMobile ? "Tap anywhere to begin" : "Click anywhere to begin", W / 2, 454);
+          /* click to continue — only appears once dismiss is allowed (E.1 gate) */
+          if (_ph >= 2.1) {
+            var _hintAlpha = clamp((_ph - 2.1) * 2, 0, 1);
+            c.globalAlpha = a * _hintAlpha * (0.4 + Math.sin(game.time * 2.5) * 0.3);
+            c.fillStyle = "#8A6045";
+            c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(isMobile ? "Tap anywhere to begin" : "Click anywhere to begin", W / 2, 454);
+          }
 
           c.restore();
         }
