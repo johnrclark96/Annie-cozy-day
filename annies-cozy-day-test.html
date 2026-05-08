@@ -1662,32 +1662,46 @@
       return rects;
     }
 
-    function drawButton(c, r, label, hovered, fill = COLORS.warmRed, textColor = "#fff") {
+    function drawButton(c, r, label, hovered, fill = COLORS.warmRed, textColor = "#fff", selected = false) {
       c.save();
+      const ey = selected ? r.y - 2 : r.y;
+      const effFill = selected ? "#7A4E36" : fill;
       const shadowY = hovered ? 4 : 6;
       c.fillStyle = "rgba(92,68,52,0.18)";
-      rr(c, r.x, r.y + shadowY, r.w, r.h, 18);
+      rr(c, r.x, ey + shadowY, r.w, r.h, 18);
       c.fill();
-      if (hovered) {
-        drawGlowCircle(c, r.x + r.w / 2, r.y + r.h / 2, Math.max(r.w, r.h) * 0.95, "rgba(255,215,0,ALPHA)", 0.18);
+      if (hovered && !selected) {
+        drawGlowCircle(c, r.x + r.w / 2, ey + r.h / 2, Math.max(r.w, r.h) * 0.95, "rgba(255,215,0,ALPHA)", 0.18);
       }
-      const grad = c.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
-      grad.addColorStop(0, hovered ? lightenColor(fill, 0.2) : fill);
-      grad.addColorStop(1, hovered ? fill : darkenColor(fill, 0.1));
+      const grad = c.createLinearGradient(r.x, ey, r.x, ey + r.h);
+      if (selected) {
+        grad.addColorStop(0, lightenColor(effFill, 0.08));
+        grad.addColorStop(1, effFill);
+      } else {
+        grad.addColorStop(0, hovered ? lightenColor(effFill, 0.2) : effFill);
+        grad.addColorStop(1, hovered ? effFill : darkenColor(effFill, 0.1));
+      }
       c.fillStyle = grad;
-      rr(c, r.x, r.y, r.w, r.h, 18);
+      rr(c, r.x, ey, r.w, r.h, 18);
       c.fill();
-      c.strokeStyle = "rgba(255,255,255,0.65)";
-      c.lineWidth = 2;
-      c.stroke();
-      c.fillStyle = "rgba(255,255,255,0.14)";
-      rr(c, r.x + 4, r.y + 4, r.w - 8, r.h * 0.4, 14);
-      c.fill();
+      if (selected) {
+        c.strokeStyle = "rgba(255,248,240,0.85)";
+        c.lineWidth = 3;
+        rr(c, r.x - 2, ey - 2, r.w + 4, r.h + 4, 20);
+        c.stroke();
+      } else {
+        c.strokeStyle = "rgba(255,255,255,0.65)";
+        c.lineWidth = 2;
+        c.stroke();
+        c.fillStyle = "rgba(255,255,255,0.14)";
+        rr(c, r.x + 4, ey + 4, r.w - 8, r.h * 0.4, 14);
+        c.fill();
+      }
       c.fillStyle = textColor;
       c.font = '20px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
       c.textAlign = "center";
       c.textBaseline = "middle";
-      c.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 1);
+      c.fillText(label, r.x + r.w / 2, ey + r.h / 2 + 1);
       c.restore();
     }
 
@@ -3376,6 +3390,34 @@
       lx.fillRect(0, 336, W, 8);
       lx.fillStyle = "#C8A882";
       lx.fillRect(0, 336, W, 3);
+      /* V1 — ground/contact shadows (palette-aware) */
+      var __vMoon = (store.decor.roomPreset || 0) === 3;
+      var __vSf = __vMoon ? "rgba(40,50,80,0.18)" : "rgba(60,40,25,0.20)";
+      var __vUf = __vMoon ? "rgba(20,30,60,0.10)" : "rgba(0,0,0,0.10)";
+      lx.fillStyle = __vSf;
+      /* couch base ground shadow (couch x:264-540, base y:380) */
+      lx.beginPath();
+      lx.ellipse(400, 384, 142, 8, 0, 0, Math.PI * 2);
+      lx.fill();
+      /* side table base shadow (x:226-274, base y:376) */
+      lx.beginPath();
+      lx.ellipse(250, 380, 30, 4, 0, 0, Math.PI * 2);
+      lx.fill();
+      /* cat tower base shadow (x:674-722, base y:480) */
+      lx.beginPath();
+      lx.ellipse(698, 484, 32, 6, 0, 0, Math.PI * 2);
+      lx.fill();
+      /* rug edge contact shadow (just outside rug ellipse at 400,470 r=220x55) */
+      lx.strokeStyle = __vSf;
+      lx.lineWidth = 4;
+      lx.beginPath();
+      lx.ellipse(400, 472, 224, 58, 0, 0, Math.PI * 2);
+      lx.stroke();
+      /* bookshelf wall shadow (under hung shelf base at y:242) */
+      lx.fillStyle = __vUf;
+      lx.fillRect(568, 244, 70, 3);
+      /* window sill wall shadow (under sill at y:216) */
+      lx.fillRect(56, 218, 140, 3);
       /* window */
       lx.fillStyle = "#B8D8F0";
       rr(lx, 62, 48, 128, 160, 8);
@@ -3477,6 +3519,9 @@
       lx.fill();
       rr(lx, 512, 370, 10, 14, 3);
       lx.fill();
+      /* V1 — couch front underside band */
+      lx.fillStyle = __vUf;
+      lx.fillRect(296, 374, 212, 3);
       /* throw pillows */
       lx.fillStyle = "#E8B8A0";
       lx.save();
@@ -3562,6 +3607,9 @@
       lx.fillStyle = "#C4A076";
       rr(lx, 566, 56, 74, 186, 6);
       lx.fill();
+      /* V1 — bookshelf bottom underside band */
+      lx.fillStyle = __vUf;
+      lx.fillRect(568, 240, 70, 2);
       /* shelf edges */
       lx.fillStyle = "#B89060";
       lx.fillRect(566, 56, 74, 4);
@@ -7946,7 +7994,7 @@
         drawButton(c, this.wardrobeButton, "Closet", this.hoverKey === "wardrobe", "#C7A37B");
         for (const btn of this.modeButtons) {
           const active = this.mode === btn.key;
-          drawButton(c, btn, btn.label, this.hoverKey === btn.key || active, active ? "#A05A3C" : "#C7A37B");
+          drawButton(c, btn, btn.label, this.hoverKey === btn.key, "#C7A37B", "#fff", active);
         }
 
         /* hub HUD pill row (Phase B.1) \u2014 five pills share slot 1 (y=HUD_GRID.row2=34),
