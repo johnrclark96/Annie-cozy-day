@@ -11061,6 +11061,16 @@
         c.fillStyle = COLORS.gold;
         c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.fillText("+" + this.coinReward + " coins", W / 2, this.newBest ? 280 : 228);
+        /* F.8 — when Lucky Charm is active, surface its origin in a faint
+           caps line below the coin total. Without this the +2 felt invisible. */
+        if (hasUpgrade("luckyCharm")) {
+          c.save();
+          c.fillStyle = "rgba(122,78,54,0.55)";
+          c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("includes +2 from Lucky Charm", W / 2, (this.newBest ? 280 : 228) + 14);
+          c.restore();
+        }
 
         if (this.newBest) {
           const bestPulse = 1 + Math.sin(game.time * 4) * 0.04;
