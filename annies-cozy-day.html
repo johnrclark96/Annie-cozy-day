@@ -3346,6 +3346,18 @@
       }
       sceneCache.titleBase = tc;
 
+      /* V5 — soft character shadow sprite (cached, drawn per character per frame) */
+      const cs = makeBufferCanvas(80, 24);
+      const csx = cs.getContext("2d");
+      const csg = csx.createRadialGradient(40, 12, 0, 40, 12, 44);
+      csg.addColorStop(0, "rgba(80,55,35,1)");
+      csg.addColorStop(1, "rgba(80,55,35,0)");
+      csx.fillStyle = csg;
+      csx.beginPath();
+      csx.ellipse(40, 12, 40, 12, 0, 0, Math.PI * 2);
+      csx.fill();
+      sceneCache.charShadow = cs;
+
       /* ── Living room background ── */
       var roomPalettes = [
         /* 0: Cozy Neutral */ { wallTop: "#F5E6D3", wallBot: "#EDD8C4", stripe: "rgba(220,200,175,0.12)", wainscot: "#E8D4BC", wainLine: "#D8C0A4", floorTop: "#EFD8BE", floorBot: "#E2C6A4", plank: "rgba(180,145,110,0.15)", base: "#D4B896" },
@@ -4211,8 +4223,14 @@
         for (let fi = 0; fi < 3; fi++) {
           c.save();
           c.translate(548, frameY[fi]);
+          /* V6 — drop shadow under frame */
+          c.fillStyle = "rgba(60,40,25,0.22)";
+          rr(c, -14, -9, 32, 24, 2); c.fill();
           c.fillStyle = "#8B7355";
           rr(c, -16, -12, 32, 24, 2); c.fill();
+          /* V6 — top edge cream highlight */
+          c.fillStyle = "rgba(255,248,240,0.4)";
+          c.fillRect(-15, -12, 30, 1);
           c.fillStyle = "#FFF8E8";
           rr(c, -13, -9, 26, 18, 1); c.fill();
           c.fillStyle = "rgba(180,150,120,0.3)";
@@ -4228,8 +4246,14 @@
         c.beginPath(); c.ellipse(336, 486, 8, 4, 0, 0, Math.PI * 2); c.fill();
       }
       if (d.corkBoard) {
+        /* V6 — drop shadow */
+        c.fillStyle = "rgba(60,40,25,0.22)";
+        rr(c, 474, 113, 52, 42, 3); c.fill();
         c.fillStyle = "#B89060";
         rr(c, 472, 110, 52, 42, 3); c.fill();
+        /* V6 — top edge highlight */
+        c.fillStyle = "rgba(255,248,240,0.32)";
+        c.fillRect(473, 110, 50, 1);
         c.fillStyle = "#D4A870";
         rr(c, 475, 113, 46, 36, 2); c.fill();
         /* pins */
@@ -4271,6 +4295,9 @@
         }
       }
       if (d.wallClock) {
+        /* V6 — drop shadow */
+        c.fillStyle = "rgba(60,40,25,0.22)";
+        c.beginPath(); c.arc(552, 183, 24, 0, Math.PI * 2); c.fill();
         c.fillStyle = "#E8D8C0";
         c.beginPath(); c.arc(550, 180, 24, 0, Math.PI * 2); c.fill();
         c.strokeStyle = "#8B7355"; c.lineWidth = 2;
@@ -4333,8 +4360,14 @@
         c.globalAlpha = 1;
       }
       if (d.familyPortrait) {
+        /* V6 — drop shadow */
+        c.fillStyle = "rgba(60,40,25,0.22)";
+        rr(c, 342, 93, 44, 36, 3); c.fill();
         c.fillStyle = "#C8A872";
         rr(c, 340, 90, 44, 36, 3); c.fill();
+        /* V6 — top edge highlight */
+        c.fillStyle = "rgba(255,248,240,0.4)";
+        c.fillRect(341, 90, 42, 1);
         c.fillStyle = "#FFE8D8";
         rr(c, 344, 94, 36, 28, 2); c.fill();
         /* tiny silhouettes */
@@ -5435,6 +5468,9 @@
         if (pointInRect(x, y, this.cameraButton)) return true;
         if (pointInRect(x, y, this.scrapbookButton)) return true;
         if (pointInRect(x, y, this.weatherButton)) return true;
+        /* V7 — coin and star pills are clickable nav (B.6) — surface for cursor */
+        if (this.hubHudRects && this.hubHudRects.coin && pointInRect(x, y, this.hubHudRects.coin)) return true;
+        if (this.hubHudRects && this.hubHudRects.star && pointInRect(x, y, this.hubHudRects.star)) return true;
         if (this.modeButtons.some((btn) => pointInRect(x, y, btn))) return true;
         if (pointInRect(x, y, this.foodBowlHitbox)) return true;
         if (pointInRect(x, y, this.waterBowlHitbox)) return true;
@@ -7932,6 +7968,10 @@
         c.beginPath(); c.arc(-6, 22, 6, 0, Math.PI * 2); c.fill(); c.stroke();
         c.beginPath(); c.arc(-12, 30, 3.5, 0, Math.PI * 2); c.fill(); c.stroke();
 
+        /* V5 — drop-shadow on icon + label so they read against busy decor */
+        c.shadowColor = "rgba(80,55,35,0.35)";
+        c.shadowBlur = 2;
+
         /* icon inside - bigger and cleaner */
         if (bubble.want === "pet") {
           drawHeart(c, 0, -4, 1.0, COLORS.softPink);
@@ -8194,12 +8234,18 @@
           const stretch = 1 + Math.abs(cx - lightX) * 0.001;
           const shadowAlpha = clamp(0.18 - Math.abs(cx - lightX) * 0.0003, 0.06, 0.18);
           c.save();
-          const sg = c.createRadialGradient(cx + dx, cy, 0, cx + dx, cy, baseW * stretch * 1.2);
-          sg.addColorStop(0, `rgba(80,55,35,${shadowAlpha})`);
-          sg.addColorStop(1, "rgba(80,55,35,0)");
-          c.fillStyle = sg;
+          /* V5 — soft outer shadow from cached sprite (zero per-frame gradient cost) */
+          if (sceneCache.charShadow) {
+            c.globalAlpha = shadowAlpha / 0.18;
+            const dw = baseW * stretch * 2;
+            const dh = baseH * 2;
+            c.drawImage(sceneCache.charShadow, cx + dx - dw / 2, cy - dh / 2, dw, dh);
+          }
+          /* V5 — tight inner contact shadow for crisper grounding */
+          c.globalAlpha = 1;
+          c.fillStyle = "rgba(0,0,0,0.18)";
           c.beginPath();
-          c.ellipse(cx + dx, cy, baseW * stretch, baseH, 0, 0, Math.PI * 2);
+          c.ellipse(cx + dx, cy + 1, baseW * 0.55, 3, 0, 0, Math.PI * 2);
           c.fill();
           c.restore();
         };
@@ -8336,8 +8382,8 @@
           c.scale(scaleIn, scaleIn);
           c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.strokeStyle = "rgba(255,255,255,0.85)";
-          c.lineWidth = 3.5;
+          c.strokeStyle = "rgba(80,55,35,0.45)";
+          c.lineWidth = 3;
           c.strokeText(ft.text, 0, 0);
           c.fillStyle = ft.color;
           c.fillText(ft.text, 0, 0);
@@ -8486,30 +8532,27 @@
         }
 
         c.save();
-        /* status bar shadow */
-        c.fillStyle = "rgba(92,68,52,0.06)";
+        /* V7 — demoted status strip: cream fill, smaller text, quieter pulse */
+        c.fillStyle = "rgba(92,68,52,0.05)";
         rr(c, 124, 539, 556, 40, 18);
         c.fill();
-        /* status bar */
         rr(c, 122, 536, 556, 40, 18);
-        c.fillStyle = "rgba(255,255,255,0.9)";
+        c.fillStyle = "rgba(255,248,240,0.55)";
         c.fill();
-        c.strokeStyle = "rgba(146,104,72,0.18)";
-        c.lineWidth = 1.5;
+        c.strokeStyle = "rgba(146,104,72,0.14)";
+        c.lineWidth = 1;
         c.stroke();
-        /* shine */
-        c.fillStyle = "rgba(255,255,255,0.2)";
+        c.fillStyle = "rgba(255,255,255,0.08)";
         rr(c, 126, 537, 548, 16, 14);
         c.fill();
-        /* pulse glow */
         if (this.statusPulse > 0.05) {
-          c.globalAlpha = this.statusPulse * 0.15;
-          drawGlowCircle(c, 400, 556, 300, "rgba(255,215,0,ALPHA)", 0.12);
+          c.globalAlpha = this.statusPulse * 0.08;
+          drawGlowCircle(c, 400, 556, 300, "rgba(255,215,0,ALPHA)", 0.10);
           c.globalAlpha = 1;
         }
         c.fillStyle = "#7A5040";
         c.textAlign = "center";
-        c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.save();
         c.beginPath();
         c.rect(122, 536, 556, 40);
