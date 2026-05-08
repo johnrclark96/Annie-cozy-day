@@ -4951,7 +4951,14 @@
               saveAchievements();
               var dedInfo = ACHIEVEMENTS.find(function(a) { return a.key === "dedicated"; });
               if (dedInfo && dedInfo.coinBonus) addCoins(dedInfo.coinBonus);
-              addScrapbookEntry("achievement", "Dedicated Caretaker unlocked!", "star");
+              /* E.6 — special-cased scrapbook entry replaces the flat
+                 "Dedicated Caretaker unlocked!" line with a sentence that
+                 reads as a moment, not a log entry. */
+              addScrapbookEntry("achievement", "Day 30. Annie has been here every day. Obi and Luna know.", "heart");
+              /* E.6 — full-screen cream ribbon + three-character cheer pose,
+                 single chord chime. Renders for 2.5s. */
+              this._dedicatedReveal = { timer: 2.5, total: 2.5 };
+              audio.chord([261.63, 329.63, 392, 523.25], 0.8, 0.10);
             }
           }
         }
@@ -6666,6 +6673,11 @@
           this._bondLevelUp.timer -= dt;
           if (this._bondLevelUp.timer <= 0) this._bondLevelUp = null;
         }
+        /* E.6 — Dedicated Caretaker reveal tick */
+        if (this._dedicatedReveal) {
+          this._dedicatedReveal.timer -= dt;
+          if (this._dedicatedReveal.timer <= 0) this._dedicatedReveal = null;
+        }
         /* stroke trail tick */
         for (let i = this.strokeTrail.length - 1; i >= 0; i--) {
           this.strokeTrail[i].life -= dt;
@@ -8183,6 +8195,44 @@
           c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           var lvlName = BOND_LEVEL_NAMES[blu.level] || "";
           c.fillText("\u2764 " + (blu.pet === "obi" ? "Obi" : "Luna") + " Bond Lv." + blu.level + (lvlName ? " — " + lvlName : "") + " \u2764", 400, 170);
+          c.restore();
+        }
+
+        /* E.6 — Dedicated Caretaker reveal: cream ribbon at y=H/2 with the
+           three characters cheering. Renders for 2.5s with fade-in / fade-out. */
+        if (this._dedicatedReveal) {
+          var _drT = this._dedicatedReveal.timer;
+          var _drTotal = this._dedicatedReveal.total || 2.5;
+          var _drElapsed = _drTotal - _drT;
+          var _drFadeIn = clamp(_drElapsed / 0.4, 0, 1);
+          var _drFadeOut = clamp(_drT / 0.4, 0, 1);
+          var _drA = _drFadeIn * _drFadeOut;
+          c.save();
+          c.globalAlpha = _drA * 0.55;
+          c.fillStyle = "rgba(40,28,18,0.6)";
+          c.fillRect(0, 0, W, H);
+          c.globalAlpha = _drA;
+          rr(c, 40, H / 2 - 70, W - 80, 140, 18);
+          c.fillStyle = "rgba(255,248,240,0.97)";
+          c.fill();
+          c.strokeStyle = "rgba(200,160,120,0.35)";
+          c.lineWidth = 3;
+          c.stroke();
+          c.fillStyle = "rgba(122,78,54,0.6)";
+          c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.textAlign = "center";
+          c.fillText("DAY 30", W / 2, H / 2 - 40);
+          c.fillStyle = "#7A4E36";
+          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Dedicated Caretaker", W / 2, H / 2 - 8);
+          c.fillStyle = "rgba(122,78,54,0.85)";
+          c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("Annie has been here every day. Obi and Luna know.", W / 2, H / 2 + 22);
+          c.globalAlpha = _drA * clamp(_drElapsed / 0.6, 0, 1);
+          var _drBob = Math.sin(game.time * 4) * 4;
+          drawAnnie(c, 320, H / 2 + 120 - _drBob, 0.7, { pose: "cheer", breath: Math.sin(game.time * 2), hairSway: Math.sin(game.time * 1.2) });
+          drawObi(c, 410, H / 2 + 132 + _drBob * 0.5, 0.65, { pose: "sit", expression: "excited", tail: Math.sin(game.time * 10), bounce: 0.06 * Math.sin(game.time * 6) });
+          drawLuna(c, 490, H / 2 + 130 - _drBob * 0.5, 0.6, { pose: "sit", tail: Math.sin(game.time * 3), earTwitch: earSignal(game.time) });
           c.restore();
         }
 
