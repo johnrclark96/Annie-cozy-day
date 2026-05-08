@@ -1345,5 +1345,3 @@ Mitigation: Treat the 9-step checklist as the chunk's DoD. Do not mark complete 
 **Hand-shippable in one evening:** Chunks 1.1 + 1.2 (place pill grid + minigame HUD migration) + 4.1 (timeOfDay bug) — three commits, all under 30 minutes each, all visibly improving the game.
 
 **Hand-shippable in one weekend:** Phases 1 + 2 + 4 in full — foundation, hub HUD, one panel rebuilt, 10 bugs fixed.
-
-**Heart-tier-only weekend:** Phase 6 alone — dedication polish, cuddle hero shot, caretaker reveal.
