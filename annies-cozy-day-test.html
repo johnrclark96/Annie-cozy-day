@@ -4830,10 +4830,9 @@
         }
         store.lastVisitTimestamp = Date.now();
         saveNumber("lastVisitTimestamp", store.lastVisitTimestamp);
-        /* daily calendar gift */
+        /* daily calendar gift — C.B8: lastVisitDate set is deferred to claim
+           in _tryClaimDailyGift so a leave-without-claim re-shows the gift. */
         if (store.lastVisitDate !== today) {
-          store.lastVisitDate = today;
-          saveJSON("lastVisitDate", today);
           /* check streak */
           var cal = store.dailyCalendar;
           if (cal.lastClaimDate) {
@@ -5251,6 +5250,64 @@
         if (pointInRect(x, y, this.getPetRect("obi")) || pointInRect(x, y, this.getPetRect("luna"))) return true;
         return y > 90 && this.mode !== "pet" && this.mode !== "brush";
       }
+      /* C.B7 — shared apply paths so onClick + onKeyDown(Esc) match. */
+      _tryDismissAwayStory() {
+        if (!this._awayStory) return false;
+        if (this._awayStory.phase > 0.5) {
+          var bonus = this._awayStory.bonus;
+          if (bonus) {
+            if (bonus.type === "coins") { addCoins(bonus.amount); this.statusText = "Found " + bonus.amount + " coins!"; }
+            else if (bonus.type === "joy") { var p = bonus.pet === "obi" ? this.obi : this.luna; p.joy = clamp(p.joy + bonus.amount, 0, 100); }
+            spawnParticleBurst(W / 2, 280, [COLORS.gold, COLORS.softPink], 10, ["star"]);
+          }
+          this._awayStory = null;
+          audio.tinyChime();
+        }
+        return true; /* swallow the event whether or not phase gate passed */
+      }
+      _tryClaimDailyGift() {
+        if (!this.dailyGift) return false;
+        /* post-claim celebration — Esc/click skips the auto-dismiss timer */
+        if (this.dailyGift.collected) { this.dailyGift = null; return true; }
+        if (this.dailyGift.phase > 0.5) {
+          this.dailyGift.collected = true;
+          this.dailyGift.phase = 0;
+          var cal = store.dailyCalendar;
+          var reward = CALENDAR_REWARDS[cal.currentDay % 7];
+          var streakMult = 1 + Math.min(2, Math.floor(cal.streak / 7) * 0.5);
+          var coinReward = Math.round((reward.coins || 0) * streakMult);
+          var rewardText = "";
+          if (coinReward > 0) { addCoins(coinReward); rewardText = "+" + coinReward + " coins"; }
+          if (reward.bondXP) { awardBondXP("obi", "visit"); awardBondXP("luna", "visit"); store.bond.obi.xp += reward.bondXP; store.bond.luna.xp += reward.bondXP; saveBond(); rewardText = "+25 Bond XP for both pets!"; }
+          if (reward.mystery) {
+            var mysteries = [
+              { text: " + 25 bonus coins!", effect: function() { addCoins(25); } },
+              { text: " + bowls refilled & +15 joy!", effect: function() { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); this.luna.joy = clamp(this.luna.joy + 15, 0, 100); this.foodBowl.fill = 100; this.waterBowl.fill = 100; }.bind(this) },
+              { text: " + 50 Bond XP!", effect: function() { store.bond.obi.xp += 50; store.bond.luna.xp += 50; saveBond(); } }
+            ];
+            var mystery = mysteries[Math.floor(Math.random() * mysteries.length)];
+            mystery.effect();
+            rewardText += mystery.text;
+          }
+          if (streakMult > 1) rewardText += " (" + streakMult + "x streak!)";
+          cal.currentDay = (cal.currentDay + 1) % 7;
+          cal.streak++;
+          cal.lastClaimDate = new Date().toDateString();
+          saveJSON("dailyCalendar", cal);
+          /* C.B8 — defer lastVisitDate set until claim so a leave-without-claim
+             still re-shows the gift on next entry today. */
+          var todayStr = new Date().toDateString();
+          store.lastVisitDate = todayStr;
+          saveJSON("lastVisitDate", todayStr);
+          this.dailyGift.rewardText = rewardText;
+          this.statusText = "Day " + (reward.day) + " gift: " + rewardText;
+          this.statusPulse = 1;
+          spawnParticleBurst(W / 2, 280, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 24, ["star", "heart"]);
+          audio.combo();
+          screenShake(5, 0.3);
+        }
+        return true;
+      }
       onClick(x, y) {
         /* dedication screen - click anywhere to dismiss (after 1.5s) */
         if (this.dedication) {
@@ -5266,55 +5323,9 @@
           return;
         }
         /* away story overlay — click to dismiss */
-        if (this._awayStory) {
-          if (this._awayStory.phase > 0.5) {
-            var bonus = this._awayStory.bonus;
-            if (bonus) {
-              if (bonus.type === "coins") { addCoins(bonus.amount); this.statusText = "Found " + bonus.amount + " coins!"; }
-              else if (bonus.type === "joy") { var p = bonus.pet === "obi" ? this.obi : this.luna; p.joy = clamp(p.joy + bonus.amount, 0, 100); }
-              spawnParticleBurst(W / 2, 280, [COLORS.gold, COLORS.softPink], 10, ["star"]);
-            }
-            this._awayStory = null;
-            audio.tinyChime();
-          }
-          return;
-        }
+        if (this._tryDismissAwayStory()) return;
         /* daily calendar overlay — click to claim */
-        if (this.dailyGift && !this.dailyGift.collected) {
-          if (this.dailyGift.phase > 0.5) {
-            this.dailyGift.collected = true;
-            this.dailyGift.phase = 0;
-            var cal = store.dailyCalendar;
-            var reward = CALENDAR_REWARDS[cal.currentDay % 7];
-            var streakMult = 1 + Math.min(2, Math.floor(cal.streak / 7) * 0.5);
-            var coinReward = Math.round((reward.coins || 0) * streakMult);
-            var rewardText = "";
-            if (coinReward > 0) { addCoins(coinReward); rewardText = "+" + coinReward + " coins"; }
-            if (reward.bondXP) { awardBondXP("obi", "visit"); awardBondXP("luna", "visit"); store.bond.obi.xp += reward.bondXP; store.bond.luna.xp += reward.bondXP; saveBond(); rewardText = "+25 Bond XP for both pets!"; }
-            if (reward.mystery) {
-              var mysteries = [
-                { text: " + 25 bonus coins!", effect: function() { addCoins(25); } },
-                { text: " + bowls refilled & +15 joy!", effect: function() { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); this.luna.joy = clamp(this.luna.joy + 15, 0, 100); this.foodBowl.fill = 100; this.waterBowl.fill = 100; }.bind(this) },
-                { text: " + 50 Bond XP!", effect: function() { store.bond.obi.xp += 50; store.bond.luna.xp += 50; saveBond(); } }
-              ];
-              var mystery = mysteries[Math.floor(Math.random() * mysteries.length)];
-              mystery.effect();
-              rewardText += mystery.text;
-            }
-            if (streakMult > 1) rewardText += " (" + streakMult + "x streak!)";
-            cal.currentDay = (cal.currentDay + 1) % 7;
-            cal.streak++;
-            cal.lastClaimDate = new Date().toDateString();
-            saveJSON("dailyCalendar", cal);
-            this.dailyGift.rewardText = rewardText;
-            this.statusText = "Day " + (reward.day) + " gift: " + rewardText;
-            this.statusPulse = 1;
-            spawnParticleBurst(W / 2, 280, [COLORS.gold, COLORS.softPink, "#FFF4C0"], 24, ["star", "heart"]);
-            audio.combo();
-            screenShake(5, 0.3);
-          }
-          return;
-        }
+        if (this._tryClaimDailyGift()) return;
         if (this.menuOpen) {
           const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
           if (pointInRect(x, y, closeBtn)) { audio.menu(); this.menuOpen = false; return; }
@@ -5832,6 +5843,9 @@
       onKeyDown(key) {
         if (key === "Escape") {
           if (this.dedication && this.dedication.phase < 1.5) return;
+          /* C.B7 — Esc applies/claims overlays before any panel cascade or exit. */
+          if (this._awayStory) { this._tryDismissAwayStory(); return; }
+          if (this.dailyGift) { this._tryClaimDailyGift(); return; }
           audio.menu();
           if (this.dedication) { this.dedication = null; store.firstVisit = false; saveBool("firstVisit", false); }
           else if (this.menuOpen) { this.menuOpen = false; }
