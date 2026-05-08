@@ -90,13 +90,15 @@
        slot 1+ = small pills (h=pillH=22, used by hangout coin/star/streak/etc).
        chipCol = x of the right-edge 28×28 chip stack (sound/camera/scrapbook). */
     const HUD_GRID = {
-      row1: SAFE,                 // 16 — top row baseline
-      row2: SAFE + 28 + 6,         // 50 — second row baseline
+      row1: SAFE,                 // 16 — slot-0 baseline (minigame Time/Score, chip stack)
+      row2: SAFE + 18,             // 34 — slot-1 baseline (hangout pill row); horizontally
+                                   //      separate from chip stack which sits at chipCol
       pillH: 22,                  // standard small-pill height
       pillGap: 6,                 // gap between rows (and between pills horizontally)
       primaryH: 46,               // h for slot-0 header pill (minigame Time/Score)
       chipCol: W - SAFE - 28,     // x for the right-edge 28×28 chip stack
-      bottomY: H - SAFE - 22      // y for bottom-anchored small pills (goal pill, etc)
+      bottomY: 510                // y for bottom-anchored row (goal pill, etc) —
+                                   // sits above the welcome banner, not at canvas bottom
     };
 
     const COLORS = {
@@ -1535,6 +1537,25 @@
         x = HUD_GRID.chipCol - HUD_GRID.pillGap - w;
       }
       return { x: x, y: y, w: w, h: h };
+    }
+
+    /* placePillStack (Phase B.1) — multi-pill row sharing a slot.
+       For "tr"/"br": widths[0] is the rightmost; subsequent widths grow leftward.
+       For "tl"/"bl": widths[0] is the leftmost; subsequent widths grow rightward.
+       Each pill spaced HUD_GRID.pillGap apart. Returns array of rects, same shape as placePill. */
+    function placePillStack(side, slot, widths, h) {
+      var rects = [];
+      if (!widths || !widths.length) return rects;
+      var first = placePill(side, slot, widths[0], h);
+      rects.push(first);
+      for (var i = 1; i < widths.length; i++) {
+        var prev = rects[i - 1];
+        var x = (side === "tr" || side === "br")
+          ? prev.x - HUD_GRID.pillGap - widths[i]
+          : prev.x + prev.w + HUD_GRID.pillGap;
+        rects.push({ x: x, y: prev.y, w: widths[i], h: prev.h });
+      }
+      return rects;
     }
 
     function drawButton(c, r, label, hovered, fill = COLORS.warmRed, textColor = "#fff") {
@@ -7494,21 +7515,33 @@
           drawButton(c, btn, btn.label, this.hoverKey === btn.key || active, active ? "#A05A3C" : "#C7A37B");
         }
 
+        /* hub HUD pill row (Phase B.1) \u2014 five pills share slot 1 (y=HUD_GRID.row2=34),
+           right-anchored stack from chipCol-6 leftward. Order from right: star, coin,
+           weekly, dailyTasks, streak. Hidden pills still reserve their stack slots so
+           layout doesn't reflow when conditions toggle. */
+        const hudStack = placePillStack("tr", 1, [68, 72, 60, 60, 68]);
+        const starPill = hudStack[0];
+        const coinPill = hudStack[1];
+        const weeklyPill = hudStack[2];
+        const dailyPill = hudStack[3];
+        const streakPill = hudStack[4];
+        this.hubHudRects = { star: starPill, coin: coinPill, weekly: weeklyPill, daily: dailyPill, streak: streakPill };
+
         /* coin pill */
         c.save();
         c.fillStyle = "rgba(255,248,240,0.65)";
-        rr(c, 452, 59, 72, 22, 11);
+        rr(c, coinPill.x, coinPill.y, coinPill.w, coinPill.h, 11);
         c.fill();
         c.fillStyle = COLORS.gold;
-        c.beginPath(); c.arc(466, 70, 7, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(coinPill.x + 14, coinPill.y + coinPill.h / 2, 7, 0, Math.PI * 2); c.fill();
         c.fillStyle = "#FFF4C0";
-        c.beginPath(); c.arc(464, 68, 3, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(coinPill.x + 12, coinPill.y + coinPill.h / 2 - 2, 3, 0, Math.PI * 2); c.fill();
         c.fillStyle = COLORS.gold;
         c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
-        c.fillText(store.coins, 503, 75);
+        c.fillText(store.coins, coinPill.x + 51, coinPill.y + 16);
         c.restore();
-        /* coin popup */
+        /* coin popup (N5: y now relative to coin pill y, not raw 52) */
         if (this.coinPopup) {
           c.save();
           var cpAlpha = clamp(this.coinPopup.timer / 0.4, 0, 1);
@@ -7516,18 +7549,18 @@
           c.fillStyle = COLORS.gold;
           c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText("+" + this.coinPopup.amount, 503, 52 - (1 - cpAlpha) * 12);
+          c.fillText("+" + this.coinPopup.amount, coinPill.x + 51, coinPill.y - 7 - (1 - cpAlpha) * 12);
           c.restore();
         }
         /* star counter */
         c.save();
         c.fillStyle = "rgba(255,248,240,0.65)";
-        rr(c, 527, 59, 68, 22, 11);
+        rr(c, starPill.x, starPill.y, starPill.w, starPill.h, 11);
         c.fill();
         c.fillStyle = COLORS.gold;
         c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
-        c.fillText("\u2605 " + totalStarsEarned() + "/33", 561, 75);
+        c.fillText("\u2605 " + totalStarsEarned() + "/33", starPill.x + starPill.w / 2, starPill.y + 16);
         c.restore();
 
         /* care streak pill */
@@ -7535,17 +7568,17 @@
           c.save();
           const sk = store.careStreak;
           const streakColor = sk.count >= 7 ? "rgba(255,215,0,0.75)" : sk.count >= 3 ? "rgba(230,140,50,0.75)" : "rgba(180,160,140,0.65)";
-          rr(c, 527, 34, 68, 20, 10);
+          rr(c, streakPill.x, streakPill.y, streakPill.w, streakPill.h, 11);
           c.fillStyle = streakColor;
           c.fill();
           c.fillStyle = "#FF6B35";
-          c.beginPath(); c.arc(541, 43, 4, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(streakPill.x + 14, streakPill.y + streakPill.h / 2, 4, 0, Math.PI * 2); c.fill();
           c.fillStyle = "#FFD700";
-          c.beginPath(); c.arc(541, 41, 2.5, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(streakPill.x + 14, streakPill.y + streakPill.h / 2 - 2, 2.5, 0, Math.PI * 2); c.fill();
           c.fillStyle = "#FFF8F0";
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText(sk.count + "d", 571, 48);
+          c.fillText(sk.count + "d", streakPill.x + 44, streakPill.y + 15);
           c.restore();
         }
 
@@ -7554,13 +7587,13 @@
           c.save();
           const done = store.dailyTasks.completed.length;
           const total = store.dailyTasks.tasks.length;
-          rr(c, 600, 34, 60, 20, 10);
+          rr(c, dailyPill.x, dailyPill.y, dailyPill.w, dailyPill.h, 11);
           c.fillStyle = done >= total ? "rgba(100,190,100,0.75)" : "rgba(180,160,140,0.65)";
           c.fill();
           c.fillStyle = "#FFF8F0";
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText(done + "/" + total + (done >= total ? " \u2605" : ""), 630, 48);
+          c.fillText(done + "/" + total + (done >= total ? " \u2605" : ""), dailyPill.x + dailyPill.w / 2, dailyPill.y + 15);
           c.restore();
         }
 
@@ -7571,17 +7604,17 @@
           if (wcNearDone) {
             c.globalAlpha = 0.5 + Math.sin(game.time * 4) * 0.3;
             c.fillStyle = "rgba(160,130,200,0.3)";
-            rr(c, 660, 30, 68, 28, 14);
+            rr(c, weeklyPill.x - 4, weeklyPill.y - 4, weeklyPill.w + 8, weeklyPill.h + 8, 14);
             c.fill();
             c.globalAlpha = 1;
           }
-          rr(c, 664, 34, 60, 20, 10);
+          rr(c, weeklyPill.x, weeklyPill.y, weeklyPill.w, weeklyPill.h, 11);
           c.fillStyle = "rgba(160,130,200,0.65)";
           c.fill();
           c.fillStyle = "#FFF8F0";
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText(store.weeklyChallenge.progress + "/" + store.weeklyChallenge.target, 694, 48);
+          c.fillText(store.weeklyChallenge.progress + "/" + store.weeklyChallenge.target, weeklyPill.x + weeklyPill.w / 2, weeklyPill.y + 15);
           c.restore();
         }
 
@@ -7890,18 +7923,19 @@
         c.restore();
         c.restore();
 
-        /* next goal indicator */
+        /* next goal indicator (Phase B.1: anchored via placePill("bl", 0, w)) */
         if (!this.decorOpen && !this.wardrobeOpen && !this.scrapbookOpen && !this.menuOpen) {
           c.save();
           var goalText = this.getNextGoal();
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           var goalW = Math.min(c.measureText(goalText).width + 20, 300);
+          var goalPill = placePill("bl", 0, goalW, 22);
           c.fillStyle = "rgba(255,248,240,0.55)";
-          rr(c, SAFE, 510, goalW, 22, 8);
+          rr(c, goalPill.x, goalPill.y, goalPill.w, goalPill.h, 8);
           c.fill();
           c.fillStyle = "rgba(122,78,54,0.6)";
           c.textAlign = "left";
-          c.fillText(goalText, SAFE + 10, 526);
+          c.fillText(goalText, goalPill.x + 10, goalPill.y + 16);
           c.restore();
         }
 

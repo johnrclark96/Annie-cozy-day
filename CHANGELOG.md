@@ -2,6 +2,9 @@
 
 ## 2026-05-08
 
+### Phase B · Hub HUD + Decor migration
+- B.1: Refined `HUD_GRID` (row2=34, bottomY=510) and added `placePillStack` helper. Migrated 5 hub HUD pills (streak, dailyTasks, weekly, coin, star) to a single right-anchored stack on slot 1 (y=34) — fixes F1 audit finding (HUD has no grid). Goal pill migrated to `placePill("bl", 0, w)`. Folded in N5: coin popup y now relative to coin pill y. Pill order right→left: star, coin, weekly, dailyTasks, streak. Visual changes: coin/star shift up 25px and right ~150px to right-anchor; streak/dailyTasks/weekly shift right ~25px and h grows from 20 to 22; vertical gap to Luna pet pill is 6px; horizontal gap to chip column is 6px. Backyard scene's coin pill not migrated in this chunk (out of scope).
+
 ### Phase A · Foundation helpers
 - A.1: Added `HUD_GRID` constants (row1, row2, pillH, pillGap, primaryH, chipCol, bottomY) and `placePill(side, slot, w, h?)` helper as single source of truth for HUD pill anchor points across hub, backyard, and minigames
 - A.2: Migrated `BaseMinigameScene.drawTopHud`, `CuddlePileScene.drawTopHud`, `WildWandScene.drawTopHud` to `placePill`. Score pill now clears the right-edge chip column (sound/camera/scrapbook) with 6px gutter — fixes F6 chip-collision audit finding. Time/Score pills sit at y=16 (was y=12) for grid alignment.
