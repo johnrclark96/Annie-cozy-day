@@ -1734,9 +1734,11 @@
     }
 
     /* Phase B.3 — standard hangout/backyard panel frame. All current panels
-       (menu, decor, wardrobe, scrapbook, backyard decor) share this rect.
+       (decor, wardrobe, scrapbook, backyard decor) share this rect.
        Future divergent panels can register their own frame in panelClose. */
     const PANEL_STD = { x: 100, y: 70, w: 600, h: 480 };
+    /* Phase D.1 — Game Menu uses a wider/taller frame to fit 6 cards × 720 wide. */
+    const MENU_PANEL = { x: 40, y: 60, w: 720, h: 540 };
 
     /* drawLockChip (Phase B.5) — small chip top-right of a card rect indicating
        why a card is gated. kind ∈ {"stars","coins","achievement","season","streak"}.
@@ -5127,8 +5129,7 @@
               if (pointInRect(x, y, cr)) { this.menuHover = this.menuScroll + vi; break; }
             }
           }
-          const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) this.menuHover = "close";
+          if (pointInRect(x, y, panelClose(MENU_PANEL))) this.menuHover = "close";
           return;
         }
         if (this.decorOpen) {
@@ -5223,7 +5224,7 @@
           }
           if (this.menuScroll > 0 && pointInRect(x, y, { x: W / 2 - 50, y: 106, w: 100, h: 20 })) return true;
           if (this.menuScroll + 6 < this.gameCards.length && pointInRect(x, y, { x: W / 2 - 50, y: 126 + 6 * 72 + 2, w: 100, h: 20 })) return true;
-          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
+          return pointInRect(x, y, panelClose(MENU_PANEL));
         }
         if (this.decorOpen) {
           const pageItems = this.getDecorPageItems();
@@ -5359,8 +5360,7 @@
         /* daily calendar overlay — click to claim */
         if (this._tryClaimDailyGift()) return;
         if (this.menuOpen) {
-          const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.menuOpen = false; return; }
+          if (pointInRect(x, y, panelClose(MENU_PANEL))) { audio.menu(); this.menuOpen = false; return; }
           if (this.menuHover === "scrollUp") { this.menuScroll = Math.max(0, this.menuScroll - 1); return; }
           if (this.menuHover === "scrollDown") { this.menuScroll = Math.min(this.gameCards.length - 6, this.menuScroll + 1); return; }
           for (let vi = 0; vi < Math.min(6, this.gameCards.length - this.menuScroll); vi++) {
@@ -8208,40 +8208,16 @@
           c.save();
           c.globalAlpha = this.menuFade;
 
-          /* dim background */
-          c.fillStyle = "rgba(40,28,18,0.55)";
-          c.fillRect(0, 0, W, H);
-
-          /* menu panel */
-          rr(c, 40, 60, 720, 540, 28);
-          c.fillStyle = "rgba(255,248,240,0.97)";
-          c.fill();
-          c.strokeStyle = "rgba(146,104,72,0.2)";
-          c.lineWidth = 3;
-          c.stroke();
-
-          /* title */
-          c.fillStyle = "#7A4E36";
-          c.textAlign = "center";
-          c.font = '30px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Minigames", W / 2, 110);
+          /* Phase D.1 \u2014 unified frame + close (replaces ~33 LOC of hand-coded
+             dim/panel/title/close). drawPanelFrame title at y+40 = 100 (was 110,
+             30px \u2192 28px to match Decor); subtitle re-rendered below. */
+          drawPanelFrame(c, { x: MENU_PANEL.x, y: MENU_PANEL.y, w: MENU_PANEL.w, h: MENU_PANEL.h, title: "Minigames" });
           var totalStars = totalStarsEarned();
-          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillStyle = "rgba(92,61,46,0.5)";
-          c.fillText("\u2605 " + totalStars + " / 36 stars earned", W / 2, 128);
-
-          /* close button */
-          const closeHover = this.menuHover === "close";
-          const cBx = W / 2 + 218, cBy = 102;
-          if (closeHover) drawGlowCircle(c, cBx, cBy, 24, "rgba(180,80,60,ALPHA)", 0.2);
-          c.fillStyle = closeHover ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
-          c.beginPath();
-          c.arc(cBx, cBy, closeHover ? 18 : 16, 0, Math.PI * 2);
-          c.fill();
-          c.strokeStyle = "#FFF8F0";
-          c.lineWidth = closeHover ? 3 : 2.5;
-          c.beginPath(); c.moveTo(cBx - 6, cBy - 6); c.lineTo(cBx + 6, cBy + 6); c.stroke();
-          c.beginPath(); c.moveTo(cBx + 6, cBy - 6); c.lineTo(cBx - 6, cBy + 6); c.stroke();
+          c.textAlign = "center";
+          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText("\u2605 " + totalStars + " / 36 stars earned", W / 2, MENU_PANEL.y + 60);
+          drawPanelClose(c, MENU_PANEL, this.menuHover === "close");
 
           /* scroll arrows */
           if (this.menuScroll > 0) {

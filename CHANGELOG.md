@@ -2,6 +2,9 @@
 
 ## 2026-05-08
 
+### Phase D · Remaining three panels
+- D.1: Migrated Game Menu render to `drawPanelFrame` + `drawPanelClose`. New `MENU_PANEL = { x: 40, y: 60, w: 720, h: 540 }` const sits next to `PANEL_STD` because the menu's 6-card layout needs the wider 720px frame. Replaces ~33 LOC of hand-coded scrim/panel/title/close. Visual changes: title font 30px → 28px, title y=110 → y=100 (matches Decor frame); close button moves from (618, 102) center to (738, 82) center — top-right corner of the panel — matching every other migrated panel. Subtitle "★ X / 36 stars earned" re-rendered at y=120 (was y=128). Click handler at the menu-open guard (~line 5363) and hover handler (~line 5131) now hit-test via `panelClose(MENU_PANEL)`.
+
 ### Phase C · Save-touching bug fixes
 - C.B2: Bond migration (~line 560) now triggers on missing `luna` as well as missing `obi`. Previously a partial save with only `obi` would crash on first `awardBondXP("luna", ...)` because `store.bond.luna` was undefined. The migration writes the full default shape for both pets if either is missing. Pure migration fix; no impact on healthy saves.
 - C.NEW.2: Backyard Esc cascade now closes the `byDecor` panel before exiting to hangout. Previously Esc on backyard with the decor panel open would skip the close step and transition straight to hangout, leaving the panel state dirty. The exit-to-hangout path is unchanged (already correct — hangout.enter sets lastVisitTimestamp, so the audit's N2 worry about lastVisitTimestamp going unset is not a real issue here). Verified: Esc on bare backyard → hangout; Esc with byDecor open → close panel; Esc again → hangout.
