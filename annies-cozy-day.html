@@ -5250,7 +5250,7 @@
           }
           if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 })) return true;
           if (pointInRect(x, y, { x: 460, y: 530, w: 40, h: 30 })) return true;
-          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 });
+          return pointInRect(x, y, panelClose("decor"));
         }
         if (this.wardrobeOpen) {
           var tabItems = this.getWardrobeTabItems();
@@ -9317,8 +9317,7 @@
       onClick(x, y) {
         /* backyard decor panel */
         if (this.byDecorOpen) {
-          var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.byDecorOpen = false; return; }
+          if (pointInRect(x, y, panelClose("decor"))) { audio.menu(); this.byDecorOpen = false; return; }
           if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 }) && this.byDecorPage > 0) { this.byDecorPage--; audio.menu(); return; }
           if (pointInRect(x, y, { x: 460, y: 530, w: 40, h: 30 }) && this.byDecorPage < this.byDecorPageCount() - 1) { this.byDecorPage++; audio.menu(); return; }
           var pageItems = this.getByDecorPageItems();
@@ -9556,8 +9555,7 @@
         this.tooltip = null;
         if (this.byDecorOpen) {
           this.byDecorHover = null;
-          var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) this.byDecorHover = "close";
+          if (pointInRect(x, y, panelClose("decor"))) this.byDecorHover = "close";
           var bPageItems = this.getByDecorPageItems();
           for (var bi = 0; bi < bPageItems.length; bi++) {
             if (pointInRect(x, y, this.getByDecorItemRect(bi))) { this.byDecorHover = bi; break; }
@@ -9832,30 +9830,12 @@
 
         if (this.tooltip && this.tooltipAlpha > 0.02) drawTooltip(c, this.tooltip.x, this.tooltip.y, this.tooltip.title, this.tooltip.body, this.tooltipAlpha);
 
-        /* backyard decor panel overlay */
+        /* backyard decor panel overlay (Phase D.NEW — drawPanelFrame + Close) */
         if (this.byDecorFade > 0.01) {
           c.save();
           c.globalAlpha = this.byDecorFade;
-          c.fillStyle = "rgba(40,28,18,0.55)";
-          c.fillRect(0, 0, W, H);
-          rr(c, 100, 70, 600, 480, 28);
-          c.fillStyle = "rgba(255,248,240,0.97)";
-          c.fill();
-          c.strokeStyle = "rgba(146,104,72,0.2)"; c.lineWidth = 3; c.stroke();
-          c.fillStyle = "#7A4E36"; c.textAlign = "center";
-          c.font = '26px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Backyard Decor", W / 2, 106);
-          c.fillStyle = "rgba(92,61,46,0.5)";
-          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Coins: " + store.coins, W / 2, 124);
-          /* close button */
-          var bchov = this.byDecorHover === "close";
-          var bcx = W / 2 + 218, bcy = 102;
-          c.fillStyle = bchov ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
-          c.beginPath(); c.arc(bcx, bcy, bchov ? 18 : 16, 0, Math.PI * 2); c.fill();
-          c.strokeStyle = "#FFF8F0"; c.lineWidth = bchov ? 3 : 2.5;
-          c.beginPath(); c.moveTo(bcx - 6, bcy - 6); c.lineTo(bcx + 6, bcy + 6); c.stroke();
-          c.beginPath(); c.moveTo(bcx + 6, bcy - 6); c.lineTo(bcx - 6, bcy + 6); c.stroke();
+          drawPanelFrame(c, { x: PANEL_STD.x, y: PANEL_STD.y, w: PANEL_STD.w, h: PANEL_STD.h, title: "Backyard Decor" });
+          drawPanelClose(c, PANEL_STD, this.byDecorHover === "close");
           /* items */
           var bPageItems = this.getByDecorPageItems();
           for (var bdi = 0; bdi < bPageItems.length; bdi++) {
