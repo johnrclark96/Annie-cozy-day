@@ -76,3 +76,6 @@ Before final commit of any session:
 - Decoration prominence pass (V6) covers 4 high-impact items; the remaining ~26 decor items still flat-on-background and could use shadows in a follow-up
 - Settings panel (V9) ships volume + reduced-motion + reset tutorial. "Reset save" was deferred from V9 as too heavy for one commit
 - First-visit tutorial overlay (V8) ships the welcome modal; the four numbered hint arrows pointing at coin pill / mode buttons / pet portraits / food bowl were deferred
+- Annie sit-on-couch pose still reads as profile/floating — her sprite anchor at (404, 336) puts her butt above the seat cushion. Needs y-adjustment + facing change (deferred from V11)
+- Floor lamp at (212, 138-292) is too small and the base sits on the wainscoting (y=292) rather than the floor (y=336). Structural rebuild deferred from V11 (V11 only refined shadows)
+- Bookshelf at (566-640, 56-242) is wall-mounted but reads as floating; V11 strengthened the wall shadow but a structural fix (e.g. ground-stand model with floor contact) is deferred

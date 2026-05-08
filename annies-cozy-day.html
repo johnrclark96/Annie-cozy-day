@@ -3459,34 +3459,37 @@
       lx.fillRect(0, 336, W, 8);
       lx.fillStyle = "#C8A882";
       lx.fillRect(0, 336, W, 3);
-      /* V1 — ground/contact shadows (palette-aware) */
+      /* V1 — ground/contact shadows (palette-aware), refined V.11.
+         Two-pass per furniture piece: a wide soft outer ellipse + a tighter
+         darker contact ellipse. Reads as a shadow, not a flat blob. The
+         original V1 rug-edge ring was dropped — at 4px stroke it read as
+         an ugly outline, not a contact shadow. */
       var __vMoon = (store.decor.roomPreset || 0) === 3;
-      var __vSf = __vMoon ? "rgba(40,50,80,0.18)" : "rgba(60,40,25,0.20)";
-      var __vUf = __vMoon ? "rgba(20,30,60,0.10)" : "rgba(0,0,0,0.10)";
-      lx.fillStyle = __vSf;
-      /* couch base ground shadow (couch x:264-540, base y:380) */
-      lx.beginPath();
-      lx.ellipse(400, 384, 142, 8, 0, 0, Math.PI * 2);
-      lx.fill();
-      /* side table base shadow (x:226-274, base y:376) */
-      lx.beginPath();
-      lx.ellipse(250, 380, 30, 4, 0, 0, Math.PI * 2);
-      lx.fill();
-      /* cat tower base shadow (x:674-722, base y:480) */
-      lx.beginPath();
-      lx.ellipse(698, 484, 32, 6, 0, 0, Math.PI * 2);
-      lx.fill();
-      /* rug edge contact shadow (just outside rug ellipse at 400,470 r=220x55) */
-      lx.strokeStyle = __vSf;
-      lx.lineWidth = 4;
-      lx.beginPath();
-      lx.ellipse(400, 472, 224, 58, 0, 0, Math.PI * 2);
-      lx.stroke();
-      /* bookshelf wall shadow (under hung shelf base at y:242) */
+      var __vSoft = __vMoon ? "rgba(40,50,80,0.10)" : "rgba(60,40,25,0.12)";
+      var __vDark = __vMoon ? "rgba(20,30,60,0.20)" : "rgba(40,25,15,0.22)";
+      var __vUf = __vMoon ? "rgba(20,30,60,0.08)" : "rgba(0,0,0,0.08)";
+      /* couch ground shadow */
+      lx.fillStyle = __vSoft;
+      lx.beginPath(); lx.ellipse(400, 386, 150, 14, 0, 0, Math.PI * 2); lx.fill();
+      lx.fillStyle = __vDark;
+      lx.beginPath(); lx.ellipse(400, 384, 130, 6, 0, 0, Math.PI * 2); lx.fill();
+      /* side table ground shadow */
+      lx.fillStyle = __vSoft;
+      lx.beginPath(); lx.ellipse(250, 381, 36, 7, 0, 0, Math.PI * 2); lx.fill();
+      lx.fillStyle = __vDark;
+      lx.beginPath(); lx.ellipse(250, 380, 26, 3, 0, 0, Math.PI * 2); lx.fill();
+      /* cat tower ground shadow */
+      lx.fillStyle = __vSoft;
+      lx.beginPath(); lx.ellipse(698, 486, 40, 10, 0, 0, Math.PI * 2); lx.fill();
+      lx.fillStyle = __vDark;
+      lx.beginPath(); lx.ellipse(698, 484, 28, 5, 0, 0, Math.PI * 2); lx.fill();
+      /* bookshelf wall shadow (slightly stronger so the hung shelf reads
+         as having weight; leaves structural floating fix for a later pass) */
+      lx.fillStyle = __vMoon ? "rgba(20,30,60,0.18)" : "rgba(60,40,25,0.18)";
+      lx.fillRect(566, 242, 74, 6);
+      /* window sill wall shadow */
       lx.fillStyle = __vUf;
-      lx.fillRect(568, 244, 70, 3);
-      /* window sill wall shadow (under sill at y:216) */
-      lx.fillRect(56, 218, 140, 3);
+      lx.fillRect(56, 217, 140, 4);
       /* window */
       lx.fillStyle = "#B8D8F0";
       rr(lx, 62, 48, 128, 160, 8);
@@ -8207,15 +8210,18 @@
           drawButton(c, btn, btn.label, this.hoverKey === btn.key, "#C7A37B", "#fff", active);
         }
 
-        /* hub HUD pill row (Phase V.3) \u2014 single right-anchored row at slot 1
-           with size hierarchy: coin (80, primary) > star (60, secondary) >
-           streak/daily/weekly (smaller, conditional). Hidden pills do NOT
-           reserve space \u2014 row collapses leftward when conditions clear. */
+        /* hub HUD pill row (Phase V.3, relocated V.11) \u2014 single right-anchored
+           row at the BOTTOM (br slot 0, y=510, h=22) so it mirrors the goal
+           pill on the left and stops colliding with the mode-button row at
+           y=16-56. Size hierarchy unchanged: coin (80, primary) > star (60,
+           secondary) > streak/daily/weekly (smaller, conditional). Hidden
+           pills do NOT reserve space \u2014 row collapses leftward when conditions
+           clear. */
         const __hudItems = [{ key: "coin", w: 80 }, { key: "star", w: 60 }];
         if (store.careStreak.count > 0) __hudItems.push({ key: "streak", w: 50 });
         if (store.dailyTasks.tasks.length > 0) __hudItems.push({ key: "daily", w: 44 });
         if (store.weeklyChallenge.challengeId && !store.weeklyChallenge.completed) __hudItems.push({ key: "weekly", w: 50 });
-        const __hudStack = placePillStack("tr", 1, __hudItems.map(p => p.w));
+        const __hudStack = placePillStack("br", 0, __hudItems.map(p => p.w), 22);
         const __rectMap = {};
         __hudItems.forEach((p, i) => { __rectMap[p.key] = __hudStack[i]; });
         const coinPill = __rectMap.coin;
