@@ -4603,6 +4603,19 @@
         c.textAlign = "center";
         c.fillText(TITLE_SUBTITLES[this.subtitleIndex], W / 2, 574);
         c.restore();
+
+        /* F.4 — care-streak surfacing on the title screen. Only renders
+           when streak >= 1; warm orange when streak >= 7, gold when >= 30. */
+        var _tsStreak = (store.careStreak && store.careStreak.count) || 0;
+        if (_tsStreak >= 1) {
+          c.save();
+          c.textAlign = "center";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          var _tsColor = _tsStreak >= 30 ? "#E8A020" : _tsStreak >= 7 ? "#D17B3A" : "rgba(160,120,90,0.85)";
+          c.fillStyle = _tsColor;
+          c.fillText("🔥 " + _tsStreak + "-day care streak", W / 2, 480);
+          c.restore();
+        }
       }
     }
 
