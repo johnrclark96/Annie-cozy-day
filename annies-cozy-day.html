@@ -8234,7 +8234,12 @@
           c.fillStyle = "rgba(92,61,46,0.5)";
           c.textAlign = "center";
           c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("\u2605 " + totalStars + " / 36 stars earned", W / 2, MENU_PANEL.y + 60);
+          if (totalStars === 0) {
+            /* D.6 \u2014 empty state: friendlier than "\u2605 0 / 36 earned" */
+            c.fillText("Pick a card below to start earning stars!", W / 2, MENU_PANEL.y + 60);
+          } else {
+            c.fillText("\u2605 " + totalStars + " / 36 stars earned", W / 2, MENU_PANEL.y + 60);
+          }
           drawPanelClose(c, MENU_PANEL, this.menuHover === "close");
 
           /* scroll arrows */
@@ -8494,6 +8499,11 @@
           var tabItems = this.getWardrobeTabItems();
           var pet = this.wardrobeTab;
           var equippedSlots = store.wardrobe.equipped[pet] || {};
+          /* D.6 — empty state when no accessories owned for active character */
+          var _wOwnedAny = false;
+          for (var _woi = 0; _woi < tabItems.length; _woi++) {
+            if (store.wardrobe.owned.indexOf(tabItems[_woi].key) >= 0) { _wOwnedAny = true; break; }
+          }
           /* Phase D.4 — hero portrait on the left half. Preview the hovered
              item by overlaying it onto the active equipped state. */
           var previewEquipped = null;
@@ -8525,6 +8535,21 @@
             drawAccessoryOverlay(c, "annie", _heroCx, _heroBase, 1.7, "stand", 1, previewEquipped);
           }
           c.restore();
+          if (!_wOwnedAny) {
+            /* D.6 — replace items column with a centered empty-state hint
+               when 0 accessories owned for this character. Mirrors the
+               Photos/Milestones tab convention. */
+            c.save();
+            c.fillStyle = "rgba(92,61,46,0.55)";
+            c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.textAlign = "center";
+            c.fillText("No items yet for " + (pet === "obi" ? "Obi" : pet === "luna" ? "Luna" : "Annie") + ".", 540, 340);
+            c.fillStyle = "rgba(92,61,46,0.4)";
+            c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText("Earn coins from minigames or unlock", 540, 366);
+            c.fillText("via care streaks and stars to shop here.", 540, 382);
+            c.restore();
+          } else {
           c.save();
           c.beginPath();
           c.rect(340, 180, 400, 380);
@@ -8601,6 +8626,7 @@
               c.fillText("\u25BC", 540, 575);
             }
           }
+          } /* end else (D.6 empty state branch) */
           c.restore();
         }
 
