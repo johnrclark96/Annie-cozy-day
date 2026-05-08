@@ -2385,7 +2385,7 @@
       else if (pose === "sleeping") frame = frames.laugh;
       else if (pose === "happy") frame = frames.cheer;
       else if ((s.blink && pose !== "upper" && pose !== "sit") || (s.armRaise || 0) > 0.7) frame = frames.cheer;
-      const bob = -(s.breath || 0) * 2.4 + (pose === "walk" || pose === "walkFront" ? Math.sin(game.time * 8) * 2 : 0);
+      const bob = -(s.breath || 0) * 4.5 + (pose === "walk" || pose === "walkFront" ? Math.sin(game.time * 8) * 2 : 0);
       const rotation = (s.headTilt || 0) * 0.08 + (s.hairSway || 0) * 0.02;
       if (pose === "upper") {
         drawUpperFrame(c, frame, x, y + 4, scale, {
@@ -2402,7 +2402,7 @@
         flip: s.facing || 1,
         rotation,
         bob,
-        stretchY: 1 + (s.breath || 0) * 0.015,
+        stretchY: 1 + (s.breath || 0) * 0.03,
         glow: s.glow
       });
       if (pose === "sleeping") drawZzz(c, x + 34, y - 150 * scale, 0.9 * scale);
@@ -2433,7 +2433,7 @@
         flip: s.facing || 1,
         bob: -(s.bounce || 0) * 20,
         rotation: (expression === "sad" ? -0.03 * (s.facing || 1) : 0) + (pose === "shake" ? Math.sin(game.time * 24) * 0.06 : 0),
-        stretchY: 1 + (s.bounce || 0) * 0.04,
+        stretchY: 1 + (s.bounce || 0) * 0.08,
         glow: s.glow
       });
       if (pose === "sleeping") drawZzz(c, x + 30, y - 96 * scale, 0.85 * scale);
@@ -2467,7 +2467,7 @@
         baseScale: SPRITE_BASE_SCALE.luna,
         flip: (pose === "topdown" ? (game.mouse.x >= x ? 1 : -1) : (s.facing || 1)),
         bob: -Math.abs(s.wiggle || 0) * 2 - (s.pawBat || 0) * 4 + (pose === "bellyUp" ? Math.sin(game.time * 2) * 2 : 0),
-        rotation: topdownRot + (s.earTwitch || 0) * 0.04 + bellyRock,
+        rotation: topdownRot + (s.earTwitch || 0) * 0.09 + bellyRock,
         stretchX: 1 + (s.pounceStretch || 0) * 0.12,
         stretchY: 1 - (s.pounceStretch || 0) * 0.06,
         glow: s.glow
@@ -5172,11 +5172,11 @@
           else if (this.obi.sleepy) pose = "sleeping";
           else if (this.obi.sniffing) pose = "sniff";
           else if (this.toy && this.toy.pet === "obi") pose = "run";
-          /* idle breathing bob */
-          const obiBreathe = pose === "sit" ? Math.sin(game.time * 2.2) * 0.012 : 0;
+          /* idle breathing bob (V4 — amplified) */
+          const obiBreathe = pose === "sit" ? Math.sin(game.time * 2.2) * 0.022 : 0;
           /* tail wags continuously with varying speed based on mood */
           const tailSpeed = this.obi.happyTimer > 0.1 ? 10 : (this.obi.joy > 65 ? 7 : this.obi.joy > 40 ? 5 : 3);
-          const tailAmp = this.obi.sleepy ? 0.2 : (this.obi.joy > 65 ? 1.0 : 0.6);
+          const tailAmp = this.obi.sleepy ? 0.2 : (this.obi.joy > 65 ? 1.4 : 0.85);
           /* occasional head tilt fidget */
           const obiHeadBob = pose === "sit" ? Math.sin(game.time * 0.7) * 0.015 : 0;
           return {
@@ -5190,7 +5190,7 @@
         }
         /* Luna idle micro-animations */
         const lunaPose = this.luna.eating ? "eat" : this.luna.drinking ? "drink" : this.luna.stretching ? "stretch" : this.luna.bellyUp ? "bellyUp" : this.luna.grooming ? "groom" : this.luna.perch !== "floor" ? "lounge" : "sit";
-        const lunaBreathe = (lunaPose === "sit" || lunaPose === "lounge") ? Math.sin(game.time * 1.8 + 0.5) * 0.01 : 0;
+        const lunaBreathe = (lunaPose === "sit" || lunaPose === "lounge") ? Math.sin(game.time * 1.8 + 0.5) * 0.022 : 0;
         /* tail sways with more organic motion (two overlapping sine waves) */
         const lunaTail = Math.sin(game.time * 1.7 + 1.2) * 0.7 + Math.sin(game.time * 2.9 + 0.4) * 0.3;
         /* periodic ear flick */
@@ -7997,33 +7997,44 @@
           drawButton(c, btn, btn.label, this.hoverKey === btn.key, "#C7A37B", "#fff", active);
         }
 
-        /* hub HUD pill row (Phase B.1) \u2014 five pills share slot 1 (y=HUD_GRID.row2=34),
-           right-anchored stack from chipCol-6 leftward. Order from right: star, coin,
-           weekly, dailyTasks, streak. Hidden pills still reserve their stack slots so
-           layout doesn't reflow when conditions toggle. */
-        const hudStack = placePillStack("tr", 1, [68, 72, 60, 60, 68]);
-        const starPill = hudStack[0];
-        const coinPill = hudStack[1];
-        const weeklyPill = hudStack[2];
-        const dailyPill = hudStack[3];
-        const streakPill = hudStack[4];
-        this.hubHudRects = { star: starPill, coin: coinPill, weekly: weeklyPill, daily: dailyPill, streak: streakPill };
+        /* hub HUD pill row (Phase V.3) \u2014 single right-anchored row at slot 1
+           with size hierarchy: coin (80, primary) > star (60, secondary) >
+           streak/daily/weekly (smaller, conditional). Hidden pills do NOT
+           reserve space \u2014 row collapses leftward when conditions clear. */
+        const __hudItems = [{ key: "coin", w: 80 }, { key: "star", w: 60 }];
+        if (store.careStreak.count > 0) __hudItems.push({ key: "streak", w: 50 });
+        if (store.dailyTasks.tasks.length > 0) __hudItems.push({ key: "daily", w: 44 });
+        if (store.weeklyChallenge.challengeId && !store.weeklyChallenge.completed) __hudItems.push({ key: "weekly", w: 50 });
+        const __hudStack = placePillStack("tr", 1, __hudItems.map(p => p.w));
+        const __rectMap = {};
+        __hudItems.forEach((p, i) => { __rectMap[p.key] = __hudStack[i]; });
+        const coinPill = __rectMap.coin;
+        const starPill = __rectMap.star;
+        this.hubHudRects = { coin: coinPill, star: starPill };
 
-        /* coin pill */
+        /* coin pill \u2014 primary, gold accent, right-edge chevron hint */
+        const __coinHov = pointInRect(game.mouse.x, game.mouse.y, coinPill);
         c.save();
-        c.fillStyle = "rgba(255,248,240,0.65)";
+        c.fillStyle = __coinHov ? "rgba(255,248,240,0.85)" : "rgba(255,248,240,0.7)";
         rr(c, coinPill.x, coinPill.y, coinPill.w, coinPill.h, 11);
         c.fill();
+        c.strokeStyle = "rgba(212,164,76,0.45)";
+        c.lineWidth = 1.5;
+        c.stroke();
         c.fillStyle = COLORS.gold;
         c.beginPath(); c.arc(coinPill.x + 14, coinPill.y + coinPill.h / 2, 7, 0, Math.PI * 2); c.fill();
         c.fillStyle = "#FFF4C0";
         c.beginPath(); c.arc(coinPill.x + 12, coinPill.y + coinPill.h / 2 - 2, 3, 0, Math.PI * 2); c.fill();
         c.fillStyle = COLORS.gold;
-        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "center";
-        c.fillText(store.coins, coinPill.x + 51, coinPill.y + 16);
+        c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "left";
+        c.fillText(store.coins, coinPill.x + 24, coinPill.y + 16);
+        c.fillStyle = "rgba(122,78,54,0.55)";
+        c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "right";
+        c.fillText("\u25b8", coinPill.x + coinPill.w - 6, coinPill.y + 16);
         c.restore();
-        /* coin popup (N5: y now relative to coin pill y, not raw 52) */
+        /* coin popup (anchored to coin pill center) */
         if (this.coinPopup) {
           c.save();
           var cpAlpha = clamp(this.coinPopup.timer / 0.4, 0, 1);
@@ -8031,22 +8042,28 @@
           c.fillStyle = COLORS.gold;
           c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText("+" + this.coinPopup.amount, coinPill.x + 51, coinPill.y - 7 - (1 - cpAlpha) * 12);
+          c.fillText("+" + this.coinPopup.amount, coinPill.x + coinPill.w / 2, coinPill.y - 7 - (1 - cpAlpha) * 12);
           c.restore();
         }
-        /* star counter */
+
+        /* star pill \u2014 secondary, lower contrast + chevron hint */
+        const __starHov = pointInRect(game.mouse.x, game.mouse.y, starPill);
         c.save();
-        c.fillStyle = "rgba(255,248,240,0.65)";
+        c.fillStyle = __starHov ? "rgba(255,248,240,0.75)" : "rgba(255,248,240,0.5)";
         rr(c, starPill.x, starPill.y, starPill.w, starPill.h, 11);
         c.fill();
         c.fillStyle = COLORS.gold;
-        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.textAlign = "center";
-        c.fillText("\u2605 " + totalStarsEarned() + "/33", starPill.x + starPill.w / 2, starPill.y + 16);
+        c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.textAlign = "left";
+        c.fillText("\u2605 " + totalStarsEarned() + "/33", starPill.x + 6, starPill.y + 15);
+        c.fillStyle = "rgba(122,78,54,0.5)";
+        c.textAlign = "right";
+        c.fillText("\u25b8", starPill.x + starPill.w - 5, starPill.y + 15);
         c.restore();
 
-        /* care streak pill */
-        if (store.careStreak.count > 0) {
+        /* care streak pill (conditional) */
+        if (__rectMap.streak) {
+          const streakPill = __rectMap.streak;
           c.save();
           const sk = store.careStreak;
           const streakColor = sk.count >= 7 ? "rgba(255,215,0,0.75)" : sk.count >= 3 ? "rgba(230,140,50,0.75)" : "rgba(180,160,140,0.65)";
@@ -8054,18 +8071,19 @@
           c.fillStyle = streakColor;
           c.fill();
           c.fillStyle = "#FF6B35";
-          c.beginPath(); c.arc(streakPill.x + 14, streakPill.y + streakPill.h / 2, 4, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(streakPill.x + 11, streakPill.y + streakPill.h / 2, 4, 0, Math.PI * 2); c.fill();
           c.fillStyle = "#FFD700";
-          c.beginPath(); c.arc(streakPill.x + 14, streakPill.y + streakPill.h / 2 - 2, 2.5, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(streakPill.x + 11, streakPill.y + streakPill.h / 2 - 2, 2.5, 0, Math.PI * 2); c.fill();
           c.fillStyle = "#FFF8F0";
           c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.fillText(sk.count + "d", streakPill.x + 44, streakPill.y + 15);
+          c.fillText(sk.count + "d", streakPill.x + 32, streakPill.y + 15);
           c.restore();
         }
 
-        /* daily tasks counter */
-        if (store.dailyTasks.tasks.length > 0) {
+        /* daily tasks pill (conditional) */
+        if (__rectMap.daily) {
+          const dailyPill = __rectMap.daily;
           c.save();
           const done = store.dailyTasks.completed.length;
           const total = store.dailyTasks.tasks.length;
@@ -8079,8 +8097,9 @@
           c.restore();
         }
 
-        /* weekly challenge pill */
-        if (store.weeklyChallenge.challengeId && !store.weeklyChallenge.completed) {
+        /* weekly challenge pill (conditional) */
+        if (__rectMap.weekly) {
+          const weeklyPill = __rectMap.weekly;
           c.save();
           var wcNearDone = store.weeklyChallenge.progress >= store.weeklyChallenge.target * 0.8;
           if (wcNearDone) {
@@ -14755,7 +14774,7 @@
     // ═══ 20-navigation.js ═══
     function blinkSignal(t, offset = 0.6) {
       const mod = (t + offset) % 4.2;
-      return mod < 0.14 || (mod > 2.4 && mod < 2.53);
+      return mod < 0.20 || (mod > 2.4 && mod < 2.62);
     }
     function earSignal(t) {
       const mod = t % 3.8;
