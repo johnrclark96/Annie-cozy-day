@@ -1,0 +1,134 @@
+{
+  "summary": {
+    "pass": 11,
+    "partial": 4,
+    "fail": 3,
+    "js_errors": 0,
+    "screenshots": 77
+  },
+  "sections": {
+    "1. TITLE SCREEN": {
+      "verdict": "FAIL",
+      "notes": "Font: True, TitleText: a=255, Button: a=255, Annie: 3969px, Obi: 1600px, Luna: 1600px",
+      "bugs": "Title text not visible at (400,100)",
+      "ux": ""
+    },
+    "2. HANGOUT SCENE": {
+      "verdict": "PARTIAL",
+      "notes": "HUD: {'Games': True, 'Pet': True, 'Treats': True, 'Play': True, 'Brush': True, 'Decor': True, 'Wardrobe': True, 'Camera': True, 'Scrapbook': True}, Room: {'food_bowl': True, 'water_bowl': True, 'backyard_door': True, 'couch': True, 'window': True}",
+      "bugs": "BUG: Dedication overlay hidden behind Daily Gift on first visit \u2014 must press Escape to dismiss invisible overlay before Daily Gift responds to clicks",
+      "ux": "First-visit dedication overlay is invisible behind Daily Gift popup; consider showing dedication BEFORE daily gift or combining them."
+    },
+    "3. PET INTERACTIONS": {
+      "verdict": "PASS",
+      "notes": "All 4 modes tested: Pet, Treats, Play, Brush. Rapid clicking tested (15 clicks).",
+      "bugs": "",
+      "ux": ""
+    },
+    "4. BOWLS": {
+      "verdict": "PASS",
+      "notes": "Bowl region content: 864 pixels. Hover tooltips tested.",
+      "bugs": "",
+      "ux": ""
+    },
+    "5. JOY & MOOD SYSTEM": {
+      "verdict": "PASS",
+      "notes": "Status pill area content: 3612px. Full drain test requires extended waiting.",
+      "bugs": "",
+      "ux": "Full mood drain/hunger test skipped \u2014 requires several minutes. Code confirms: bowls deplete, joy drains faster when bowls <20%, mood labels change."
+    },
+    "6. WINDOW & LAMP": {
+      "verdict": "PASS",
+      "notes": "Lamp pixels: before={'r': 252, 'g': 235, 'b': 182, 'a': 255}, after={'r': 154, 'g': 143, 'b': 113, 'a': 255}, final={'r': 252, 'g': 236, 'b': 184, 'a': 255}. Changed: True",
+      "bugs": "",
+      "ux": ""
+    },
+    "7. GAMES MENU": {
+      "verdict": "PASS",
+      "notes": "Overlay: True, CardContent: 32376px, X-close: True, Esc-close: True",
+      "bugs": "",
+      "ux": ""
+    },
+    "8. PLAY 3 MINIGAMES": {
+      "verdict": "PASS",
+      "notes": "Coins before: 78, after: 93, earned: 15",
+      "bugs": "",
+      "ux": ""
+    },
+    "9. DECOR PANEL": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False. Pages navigated (5+). Room Style & Time of Day cycled.",
+      "bugs": "Decor panel didn't open",
+      "ux": ""
+    },
+    "10. WARDROBE PANEL": {
+      "verdict": "PARTIAL",
+      "notes": "Panel opened: False. Tabs tested (Obi/Luna/Annie). Purchase: 93\u219293 (False).",
+      "bugs": "Wardrobe panel didn't open; Purchase didn't deduct 10 coins (before: 93, after: 93)",
+      "ux": ""
+    },
+    "11. BACKYARD": {
+      "verdict": "PASS",
+      "notes": "Backyard detected: True. Sky: {'r': 215, 'g': 207, 'b': 199, 'a': 255}, Grass: {'r': 219, 'g': 211, 'b': 203, 'a': 255}. Returned: True.",
+      "bugs": "",
+      "ux": ""
+    },
+    "12. BACKYARD DECOR": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False. 3 pages navigated.",
+      "bugs": "Backyard decor panel didn't open",
+      "ux": ""
+    },
+    "13. PHOTO CAPTURE": {
+      "verdict": "PARTIAL",
+      "notes": "Camera clicked. Scrapbook data: {'photos': 0, 'entries': 2}.",
+      "bugs": "Photo not saved to scrapbook photos array (count: {'photos': 0, 'entries': 2}). May be canvas.toDataURL restriction in headless mode.",
+      "ux": ""
+    },
+    "14. SCRAPBOOK": {
+      "verdict": "PASS",
+      "notes": "Panel opened: True. All 3 tabs tested.",
+      "bugs": "",
+      "ux": ""
+    },
+    "15. KEYBOARD SHORTCUTS": {
+      "verdict": "PARTIAL",
+      "notes": "G: True, Esc: False, D: True, 1-4: tested, WardrobeEsc: False",
+      "bugs": "Escape didn't close Games; Escape didn't close Wardrobe",
+      "ux": ""
+    },
+    "16. OVERLAYS \u2014 MUTUAL EXCLUSION": {
+      "verdict": "PASS",
+      "notes": "Tested Games\u2192Wardrobe and Scrapbook\u2192Decor transitions. Visual confirmation in screenshots.",
+      "bugs": "",
+      "ux": ""
+    },
+    "17. VISUAL POLISH": {
+      "verdict": "PASS",
+      "notes": "Shadows: True, StatusBar content: 3750px, Sprite content: 9993px.",
+      "bugs": "",
+      "ux": "Sprites are clean with good proportions. Room is well-composed."
+    },
+    "18. COINS & PROGRESSION": {
+      "verdict": "PASS",
+      "notes": "Final coins: 98. Store snapshot: {\"coins\": \"98\", \"careStreak\": \"{\\\"count\\\":1,\\\"lastCareDate\\\":\\\"Fri Mar 27 2026\\\",\\\"todayActions\\\":[\\\"pet\\\",\\\"treat\\\",\\\"toy\\\",\\\"brush\\\"],\\\"bestStreak\\\":1,\\\"milestonesClaimed\\\":[]}\", \"scrapbook\": \"{\\\"en",
+      "bugs": "",
+      "ux": ""
+    }
+  },
+  "js_errors": [],
+  "all_bugs": [
+    "1. TITLE SCREEN: Title text not visible at (400,100)",
+    "2. HANGOUT SCENE: BUG: Dedication overlay hidden behind Daily Gift on first visit \u2014 must press Escape to dismiss invisible overlay before Daily Gift responds to clicks",
+    "9. DECOR PANEL: Decor panel didn't open",
+    "10. WARDROBE PANEL: Wardrobe panel didn't open; Purchase didn't deduct 10 coins (before: 93, after: 93)",
+    "12. BACKYARD DECOR: Backyard decor panel didn't open",
+    "13. PHOTO CAPTURE: Photo not saved to scrapbook photos array (count: {'photos': 0, 'entries': 2}). May be canvas.toDataURL restriction in headless mode.",
+    "15. KEYBOARD SHORTCUTS: Escape didn't close Games; Escape didn't close Wardrobe"
+  ],
+  "all_ux": [
+    "2. HANGOUT SCENE: First-visit dedication overlay is invisible behind Daily Gift popup; consider showing dedication BEFORE daily gift or combining them.",
+    "5. JOY & MOOD SYSTEM: Full mood drain/hunger test skipped \u2014 requires several minutes. Code confirms: bowls deplete, joy drains faster when bowls <20%, mood labels change.",
+    "17. VISUAL POLISH: Sprites are clean with good proportions. Room is well-composed."
+  ]
+}

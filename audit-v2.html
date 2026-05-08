@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Annie's Cozy Day — Deep Visual Audit (v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(97.5% 0.006 75);
+    --paper: oklch(99.5% 0.004 75);
+    --ink: oklch(22% 0.02 50);
+    --ink-2: oklch(40% 0.015 50);
+    --muted: oklch(58% 0.012 55);
+    --line: oklch(90% 0.012 60);
+    --line-2: oklch(82% 0.015 60);
+    --warn: oklch(58% 0.16 32);
+    --warn-soft: oklch(94% 0.04 32);
+    --good: oklch(52% 0.12 165);
+    --good-soft: oklch(94% 0.03 165);
+    --love: oklch(60% 0.16 12);
+    --love-soft: oklch(96% 0.03 12);
+    --tag: oklch(40% 0.02 55);
+    --tag-bg: oklch(94% 0.01 60);
+    --honey: oklch(78% 0.10 80);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1180px; margin: 0 auto; padding: 64px 40px 120px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  h1 {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 500; font-size: 60px; line-height: 1.02;
+    letter-spacing: -0.018em; margin: 12px 0 18px;
+  }
+  h1 em { font-style: italic; color: var(--ink-2); font-weight: 400; }
+  .lede {
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 22px; line-height: 1.5;
+    color: var(--ink-2); max-width: 70ch; margin: 0;
+  }
+  h2 {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 500; font-size: 34px; line-height: 1.15;
+    letter-spacing: -0.01em; margin: 0 0 6px;
+  }
+  h3 {
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink); margin: 0 0 10px;
+  }
+  h4 { font-size: 16px; font-weight: 600; margin: 0 0 4px; color: var(--ink); }
+  p { margin: 0 0 12px; color: var(--ink-2); }
+  hr.rule { border: 0; border-top: 1px solid var(--line); margin: 56px 0; }
+
+  /* love note */
+  .love-note {
+    margin: 28px 0 0;
+    background: linear-gradient(180deg, var(--love-soft), var(--paper));
+    border: 1px solid oklch(85% 0.04 12);
+    border-radius: 14px;
+    padding: 22px 28px;
+  }
+  .love-note p { color: var(--ink); font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.55; max-width: 70ch; }
+  .love-note .sig { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 0.14em; color: var(--love); text-transform: uppercase; }
+
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 18px 28px;
+    margin: 28px 0 0; padding: 18px 22px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+  }
+  .meta div { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); }
+  .meta div b { display: block; color: var(--ink); font-weight: 500; font-size: 13px; margin-bottom: 2px; }
+
+  /* TOC */
+  .toc {
+    margin-top: 28px; display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 10px;
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px 22px;
+  }
+  .toc a {
+    display: flex; gap: 10px; align-items: baseline;
+    color: var(--ink); text-decoration: none; padding: 6px 0;
+    font-size: 13.5px;
+  }
+  .toc a:hover { color: var(--love); }
+  .toc a span { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); min-width: 28px; }
+
+  /* findings cards */
+  .findings { margin-top: 28px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .finding {
+    border: 1px solid var(--line); background: var(--paper);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .finding .num {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .finding h4 { font-size: 17px; margin-bottom: 6px; }
+  .finding p { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.55; }
+
+  /* per-screen */
+  .screen {
+    display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 36px; align-items: start; margin-top: 28px;
+  }
+  .shot-wrap {
+    position: relative; border: 1px solid var(--line-2);
+    border-radius: 10px; overflow: hidden;
+    background: oklch(94% 0.012 60); aspect-ratio: 920 / 540;
+  }
+  .shot-wrap img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .pin {
+    position: absolute; width: 24px; height: 24px;
+    margin: -12px 0 0 -12px; border-radius: 999px;
+    background: var(--warn); color: white;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 3px oklch(100% 0 0 / 0.85), 0 4px 10px oklch(0% 0 0 / 0.18);
+  }
+  .ring {
+    position: absolute; border: 2px dashed var(--warn);
+    border-radius: 8px; pointer-events: none;
+    background: oklch(58% 0.16 32 / 0.06);
+  }
+  .annotations { padding-top: 4px; }
+  .annotations h3 { color: var(--muted); }
+  .annotations h2 { margin-bottom: 14px; }
+  .annotations ol { list-style: none; padding: 0; margin: 14px 0 0; counter-reset: ann; }
+  .annotations li {
+    counter-increment: ann; position: relative;
+    padding: 12px 0 12px 38px; border-top: 1px solid var(--line);
+    font-size: 14.5px; color: var(--ink-2); line-height: 1.55;
+  }
+  .annotations li:first-child { border-top: 0; padding-top: 4px; }
+  .annotations li:first-child::before { top: 4px; }
+  .annotations li::before {
+    content: counter(ann); position: absolute; top: 12px; left: 0;
+    width: 24px; height: 24px; border-radius: 999px;
+    background: var(--warn); color: white;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .annotations li b { color: var(--ink); font-weight: 600; }
+  .sev {
+    display: inline-block; font-family: "IBM Plex Mono", monospace;
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 7px 1px; border-radius: 4px;
+    background: var(--tag-bg); color: var(--tag);
+    margin-left: 6px; vertical-align: 1px;
+  }
+  .sev.high { background: oklch(58% 0.16 32 / 0.12); color: var(--warn); }
+  .sev.mid { background: oklch(70% 0.10 70 / 0.18); color: oklch(45% 0.12 60); }
+  .sev.low { background: var(--tag-bg); color: var(--tag); }
+  .sev.love { background: var(--love-soft); color: var(--love); }
+
+  /* checklist style for systems / writing */
+  .deep {
+    margin-top: 22px; display: grid;
+    grid-template-columns: repeat(12, 1fr); gap: 18px;
+  }
+  .deep .card {
+    grid-column: span 6; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px;
+  }
+  .deep .card.full { grid-column: span 12; }
+  .deep .card.third { grid-column: span 4; }
+  .deep .card h4 {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 500; margin-bottom: 4px;
+  }
+  .deep .card .h-title {
+    font-family: "Newsreader", Georgia, serif; font-size: 22px;
+    font-weight: 500; line-height: 1.2; color: var(--ink); margin: 0 0 12px;
+  }
+  .deep .card ul { padding: 0; margin: 8px 0 0; list-style: none; }
+  .deep .card li {
+    position: relative; padding: 8px 0 8px 22px;
+    border-top: 1px dashed var(--line); font-size: 14px; color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .deep .card li:first-child { border-top: 0; }
+  .deep .card li::before {
+    content: ""; position: absolute; left: 4px; top: 16px;
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--warn);
+  }
+  .deep .card li.good::before { background: var(--good); }
+  .deep .card li.love::before { background: var(--love); }
+  .deep .card li.note::before { background: var(--muted); }
+  .deep .card li b { color: var(--ink); font-weight: 600; }
+  .deep .card li code {
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+    color: var(--ink); background: var(--tag-bg); padding: 1px 5px; border-radius: 4px;
+  }
+
+  /* mock panels (B/A) */
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .ba-cell { display: flex; flex-direction: column; gap: 8px; }
+  .ba-cell .lbl {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  }
+  .ba-cell .lbl.now { color: var(--warn); }
+  .ba-cell .lbl.next { color: var(--good); }
+
+  /* mock chrome */
+  .frame {
+    background: oklch(95% 0.025 60); border-radius: 10px;
+    padding: 14px; min-height: 180px; position: relative; overflow: hidden;
+  }
+  .frame.dark { background: oklch(35% 0.02 50); }
+
+  /* swatches */
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sw { flex: 1; min-width: 80px; display: flex; flex-direction: column; gap: 4px; }
+  .sw .chip { height: 56px; border-radius: 8px; border: 1px solid oklch(85% 0.01 60); }
+  .sw .name { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--muted); }
+  .sw .hex { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink); }
+
+  /* type sample */
+  .type-sample { display: grid; grid-template-columns: 110px 1fr; gap: 12px 22px; align-items: baseline; }
+  .type-sample .label { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .ts-display { font-family: "Newsreader", Georgia, serif; font-size: 28px; font-weight: 500; color: var(--ink); }
+  .ts-display.ital { font-style: italic; }
+  .ts-body { font-size: 14.5px; color: var(--ink); }
+  .ts-mono { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink); }
+
+  /* fix list table */
+  .fixes {
+    margin-top: 18px; border: 1px solid var(--line);
+    border-radius: 12px; background: var(--paper); overflow: hidden;
+  }
+  .fix-row {
+    display: grid; grid-template-columns: 70px 90px 1fr 130px;
+    align-items: start; gap: 16px; padding: 14px 18px;
+    border-top: 1px solid var(--line); font-size: 14.5px;
+  }
+  .fix-row:first-child {
+    border-top: 0; background: oklch(96% 0.008 60);
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); padding: 12px 18px;
+  }
+  .fix-row .id { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); padding-top: 2px; }
+  .fix-row .effort { font-family: "IBM Plex Mono", monospace; font-size: 11px; padding-top: 3px; }
+  .fix-row .effort.s { color: var(--good); }
+  .fix-row .effort.m { color: oklch(55% 0.12 60); }
+  .fix-row .effort.l { color: var(--warn); }
+  .fix-row .desc b { color: var(--ink); display: block; margin-bottom: 2px; font-weight: 600; font-size: 14.5px; }
+  .fix-row .area { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-2); padding-top: 3px; line-height: 1.5; }
+
+  /* per-minigame strip */
+  .mg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 22px; }
+  .mg {
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 12px; padding: 0; overflow: hidden;
+  }
+  .mg .mg-head { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px 12px; }
+  .mg .mg-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: oklch(94% 0.05 60); color: oklch(38% 0.10 50);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 500;
+    flex-shrink: 0;
+  }
+  .mg .mg-title { font-family: "Newsreader", Georgia, serif; font-size: 20px; font-weight: 500; color: var(--ink); margin: 2px 0 4px; line-height: 1.2; }
+  .mg .mg-tag { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .mg .mg-shot { aspect-ratio: 920 / 540; background: oklch(92% 0.01 60); position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .mg .mg-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mg .mg-body { padding: 14px 20px 18px; }
+  .mg .mg-body ul { list-style: none; padding: 0; margin: 0; }
+  .mg .mg-body li {
+    position: relative; padding: 7px 0 7px 18px;
+    border-top: 1px dashed var(--line); font-size: 14px; color: var(--ink-2); line-height: 1.5;
+  }
+  .mg .mg-body li:first-child { border-top: 0; }
+  .mg .mg-body li::before {
+    content: ""; position: absolute; left: 2px; top: 14px;
+    width: 6px; height: 6px; border-radius: 999px; background: var(--warn);
+  }
+  .mg .mg-body li.good::before { background: var(--good); }
+  .mg .mg-body li.love::before { background: var(--love); }
+  .mg .mg-body li b { color: var(--ink); font-weight: 600; }
+
+  /* highlights — what the game gets right */
+  .keep {
+    margin-top: 22px; display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .keep .k {
+    background: var(--good-soft); border: 1px solid oklch(80% 0.06 165);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .keep .k h4 { color: oklch(35% 0.10 165); font-size: 14px; margin-bottom: 4px; }
+  .keep .k p { font-size: 13.5px; color: oklch(28% 0.06 165); margin: 0; line-height: 1.5; }
+
+  /* close note */
+  .next {
+    margin-top: 18px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 26px 28px;
+  }
+  .next ul { padding-left: 18px; margin: 8px 0 0; color: var(--ink-2); }
+  .next li { margin: 6px 0; font-size: 14.5px; }
+
+  /* utility table */
+  .matrix {
+    margin-top: 18px; width: 100%; border-collapse: collapse;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    display: table;
+  }
+  .matrix th, .matrix td {
+    text-align: left; padding: 11px 14px;
+    border-top: 1px solid var(--line);
+    font-size: 13.5px; color: var(--ink-2); vertical-align: top;
+  }
+  .matrix th {
+    background: oklch(96% 0.008 60); border-top: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .matrix td.k { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink); white-space: nowrap; }
+  .matrix tr:hover td { background: oklch(97% 0.01 60); }
+
+  @media (max-width: 940px) {
+    .findings, .ba, .deep, .mg-grid, .keep, .toc { grid-template-columns: 1fr; }
+    .screen { grid-template-columns: 1fr; }
+    .deep .card, .deep .card.third, .deep .card.full { grid-column: span 12; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header>
+    <div class="eyebrow">Visual Audit · v2 · Deep pass · May 2026</div>
+    <h1>Annie's Cozy Day<br/><em>a love letter, with the seams pulled wide open</em></h1>
+    <p class="lede">A second pass — much deeper than v1. Where v1 said "the HUD overflows," this one walks every system: the hangout, the backyard, all twelve minigames, the four locked panels (Decor / Wardrobe / Scrapbook / Game Menu), the dedication overlay, the daily-gift calendar, the away story, the weather and visitor systems, the writing, the audio cues, the empty/win/lose states, and the long tail of polish.</p>
+
+    <div class="love-note">
+      <div class="sig">Note from your auditor</div>
+      <p>This is a gift you made by hand for the people you love. The bones are warmer than a lot of "real" cozy games — Annie's hair sway, Obi's tail wag, Luna's ear twitch, the dedication card on first launch, the away-story when someone comes back the next day. None of that is filler.<br/><br/>What follows is long because there is a lot in this game and you asked for maximum effort. <b>Almost every "fix" below is a small, isolated change.</b> Nothing here says you should rebuild it. The clunk lives in the chrome around the warmth, not in the warmth itself.</p>
+    </div>
+
+    <div class="meta">
+      <div><b>Build inspected</b>annies-cozy-day-test.html · 14,060 lines</div>
+      <div><b>Scenes</b>Title · Hangout · Backyard · 12 minigames</div>
+      <div><b>Panels</b>Decor · Wardrobe · Scrapbook · Game Menu · Daily Gift · Dedication</div>
+      <div><b>Systems</b>Joy · Mood · Streak · Coins · Stars · Achievements · Weather · Visitors · Photos · Challenges</div>
+      <div><b>Resolution</b>800 × 600 fixed canvas</div>
+      <div><b>Approach</b>Per-screen + per-system, with severity tags</div>
+    </div>
+
+    <nav class="toc">
+      <a href="#tldr"><span>01</span>TL;DR — what's hurting it</a>
+      <a href="#keep"><span>02</span>What's already working</a>
+      <a href="#per-screen"><span>03</span>Per-screen findings</a>
+      <a href="#minigames"><span>04</span>All 12 minigames, one by one</a>
+      <a href="#panels"><span>05</span>The four locked panels</a>
+      <a href="#systems"><span>06</span>Living systems (joy, weather, etc.)</a>
+      <a href="#writing"><span>07</span>Writing & voice</a>
+      <a href="#motion"><span>08</span>Motion, audio, juice</a>
+      <a href="#a11y"><span>09</span>Reading & accessibility</a>
+      <a href="#dedication"><span>10</span>The dedication card</a>
+      <a href="#fixes"><span>11</span>Fix list, prioritized</a>
+    </nav>
+  </header>
+
+  <hr class="rule" />
+
+  <!-- ============ 01 TL;DR ============ -->
+  <section id="tldr">
+    <div class="eyebrow">Section 01</div>
+    <h2>The ten things doing most of the damage</h2>
+    <p style="margin-top:8px;max-width:68ch">v1 had six. After a deeper pass I've added four. Each shows up across many scenes, so a single fix pays back everywhere. Severity is "how broken does it look to a first-time player."</p>
+
+    <div class="findings">
+      <div class="finding">
+        <div class="num">F1 · systemic <span class="sev high">high</span></div>
+        <h4>The HUD has no grid.</h4>
+        <p>Tab pills overflow at "Wardrobe." Pet status pills, coin/star counters, top-right buttons, and the bottom Goal pill all live at hand-placed pixel coordinates. Nothing is anchored to a safe area, and nothing shares a row.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F2 · systemic <span class="sev high">high</span></div>
+        <h4>One typeface is doing seven jobs.</h4>
+        <p>"Fredoka One" is set on every text element — title, body, Time/Score readouts, button labels, fine print. It's a beautiful display face, but as body text it's soft and as a HUD digit it's mushy. The whole game feels written in headline.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F3 · systemic <span class="sev high">high</span></div>
+        <h4>Two art languages collide everywhere.</h4>
+        <p>Annie / Obi / Luna are richly painted (atlas sprites). The bookshelf, picture frame, food bowl, fence, sky-window clouds, fairy-light dots, and especially the tree are flat icon art. The pets always look like they're standing in a pre-vis level.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F4 · systemic <span class="sev high">high</span></div>
+        <h4>Tab colors are random.</h4>
+        <p>Six brown tabs, "Pet" red, "Decor" purple. There's no semantic logic — Decor isn't a different category from Wardrobe. Reads as a bug, not a system.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F5 · systemic <span class="sev high">high</span></div>
+        <h4>Every minigame intro stacks five blocks at the same weight.</h4>
+        <p>Title · body · pictogram · "Happy Pets Bonus" green text · Esc/Click footnote — all roughly the same size. Plus the dim-overlay strength varies per scene (Laser Chase is near-black; Window Watch is barely tinted).</p>
+      </div>
+      <div class="finding">
+        <div class="num">F6 · systemic <span class="sev high">high</span></div>
+        <h4>The top-right action stack clips Score.</h4>
+        <p>In every minigame, the Score pill on the right is partly hidden by the sound icon. Sound, camera, and (in hangout) scrapbook each have a different bevel/radius. The pause "‖" is yet another shape next to the rounded "Time:" pill.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F7 · systemic <span class="sev high">high</span></div>
+        <h4>The four "modal" panels are inconsistent with each other.</h4>
+        <p>Game Menu, Decor, Wardrobe, Scrapbook all use a different layout, a different close-button position, a different way of paginating, and a different tab style. They were built four times. They want to be one component.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F8 · systemic <span class="sev mid">mid</span></div>
+        <h4>Every pet/screen "speaks" in a slightly different voice.</h4>
+        <p>"Welcome home! Obi and Luna are happy to see you." (warm, in-world). "Happy Pets Bonus +3s, +10% score" (Steam achievement). "Goal: Dreaming Obi (+10 coins)" (quest log). "Time: 63" (debug). Pick one voice for in-world copy, one for stats; today they're shuffled.</p>
+      </div>
+      <div class="finding">
+        <div class="num">F9 · systemic <span class="sev mid">mid</span></div>
+        <h4>State badges are inconsistent with state.</h4>
+        <p>"Day 1 — 10 coins" gets a yellow ring; "Day 5 — 30 coins" gets red strikethrough on the gift name; "Day 7 — 40 coins + Mystery!" gets a star icon overlapping. The Daily Gift modal alone has three different ways of expressing "this is the active day."</p>
+      </div>
+      <div class="finding">
+        <div class="num">F10 · systemic <span class="sev mid">mid</span></div>
+        <h4>The minigame backdrop is never authored for being behind a modal.</h4>
+        <p>Annie's head pokes from above the Treat Toss modal. A sliver of Luna pokes from the side in Wild Wand and Window Watch. A floating window asset hovers in Wild Wand's preview. The room is rendered as if it's the foreground; then a modal lands on top of it.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 02 KEEP ============ -->
+  <section id="keep">
+    <div class="eyebrow">Section 02</div>
+    <h2>What is already working — keep these</h2>
+    <p style="margin-top:8px;max-width:64ch">An audit that only lists problems lies about the game. Here is what is genuinely good. None of this should be touched in the cleanup.</p>
+
+    <div class="keep">
+      <div class="k">
+        <h4>Annie / Obi / Luna at every scale</h4>
+        <p>Same painted sprite at 0.65×, 0.7×, 0.8× across title, dedication, hub, and minigame results. Pose + breath + blink + tail + ear-twitch all driven by shared signal helpers. The characters carry the warmth.</p>
+      </div>
+      <div class="k">
+        <h4>Joy / Mood as a real system</h4>
+        <p>Each pet has a day-of-week mood preference (Obi: playful/cuddly/hungry rotation; Luna: curious/aloof/affectionate/mischievous), and joyMult per action. The math behind the sleepy/curious pills is real; today nobody can read the math because the pills are tiny.</p>
+      </div>
+      <div class="k">
+        <h4>Dedication card on first visit</h4>
+        <p>"Made with Love · for Annie, Obi, and Luna" with floating hearts and a triple-character cheer pose. This is the soul of the game and it's already authored well — the problems below are just small framing issues around it.</p>
+      </div>
+      <div class="k">
+        <h4>33-star + 24-achievement progression spine</h4>
+        <p>Every minigame has 3 thresholds + a challenge star (4th). Achievements are named with affection ("Obi's Best Friend," "Cat Whisperer," "Dedicated Caretaker"). The names already do half the work of the cozy tone.</p>
+      </div>
+      <div class="k">
+        <h4>Weather + visitor + season system</h4>
+        <p>Sunny / cloudy / rain / snow / golden hour each with window tints. Mail carrier, neighbor cat, squirrel, robin, bunny (spring), ice-cream truck (summer), scarecrow (autumn), Santa elf (winter). Almost no first-pass cozy game has this much going on.</p>
+      </div>
+      <div class="k">
+        <h4>Pet-to-pet decoration reactions</h4>
+        <p>"Luna sits on the book stack. Of course." "Obi grabbed a toy from the basket!" "Luna relaxes by the candlelight." (nighttime only). Specific, in-character lines tied to specific decorations. This is the writing voice; the rest of the copy should sound like this.</p>
+      </div>
+      <div class="k">
+        <h4>The away story</h4>
+        <p>A short narrated scene when the player comes back after time has passed. Almost nobody implements this; it's a true love-letter feature. (It needs the same hierarchy treatment as the other modals — see §3.)</p>
+      </div>
+      <div class="k">
+        <h4>Cozy upgrades that change gameplay</h4>
+        <p>Comfy Bowls, Treats Jar, Cozy Blankets, Joyful Home, Lucky Charm — the shop economy isn't pure cosmetics. There's a real "cozier life" loop hidden in the Decor list.</p>
+      </div>
+      <div class="k">
+        <h4>The cycling subtitle on the title</h4>
+        <p>"Obi wants belly rubs." "Luna is judging you lovingly." "Everyone's favorite nap spot." This is good writing and shouldn't be flattened. Just kill the lone JavaScript joke (M3 below).</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 03 PER-SCREEN ============ -->
+  <section id="per-screen">
+    <div class="eyebrow">Section 03</div>
+    <h2>Per-screen findings</h2>
+    <p style="margin-top:8px;max-width:64ch">Annotated screens. Numbers on the left match numbered notes on the right. Severity tags: <span class="sev high">high</span> looks broken · <span class="sev mid">mid</span> inconsistent · <span class="sev low">low</span> polish · <span class="sev love">heart</span> intentional warmth that's nearly working.</p>
+  </section>
+
+  <!-- TITLE -->
+  <section class="screen" style="margin-top:28px">
+    <div class="shot-wrap">
+      <img src="audit/shots/01-title.png" alt="Title screen" />
+      <div class="pin" style="top:18%;left:50%">1</div>
+      <div class="pin" style="top:90%;left:50%">2</div>
+      <div class="pin" style="top:8%;left:94%">3</div>
+      <div class="pin" style="top:60%;left:50%">4</div>
+      <div class="pin" style="top:50%;left:18%">5</div>
+      <div class="pin" style="top:78%;left:50%">6</div>
+    </div>
+    <div class="annotations">
+      <h3>01 — Title</h3>
+      <h2>The cover of the book. Almost there.</h2>
+      <ol>
+        <li><b>Title vs. tagline weight mismatch</b> <span class="sev mid">mid</span> — heavy display brown sits oddly above the thin grey "A Cozy Minigame Collection". Drop the tagline weight to the same family but tracked-out small caps; or rewrite to match the warmer cycling subtitles below.</li>
+        <li><b>Cycling subtitle currently includes a devlog joke</b> <span class="sev mid">mid</span> — "Made with love and way too much JavaScript." Cute to you; jarring to anyone else and especially to Annie. It also competes with the <em>actual</em> "made with love" line on the dedication card, which is the real version. Drop it from the rotation.</li>
+        <li><b>Lone sound button</b> <span class="sev low">low</span> — floats at top-right with no companion. Either remove it from the title (it'll appear in hub anyway) or pair with a small settings/info button so it reads as a toolbar.</li>
+        <li><b>Three-character lineup</b> <span class="sev low">low</span> — Annie centered, Obi front-left, Luna front-right, all on the same baseline, no overlap, no scale. A subtle Y-stagger (Annie back, pets forward, Annie 1.0×, pets 0.9×) reads as a portrait instead of a roster.</li>
+        <li><b>Background floats are random</b> <span class="sev low">low</span> — hearts and stars hover around at ~0.3 alpha with no rhythm. Either pick one (hearts) and place them deliberately, or make them slow-rise from below the canvas to feel like ambient warmth.</li>
+        <li><b>"Click to Start" is a button-shaped CTA on a no-button screen</b> <span class="sev low">low</span> — the cushioned red pill is fine, but it's the only "UI" on a poster-style screen. A simpler "Click anywhere" prompt with the same cycling-subtitle style might let the characters carry the page.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- HANGOUT -->
+  <section class="screen" style="margin-top:64px">
+    <div class="shot-wrap">
+      <img src="audit/shots/01-scene.png" alt="Hangout — Daily Gift overlay on first entry" />
+      <div class="ring" style="top:2%;left:8%;width:78%;height:13%"></div>
+      <div class="pin" style="top:8%;left:80%">1</div>
+      <div class="pin" style="top:18%;left:18%">2</div>
+      <div class="pin" style="top:13%;left:65%">3</div>
+      <div class="pin" style="top:12%;left:96%">4</div>
+      <div class="pin" style="top:35%;left:50%">5</div>
+      <div class="pin" style="top:42%;left:50%">6</div>
+      <div class="pin" style="top:55%;left:50%">7</div>
+      <div class="pin" style="top:75%;left:50%">8</div>
+      <div class="pin" style="top:90%;left:8%">9</div>
+      <div class="pin" style="top:88%;left:50%">10</div>
+      <div class="pin" style="top:25%;left:88%">11</div>
+    </div>
+    <div class="annotations">
+      <h3>02 — Hangout (the hub) with Daily Gift modal</h3>
+      <h2>The most important screen, doing the most things, with the least order.</h2>
+      <ol>
+        <li><b>Tab row overflows canvas</b> <span class="sev high">high</span> — "Wardrobe" is clipped. The single most "broken" thing in the game. Quick fix: rename to "Closet," shave per-tab padding, drop tab bevels.</li>
+        <li><b>Status pills stack under tabs</b> <span class="sev high">high</span> — Obi/Luna pills overlap the tab pills' shadow; the Lv.1 chip on the bar reads as visual noise.</li>
+        <li><b>Coin / star counters jammed between status pills</b> <span class="sev mid">mid</span> — tiny, unlabeled, and lose to the loud tab colors flanking them. Coin count "5" needs a label so it doesn't look like leftover debug.</li>
+        <li><b>Tab color randomness</b> <span class="sev high">high</span> — Pet (red), Decor (purple), everything else (brown). No semantic logic. One active accent only.</li>
+        <li><b>Day calendar uses three competing ways to mark "today"</b> <span class="sev mid">mid</span> — yellow ring (Day 1), red strikethrough (Day 5 "30 coins"), gold star overlap (Day 7). Pick one.</li>
+        <li><b>Daily Gift gift sprite is generic</b> <span class="sev low">low</span> — a tiny iconographic gift box on top of a hand-painted Annie/Obi/Luna world. Either replace with a painted gift box or have Obi <em>nudge</em> a real present in the room.</li>
+        <li><b>"Click to open!" doubles up on the modal title</b> <span class="sev low">low</span> — "Welcome back! Here's your Day 1 gift." + "Click to open!" — two CTAs in one panel. One sentence, one button.</li>
+        <li><b>Welcome banner is generic</b> <span class="sev mid">mid</span> — "Welcome home! Obi and Luna are happy to see you." This is good writing for day 1, but it doesn't change. Rotate it through the same writing voice as the cycling title subtitles, or vary by mood ("Luna is in a curious mood today.").</li>
+        <li><b>Goal pill is tiny and clipped</b> <span class="sev mid">mid</span> — "Goal: Dreaming Obi (+10 coins)" is half off-canvas at the bottom-left. The goal system is genuinely good — it deserves a real anchor.</li>
+        <li><b>Bottom welcome banner shape collides with the canvas radius</b> <span class="sev low">low</span> — the banner pill touches the rounded corner mask of the canvas. Inset 16px.</li>
+        <li><b>Photo / scrapbook icons stacked under the sound icon</b> <span class="sev mid">mid</span> — three different shapes (rounded square, square, square with no padding) drifting downward in a column. No visible label until hover.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- BACKYARD -->
+  <section class="screen" style="margin-top:64px">
+    <div class="shot-wrap">
+      <img src="audit/shots/02-scene.png" alt="Backyard scene" />
+      <div class="pin" style="top:35%;left:88%">1</div>
+      <div class="pin" style="top:48%;left:18%">2</div>
+      <div class="pin" style="top:78%;left:50%">3</div>
+      <div class="pin" style="top:42%;left:55%">4</div>
+      <div class="pin" style="top:14%;left:18%">5</div>
+      <div class="pin" style="top:14%;left:50%">6</div>
+      <div class="pin" style="top:90%;left:50%">7</div>
+      <div class="pin" style="top:75%;left:14%">8</div>
+      <div class="pin" style="top:22%;left:80%">9</div>
+    </div>
+    <div class="annotations">
+      <h3>03 — Backyard</h3>
+      <h2>A real, painterly bench parked next to placeholder props.</h2>
+      <ol>
+        <li><b>Tree is two flat green circles on a brown line</b> <span class="sev high">high</span> — strongest art-style mismatch in the game. Bench, pets, bird feeder, sundial, and birdhouse are all rendered; the tree is unfinished.</li>
+        <li><b>"← Go Inside" pill is invisible</b> <span class="sev high">high</span> — same color family as the bench/grass behind it. New players will not find their way back. Cream-on-cocoa with a left arrow, top-left, anchored to the safe area.</li>
+        <li><b>Flat single-tone grass</b> <span class="sev mid">mid</span> — no horizon shading, no variation. A subtle vertical gradient or low-density grass-blade noise unifies the scene.</li>
+        <li><b>Lone shovel + dirt pile + stump</b> <span class="sev low">low</span> — three medium-detail props with no spatial logic. Either group as a "garden corner" or distribute.</li>
+        <li><b>Decor button uses the inside-only purple</b> <span class="sev mid">mid</span> — repeats the inconsistent tab-color decision from the hangout. It's also the <em>only</em> top-bar control on this screen, so the purple is even more arbitrary.</li>
+        <li><b>HUD doesn't carry over</b> <span class="sev high">high</span> — coin/star counters move to top-center, no pet status pills, no tab row. Reads like a different game. The tab bar should still be there (with a "Yard"-tinted active state) so the player understands they're in the same world.</li>
+        <li><b>Welcome banner is identical to inside</b> <span class="sev low">low</span> — same component, same tone. A backyard-specific line ("It's sunny out there." / "Smells like rain.") would earn the change of scene <em>and</em> show off the weather system.</li>
+        <li><b>Garden patch sits on top of the bench</b> <span class="sev low">low</span> — depth ordering: the bench is foreground but the flowers in the dirt are also foreground. No middle ground. Push the garden down 20–40px or shift right.</li>
+        <li><b>Bird feeder bird sprite is iconographic</b> <span class="sev mid">mid</span> — tiny pixel-icon bird sitting on a painted feeder. Same F3 issue at small scale.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- INDOOR MINIGAME MODAL — Bath Time -->
+  <section class="screen" style="margin-top:64px">
+    <div class="shot-wrap">
+      <img src="audit/shots/05-scene.png" alt="Bath Time instructions modal" />
+      <div class="pin" style="top:32%;left:50%">1</div>
+      <div class="pin" style="top:50%;left:50%">2</div>
+      <div class="pin" style="top:60%;left:50%">3</div>
+      <div class="pin" style="top:9%;left:18%">4</div>
+      <div class="pin" style="top:9%;left:84%">5</div>
+      <div class="pin" style="top:18%;left:42%">6</div>
+      <div class="pin" style="top:78%;left:50%">7</div>
+      <div class="pin" style="top:70%;left:18%">8</div>
+    </div>
+    <div class="annotations">
+      <h3>04 — Bath Time intro modal (representative of the 12 minigame intros)</h3>
+      <h2>Five blocks asking for the same eyeball, on a backdrop that wasn't authored for being a backdrop.</h2>
+      <ol>
+        <li><b>Five competing text blocks</b> <span class="sev high">high</span> — title, body, twin pet pictogram, green "Happy Pets Bonus" line, esc-footnote. All roughly the same weight.</li>
+        <li><b>Two-pet pictogram is iconographic</b> <span class="sev mid">mid</span> — two tiny "wet pet" icons sit between the body and the bonus line. They're cute on their own but they're a third art language showing up in the modal (painted bg / painted modal text / icon characters). Either drop the icon or use the actual painted Obi+Luna mid-bath behind the modal.</li>
+        <li><b>Bonus line speaks like a Steam achievement</b> <span class="sev mid">mid</span> — "+3s, +10% score." Compare with the Decor reactions ("Luna sits on the book stack. Of course."). The bonus is a gift; phrase it like one.</li>
+        <li><b>"Time:" pill, raw integer, no units</b> <span class="sev high">high</span> — "Time: 48" has no colon-formatted readout, no label hierarchy. Mono digits with stacked label fixes it.</li>
+        <li><b>Score widget partly hidden by sound icon</b> <span class="sev high">high</span> — bath time, snack sort, pillow pop, where's luna, pawstep, wild wand, window watch — the issue repeats in every screenshot here.</li>
+        <li><b>Pause icon is a different chip</b> <span class="sev low">low</span> — square pause "‖" sits next to the rounded "Time:" pill. Same chip family, please.</li>
+        <li><b>"SCRUB — Obi" target tag is a debug-style label</b> <span class="sev low">low</span> — small all-caps with em-dash, anchored on top of the bath rug. Reads as an instruction overlay rather than part of the world.</li>
+        <li><b>Bath props (stripes on the wall, soap shelf) are flat icon</b> <span class="sev mid">mid</span> — tile lines and shelf are pure rectangles on the painted floor. Same F3 split.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- SNACK SORT — divider screen -->
+  <section class="screen" style="margin-top:64px">
+    <div class="shot-wrap">
+      <img src="audit/shots/06-scene.png" alt="Snack Sort modal" />
+      <div class="pin" style="top:18%;left:30%">1</div>
+      <div class="pin" style="top:18%;left:70%">2</div>
+      <div class="pin" style="top:88%;left:30%">3</div>
+      <div class="pin" style="top:88%;left:70%">4</div>
+      <div class="pin" style="top:8%;left:50%">5</div>
+    </div>
+    <div class="annotations">
+      <h3>05 — Snack Sort</h3>
+      <h2>The first minigame where the room is purpose-built for the modal — and it works.</h2>
+      <ol>
+        <li><b>"← Dog Treats" header</b> <span class="sev low">low</span> — directional cues are clear and consistent with "Cat Treats →" on the right. Keep this pattern in other minigames.</li>
+        <li><b>Center divider dotted line</b> <span class="sev low">low</span> — actually does the navigational job that "←/→" arrows usually do. Good. Color it slightly warmer (cream-brown vs. neutral grey).</li>
+        <li><b>Bowl colors are the only feedback</b> <span class="sev mid">mid</span> — yellow Obi-bowl on the left, pink Luna-bowl on the right. Almost works, but the bowls are otherwise identical ovals. Painting paw print + bone vs. paw print + fish on the bowl rims would make the side-bias obvious.</li>
+        <li><b>Pet sprites at the back of the room are cropped</b> <span class="sev low">low</span> — Obi and Luna sit at the back wall. Their faces are below the modal but their bodies are awkwardly half-present. Either bring them forward into the gameplay area or push them down so just a head peeks (a deliberate "they're watching" framing).</li>
+        <li><b>Vertical center divider runs through the modal</b> <span class="sev low">low</span> — the dashed line appears to cross the modal panel (drawn underneath, but visually distracting). Stop the line at the modal's bounding box.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- LASER (dim overlay) -->
+  <section class="screen" style="margin-top:64px">
+    <div class="shot-wrap">
+      <img src="audit/shots/04-scene.png" alt="Laser Chase modal over very dark room" />
+      <div class="pin" style="top:50%;left:50%">1</div>
+      <div class="pin" style="top:30%;left:50%">2</div>
+      <div class="pin" style="top:45%;left:35%">3</div>
+      <div class="pin" style="top:78%;left:50%">4</div>
+    </div>
+    <div class="annotations">
+      <h3>06 — Laser Chase (representative of "indoor minigame" set)</h3>
+      <h2>The dim-overlay strength is set per-scene and it shows.</h2>
+      <ol>
+        <li><b>Room dim is near-black here</b> <span class="sev mid">mid</span> — compare to Pillow Pop / Where's Luna / Window Watch, where the dim is barely there. The intro screens don't feel like the same product.</li>
+        <li><b>Modal floats over a dark fog</b> <span class="sev mid">mid</span> — the cream modal looks harsh on this dim. A consistent ~55% scrim with a small blur reads better. Plus the dim is strongest where it should be lightest (the laser-glow areas the player needs to see).</li>
+        <li><b>Glowing laser targets fade into the fog</b> <span class="sev low">low</span> — players can't tell what they're committing to. Either lift the dim around the targets (vignette inverted), or boost the glow alpha during instructions.</li>
+        <li><b>Luna is below the modal</b> <span class="sev low">low</span> — the only character in the scene during instructions, and she's invisible (covered by the modal). She should be visible in the lower half of the canvas waiting for the laser, not hidden.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- WILD WAND -->
+  <section class="screen" style="margin-top:64px">
+    <div class="shot-wrap">
+      <img src="audit/shots/12-scene.png" alt="Wild Wand modal with sliver sprite" />
+      <div class="pin" style="top:13%;left:50%">1</div>
+      <div class="pin" style="top:55%;left:6%">2</div>
+      <div class="pin" style="top:90%;left:50%">3</div>
+    </div>
+    <div class="annotations">
+      <h3>07 — Luna's Wild Wand (the "preview thumbnail" issue)</h3>
+      <h2>The instruction-state previews are unframed.</h2>
+      <ol>
+        <li><b>Floating window-thumbnail at top-center</b> <span class="sev mid">mid</span> — a tiny window prop hovers over the canvas top edge with no context. It looks like an asset placement bug, not a preview. If it's a "next obstacle" preview, it needs a label or a frame.</li>
+        <li><b>Luna sliver pokes from the left edge</b> <span class="sev low">low</span> — same root issue as Treat Toss/Window Watch: the gameplay scene isn't authored as a "behind-the-modal" composition.</li>
+        <li><b>"Cleared: 0" pill at very bottom</b> <span class="sev low">low</span> — half off-canvas, raw label. Joins the family of inconsistent counters: Time, Score, Goal, Cleared, Longest, Round, Combo. Each minigame invents its own.</li>
+      </ol>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 04 EVERY MINIGAME ============ -->
+  <section id="minigames">
+    <div class="eyebrow">Section 04</div>
+    <h2>All 12 minigames, one by one</h2>
+    <p style="margin-top:8px;max-width:68ch">Above we covered the modal pattern. Below is a per-minigame note: what's specific to <em>that</em> game's HUD, art, and tuning. Same severity tags. Some entries are short — that means the only issues are the systemic ones (which are still real, but covered above).</p>
+
+    <div class="mg-grid">
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">01</div>
+          <div>
+            <div class="mg-tag">Tier 1 · 60s · click to toss</div>
+            <div class="mg-title">Treat Toss</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/03-scene.png" alt="Treat Toss modal" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Annie's head pokes above the modal</b> — frame her into the lower-third of the canvas during instructions.</li>
+            <li><b>"Combo" is one of the only places mono digits would shine</b> — the painterly font is currently used for "x3" — rendered as a script. Mono ×3 with a small pulse on increment would feel like real game-feel.</li>
+            <li><b>Obi's catch hitbox isn't telegraphed pre-game</b> — the instruction modal could draw a dotted catch zone behind it.</li>
+            <li class="good"><b>Speed-up timer on misses adds pressure</b> — keep, but communicate it: a small pet emoji-mood icon next to the score that flips when Obi gets faster.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">02</div>
+          <div>
+            <div class="mg-tag">Tier 1 · 60s · mouse-follow</div>
+            <div class="mg-title">Luna's Laser Chase</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/04-scene.png" alt="Laser Chase" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Dim is too strong</b> (see §3-06).</li>
+            <li><b>Laser dot is a flat circle</b> — paint a soft red glow + tiny core highlight. The dot is the most-watched object in the game; spend 6 lines on it.</li>
+            <li><b>"Move your mouse to control the laser dot!" is wordy</b> — "Lead Luna with your laser." That's it.</li>
+            <li><b>Targets need a "consumed" animation</b> — currently they vanish; a quick paw-bat + sparkle reads as Luna catching them, not as a UI dismissal.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">03</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 90s · LEFT/RIGHT balance</div>
+            <div class="mg-title">Cuddle Pile</div>
+          </div>
+        </div>
+        <div class="mg-shot" style="background:oklch(94% 0.025 60); display:flex; align-items:center; justify-content:center; color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11px">[ no captured shot · placeholder ]</div>
+        <div class="mg-body">
+          <ul>
+            <li><b>"Press LEFT and RIGHT" instructions are a keyboard-icon problem</b> — show the actual ← / → key glyphs, not text. Currently the words "LEFT" and "RIGHT" sit in the body.</li>
+            <li><b>Win state at 90s deserves a payoff</b> — "Maximum Cozy" achievement. Build a quiet 2-second hero shot of all three asleep on the couch before kicking back to the results modal.</li>
+            <li><b>Balance bar is the most game-feel-dependent meter in the build</b> — needs a colored danger zone at the ends and a gentle wobble animation, not just a moving tick.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">04</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 60s · side-scroll click</div>
+            <div class="mg-title">Obi's Walk</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/08-scene.png" alt="Obi's Walk" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Houses behind the fence are flat color triangles</b> <span class="sev mid">mid</span> — purple, blue, green, red roofs on identical beige boxes. The single most "this is a placeholder" moment in the game after the backyard tree.</li>
+            <li><b>Annie + Obi held in place, world scrolls past</b> — good. Add a tiny vertical bob on Obi (already there?) and a heel-step on Annie's boot to sell the walk.</li>
+            <li><b>Fire hydrant sits alone</b> — needs a friend (a lamppost, a mailbox) to feel like a street.</li>
+            <li><b>Squirrel callout reads "tap squirrels before Obi chases them"</b> — phrase as <em>Obi's</em> stake: "Stop Obi from chasing squirrels into the road."</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">05</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 60s · placement / drift</div>
+            <div class="mg-title">Luna's Nap Spot</div>
+          </div>
+        </div>
+        <div class="mg-shot" style="background:oklch(94% 0.025 60); display:flex; align-items:center; justify-content:center; color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11px">[ no captured shot · placeholder ]</div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Sunbeams are the visual hero</b> — they need to be painterly: warm gold gradient, soft edge, slow drift, dust motes. Today they're likely flat shapes (assumed from screenshots of similar-tier scenes). Spend art budget here.</li>
+            <li><b>Cushions vs. sunbeams as a "place + follow" loop</b> is a great cozy mechanic. The instruction sentence is two sentences too long: "Place cushions in the sun. Move them to follow the light."</li>
+            <li><b>Luna's nap pose during play</b> — make sure she settles, breathes, then dreams (Z's). Today she likely just "sits."</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">06</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 45s · drag-to-scrub</div>
+            <div class="mg-title">Bath Time</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/05-scene.png" alt="Bath Time" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Three-step instruction — "scrub / rinse / dry"</b> — show 3 micro-pictograms in a row instead of cramming three verbs into a body sentence.</li>
+            <li><b>"SCRUB — Obi" target label</b> reads as debug. Replace with a soft pulsing hand cursor outline and remove the text.</li>
+            <li><b>Tiled wall + tub looks like icon art</b> — the room asset needs a paint pass. Flat aqua tile + cream tub doesn't match the painted Obi.</li>
+            <li><b>Rubber duck is a bright yellow blob in the screenshot</b> — give it a beak and an eye dot, that's all the affordance you need.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">07</div>
+          <div>
+            <div class="mg-tag">Tier 1 · 60s · drag to bowls</div>
+            <div class="mg-title">Snack Sort</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/06-scene.png" alt="Snack Sort" /></div>
+        <div class="mg-body">
+          <ul>
+            <li class="good"><b>The two-side composition is the cleanest minigame setup in the game</b> — left dog, right cat, divider. Use this as the template for "two-pet" mechanics.</li>
+            <li><b>Wrong-side feedback isn't mentioned in the modal</b> — what happens if you drag a bone right? Show the failure state in a tiny pictogram.</li>
+            <li><b>Treat sprite is iconographic</b> — a yellow bone and a pink fish-shape on a painted floor. Paint the treats once, reuse everywhere they show up (Treat Toss, Daily Gift, achievements).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">08</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 60s · whack</div>
+            <div class="mg-title">Pillow Pop</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/07-scene.png" alt="Pillow Pop" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Pillows are six identical pastel ovals</b> — vary slightly: one with stripes, one with a moon, one with a paw print. Today the difference between a "pillow with Luna in it" and "pillow with Obi in it" is just the ear color.</li>
+            <li><b>"Click Luna! Don't click Obi!" is a negative instruction</b> — flip it: "Tap when Luna pops up — Obi loves naps."</li>
+            <li><b>Tiny ear-tip preview at modal-bottom</b> — cute! Make it bigger and label it ("This means Luna").</li>
+            <li><b>Fail state — tapping Obi</b> — needs a soft sleepy "zzz" + small score deduction. Don't punish hard.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">09</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 60s · spot Luna</div>
+            <div class="mg-title">Where's Luna?</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/10-scene.png" alt="Where's Luna" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Three cushions with a "?" on the green one</b> — currently the indicator is a literal text question mark. A cat-tail twitch peeking out from one cushion would do the same job, in-world.</li>
+            <li><b>"Round 0" label is debug-y</b> — drop the integer; make it "Round 1" and increment, or just don't show it at all (the cushions tell the story).</li>
+            <li><b>Cushion shuffle animation is the entire game-feel</b> — slow ease, slight hop, soft "swish" sound. Worth 30 minutes of polish.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">10</div>
+          <div>
+            <div class="mg-tag">Tier 2 · 60s · click bird/butterfly</div>
+            <div class="mg-title">Window Watch</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/09-scene.png" alt="Window Watch" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>The window itself is the gameplay frame</b> <span class="sev mid">mid</span> — but the painted Luna sits in front of the window during instructions. She needs to be at the bottom or the side, not blocking the playfield.</li>
+            <li><b>Tiny lone tongue/leaf icon at modal-bottom</b> — the "don't click leaves" pictogram reads as a debug glyph. Make it a real leaf with a soft fall animation.</li>
+            <li><b>Score progression is invisible</b> — a small Luna-tail wag rate that picks up as score goes up would make the playthrough feel rewarding without changing UI.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">11</div>
+          <div>
+            <div class="mg-tag">Tier 3 · sequence memory</div>
+            <div class="mg-title">Pawstep Patterns</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/11-scene.png" alt="Pawstep Patterns" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>2×2 button grid feels like a settings dialog</b> <span class="sev mid">mid</span> — generic rounded-rect buttons with a faint outline. Replace with circular Obi/Luna face buttons (head shot in a paw-print frame), action label below.</li>
+            <li><b>"Longest: 0 steps" runs off the bottom</b> <span class="sev mid">mid</span> — meta info clipped by canvas edge.</li>
+            <li><b>Sequence playback uses Simon-style flashes</b> — cozy version: each pet "speaks" their step (paw-tap sound + tail wag) instead of a button glow.</li>
+            <li><b>Reverse-sequence challenge mode</b> is brutal — keep it, but tutorialize it with a tiny preview of the reverse sequence on round 1.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div class="mg-head">
+          <div class="mg-num">12</div>
+          <div>
+            <div class="mg-tag">Tier 3 · flap-style avoid</div>
+            <div class="mg-title">Luna's Wild Wand</div>
+          </div>
+        </div>
+        <div class="mg-shot"><img src="audit/shots/12-scene.png" alt="Wild Wand" /></div>
+        <div class="mg-body">
+          <ul>
+            <li><b>Wild Wand = Flappy Bird in cat form</b> — that's good. The framing currently doesn't sell that joke. The instruction body should read "Tap to wiggle the wand. Lead Luna through the gaps." with three tiny gap pictograms.</li>
+            <li><b>The window thumbnail at top is the obstacle preview</b> — nobody knows that. Either label it or remove it from the instruction state and re-introduce it in the first 3 seconds of play.</li>
+            <li><b>"Cleared: 0" counter is the bottom-right "score family"</b> — fold into the unified Score widget.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 05 PANELS ============ -->
+  <section id="panels">
+    <div class="eyebrow">Section 05</div>
+    <h2>The four locked panels — Decor / Wardrobe / Scrapbook / Game Menu</h2>
+    <p style="margin-top:8px;max-width:68ch">v1 couldn't get to these because the dedication overlay was up during capture. Inspecting the code: each panel has its own pagination, its own tab style, its own close-button position (all at <code>{x: W/2 + 200, y: 84, w: 36, h: 36}</code> — same coords, but each panel's content frame around it is different sizes). They want to be <em>one</em> reusable panel component with: tabs · paginated grid · close button · empty state · price/locked chip.</p>
+
+    <div class="deep">
+
+      <div class="card">
+        <h4>Decor — 40+ items, 4 tiers, seasonal, gameplay-affecting</h4>
+        <div class="h-title">It's a real interior-design shop hiding behind a "decor" word.</div>
+        <ul>
+          <li><b>Mixing decoration toggles, palette cycles, gameplay upgrades, and seasonal items in one paginated list</b> — these are four different shop categories. Tabs: <code>Room</code> · <code>Comfy Upgrades</code> · <code>Seasonal</code> · <code>Cozy Set</code>.</li>
+          <li><b>The "✨ Comfy Bowls" name-prefix sparkle</b> is the only signal that this item changes gameplay. Move that to a real "boost" badge on the card (small honey-yellow chip: "+25% bowl life") so it shows up at-a-glance.</li>
+          <li><b>Locked items show stars-required as a number</b> — better: <em>show the lock state</em> with the star count so the player understands they're earning toward it ("17 / 25 stars").</li>
+          <li><b>Cycle items (e.g. Rug Color, Room Style)</b> currently increment via tap. They should preview in-place — small swatch row on the card, tap a swatch to set it.</li>
+          <li class="note"><b>Room Style cycle has 5 labels but max=4</b> — code: <code>{ max: 4, labels: ["Cozy Neutral","Pastel Cute","Warm Cottage","Moonlight Blue","Bookish Cozy"] }</code>. One label is unreachable or off-by-one; verify.</li>
+          <li><b>Decor Reactions are invisible until they trigger</b> — the player buys "Music Box" not knowing Luna will ever paw at it. A tiny "interactions" chip on the item card ("Luna might paw at this.") makes the purchase feel meaningful.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Wardrobe — 3 characters, ~16 items each, 4 slots</h4>
+        <div class="h-title">A dress-up paper-doll in a paginated form.</div>
+        <ul>
+          <li><b>Three character tabs (Obi / Luna / Annie) at top, list below</b> — but the tabs are tiny boxes at <code>{x: 80–340, y: 130}</code>. They should be the largest UI in the panel — a full row of three painted character portraits, the active one lifted slightly.</li>
+          <li><b>The wardrobe has slots</b> (head / neck / body / wrist) but the panel doesn't show the character with their current outfit. The whole appeal of dress-up is seeing the character change. A hero portrait of the active character on the left, item grid on the right — and tapping an item swaps it live.</li>
+          <li><b>Mixed unlock methods: <code>price</code>, <code>tier</code>, <code>achievementUnlock</code>, <code>starUnlock</code>, <code>season</code></b> — the card needs to surface which lock applies. A single chip: 🏆 trophy (achievement), ⭐ stars, 🪙 coins, 🌸 season.</li>
+          <li><b>Floral Crown for Annie has <code>achievementUnlock: "napMaster+catWhisperer"</code></b> — a compound unlock with no UI affordance for "you have 1/2." Ladder progress is invisible.</li>
+          <li><b>Seasonal items (Cherry Branch, Sun Visor, Plaid Scarf, Reindeer Antlers)</b> need a "this season" sash and a calendar tooltip — otherwise it looks like the item is randomly broken.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Scrapbook — photos · milestones · achievements · goals</h4>
+        <div class="h-title">The most narratively important panel. Currently the most "list-y."</div>
+        <ul>
+          <li><b>Three tabs at <code>{x:80}, {x:158}, {x:?}</code></b> — same tab pill style as the wardrobe but a different size. A scrapbook should feel like an actual book: paper texture, page corners, photo-album captions.</li>
+          <li><b>Photos are stored as data URLs (canvas captures with "Annie's Cozy Day" watermark)</b> — fantastic feature. Display them as instant-print Polaroids with hand-written captions, not as a flat grid.</li>
+          <li><b>Milestones / achievements / goals are intermixed in the entries</b> — the entry types <code>"milestone" | "achievement" | "photo"</code> should each have their own paper style: milestone = ribbon, achievement = stamp, photo = polaroid.</li>
+          <li><b>Scrapbook Goals (Dreaming Obi, Grooming Session, Both 80+ Joy, Rainy Day, etc.)</b> are not surfaced with hints. The whole "wait for the right moment, take the photo" loop is invisible to the player. A "challenges" tab inside Scrapbook with checkbox progress would surface it.</li>
+          <li class="good"><b>The entries are real, dated, narrative</b> ("Played Annie's Cozy Day for the first time!", "Dedicated Caretaker unlocked!"). Lean into that — make them sentences, not log lines.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Game Menu — 12 game cards, paginated 6 at a time</h4>
+        <div class="h-title">Twelve doors. A long scroll. No sense of progression.</div>
+        <ul>
+          <li><b>One huge horizontal-ish list of 12 cards with 6 visible</b> — but the player has 33 stars to earn, plus 12 challenge stars. The Game Menu should be the place where total stars, % complete, and which game is next-to-3-star <em>live</em>. Today it's a dumb list.</li>
+          <li><b>Each card has a star count derived inline</b> — <code>(s>=1400?3:s>=700?2:s>=300?1:0)</code> — fine, but the next threshold ("you need 700 for a 2nd star") isn't shown. The minigame menu is the natural place for "next goal" hints.</li>
+          <li><b>Card icon vs. tier color vs. game color</b> — a card has a `color` and an `icon` (`bone`, `star`, `paw`, etc.) and lives in a tier (1-4) which has its own color. Three signals fighting. Pick: tier sets the tab, card stays neutral.</li>
+          <li><b>Locked tier-4 games</b> need to read as "earn more stars" not as "this is broken." A single padlock tile with the star/streak/achievement requirement spelled out.</li>
+          <li><b>Scroll-up / scroll-down chevrons live as separate hover keys</b> — no scroll wheel support, no swipe, no keyboard up/down. Add at minimum keyboard nav.</li>
+        </ul>
+      </div>
+
+      <div class="card full">
+        <h4>The shared component you wish you'd built first</h4>
+        <ul>
+          <li><b>Frame</b> — <code>panel(W, H, title, onClose)</code>. Cream rounded rect, soft shadow, top-bar with title + tab slots + close. All four panels share this.</li>
+          <li><b>Tabs</b> — segmented pill row anchored top-left of the panel content; <em>not</em> floating chips at hand-coded x-positions. Active = accent fill.</li>
+          <li><b>Card grid</b> — 3-column responsive (3×2 = 6 per page). Each card has: thumbnail, name, sub-line, lock/price chip, hover state. Pagination chevrons live in the panel chrome, not in the content area.</li>
+          <li><b>Lock chip</b> — <code>&lt;chip kind="stars|coins|achievement|season|streak" value="..."/&gt;</code>. One component, six lock kinds, consistent placement (top-right of card).</li>
+          <li><b>Empty state</b> — every panel needs one. "No photos yet — try the camera at top-right." "No achievements yet — play a minigame." Currently empty tabs render as empty blanks.</li>
+          <li><b>Close button</b> — single <code>×</code> chip at <em>panel</em> top-right (not at canvas top-right). Today it's at <code>W/2 + 200</code> which only works if the panel is exactly 400px wide and centered.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 06 LIVING SYSTEMS ============ -->
+  <section id="systems">
+    <div class="eyebrow">Section 06</div>
+    <h2>Living systems — joy, weather, visitors, mood, streak</h2>
+    <p style="margin-top:8px;max-width:68ch">These are systems the game runs but rarely surfaces. Each one is a "the game is alive" feature that's currently invisible to a first-time player.</p>
+
+    <div class="deep">
+
+      <div class="card">
+        <h4>Pet Joy + Mood</h4>
+        <div class="h-title">Real math, but the pills don't show their work.</div>
+        <ul>
+          <li><b>"Obi: sleepy" / "Luna: aloof"</b> — these are mood labels driven by the day-of-week mood preference. The pill doesn't say it's a mood; it reads as a static descriptor.</li>
+          <li><b>Joy is a 0–100 number</b> — currently shown as a thin bar without numerals or thresholds. Add a tiny numeric readout on hover and milestone marks at 50/80.</li>
+          <li><b>Mood multipliers are real</b> (e.g. cuddly Obi: pet ×1.5) — the player gets no signal that "now is a good time to brush." A small mood-icon next to the action chip ("brush is x1.4 for Obi today") would teach the system without a tutorial.</li>
+          <li><b>Joy decay rate varies per mood</b> — invisible. Show a tiny down-arrow rate next to the pill in the hub when joy is dropping fast.</li>
+          <li class="good"><b>Joy &gt; 80 unlocks the "Happy Pets Bonus" in minigames</b> — that's a great connection. Lean in: the "+3s, +10%" bonus chip should literally say "Obi & Luna are happy. Bonus active."</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Weather + Window Tint</h4>
+        <div class="h-title">Beautifully implemented, almost never noticed.</div>
+        <ul>
+          <li><b>5 weather types with weighted spawn</b> (sunny 0.3, cloudy 0.25, rain 0.2, snow 0.1, golden 0.15) — and a per-weather window tint. Lovely. Now <em>tell the player it's raining.</em></li>
+          <li><b>The "Rainy Day" Scrapbook goal</b> is invisible until you happen to look at the window. A tiny weather chip in the HUD ("☁ rainy") lets the player know to take a picture.</li>
+          <li><b>Snow weather should change pet idle behavior</b> — Luna pressed-against-the-window mode. Today the weather is purely cosmetic on the window pane.</li>
+          <li><b>Golden hour weather</b> is a magic-cozy mood — author a one-line floating banner ("The light is gold today.") for the first time in a session.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Visitors</h4>
+        <div class="h-title">Mail carrier, neighbor cat, squirrel, bunny, ice cream truck — and you'd never know.</div>
+        <ul>
+          <li><b>Spawn timing isn't telegraphed</b> — a visitor walks on, gives a 12–16s window to interact, then leaves. The player needs to <em>see they only have 14 seconds</em>. A soft chime + a one-line banner ("A robin is singing outside!") happens, but if the player is mid-action they miss it.</li>
+          <li><b>"A bunny hopped by with a basket!" (spring only)</b> — author the banner with a tiny bunny silhouette next to it, not just text. Same for all 8 visitor types.</li>
+          <li><b>Coin / joy reward isn't shown</b> — the player gets coins and joy from interacting; they don't know which visitor gave what.</li>
+          <li><b>Seasonal visitors</b> — the game already has 4 (bunny / ice cream / scarecrow / Santa elf) — call them out in a "first appearance" beat for that season.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Streak</h4>
+        <div class="h-title">A 30-day streak unlocks "Dedicated Caretaker." That word matters. Earn it.</div>
+        <ul>
+          <li><b>Current streak is shown only inside the Daily Gift modal</b> — "Streak: 0 days." It's the most emotionally meaningful number in the save. Surface it on the title screen.</li>
+          <li><b>30-day milestone</b> writes a Scrapbook entry: "Dedicated Caretaker unlocked!". Make this a real beat — full-screen ribbon, character cheer, sound.</li>
+          <li><b>Streak break is silent</b> — if the player misses a day, the counter resets without any "your pets missed you" beat. A one-time "Obi looked for you yesterday." line earns the streak emotionally without nagging.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Coin / star / achievement economy</h4>
+        <div class="h-title">Three currencies, no clear hierarchy.</div>
+        <ul>
+          <li><b>Coins (🟡) buy decor + accessories</b>. <b>Stars (⭐) unlock content tiers + achievements</b>. <b>Achievements (🏆) unlock special items</b>. A first-time player can't tell those apart.</li>
+          <li><b>Currency icons don't scale</b> — coin is rendered as a generic yellow dot, star as a yellow star, achievement as a colored circle. Paint them once; reuse everywhere.</li>
+          <li><b>Star milestones (10, 20, 25, 30, 33)</b> award bonus coins. Make this a fanfare — currently it's silent.</li>
+          <li><b>"Lucky Charm" upgrade gives +2 coins per minigame</b> — invisible to the player after they buy it. Show "+12 (Lucky Charm)" floating text instead of just "+10".</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Daily tasks · Weekly challenges</h4>
+        <div class="h-title">Two parallel quest systems with no UI for either.</div>
+        <ul>
+          <li><b>Daily Task pool: 7 tasks (pet, feed, water, brush, toy, treat, game)</b> — these are tracked per day but never shown to the player as a checklist. A small "Today: 2/3" chip in the HUD turns this into a real loop.</li>
+          <li><b>Weekly Challenge pool: 8 challenges (Play 5 games, earn 8 stars, etc.)</b> — same problem. The reward (40–60 coins) is real but the player never sees the challenge unless they happen to scroll the right panel.</li>
+          <li><b>Both systems already track <code>gamesPlayed, starsEarned, petActions, feederFills, flowersPlanted, photosTaken, streakDays, itemsBought</code></b> — the data is all there. The UI is the missing piece.</li>
+        </ul>
+      </div>
+
+      <div class="card full">
+        <h4>Challenge stars (the secret 4th star)</h4>
+        <div class="h-title">Each minigame has a hidden modifier — Speedy Obi, Invisible Targets, Wiggly Pile. Players don't know.</div>
+        <ul>
+          <li><b>Challenge mode is unlocked after 3-starring a minigame</b>, but there's no UI in the minigame menu to "switch to challenge mode." Add a small "★+1" chip on the card once it's eligible.</li>
+          <li><b>The 12 modifiers are good writing</b>: "Speedy Obi" (Obi moves 50% faster), "Invisible Targets" (targets fade), "Restless Beams" (sunbeams 2x faster). Surface the modifier as a banner on the start screen — it's the entire identity of the run.</li>
+          <li><b>"Challenge Champion" achievement = 5 challenge stars</b> — a real flex. Make sure it has a real reveal.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 07 WRITING ============ -->
+  <section id="writing">
+    <div class="eyebrow">Section 07</div>
+    <h2>Writing & voice</h2>
+    <p style="margin-top:8px;max-width:68ch">There are at least four narrative voices in the game right now. The cozy voice is already there in places — it just needs to take over.</p>
+
+    <div class="deep">
+      <div class="card">
+        <h4>The four voices, in their natural habitats</h4>
+        <div class="type-sample">
+          <div class="label">Cozy</div><div class="ts-display ital" style="font-size:18px">"Welcome home! Obi and Luna are happy to see you."</div>
+          <div class="label">Quest log</div><div class="ts-display ital" style="font-size:18px;color:var(--ink-2)">"Goal: Dreaming Obi (+10 coins)"</div>
+          <div class="label">Steam toast</div><div class="ts-display ital" style="font-size:18px;color:var(--ink-2)">"Happy Pets Bonus +3s, +10% score"</div>
+          <div class="label">Debug</div><div class="ts-mono" style="font-size:14px;color:var(--warn)">"Time: 63   Round 0   Cleared: 0   Longest: 0 steps"</div>
+        </div>
+        <p style="margin:14px 0 0;font-size:14px">Plus a fifth voice from the cycling subtitles ("Obi wants belly rubs," "Luna is judging you lovingly"). That one's the one to keep.</p>
+      </div>
+
+      <div class="card">
+        <h4>Specific lines to rewrite</h4>
+        <ul>
+          <li><b>Title cycler</b> — drop "Made with love and way too much JavaScript." Adds nothing to anyone but you, breaks tone.</li>
+          <li><b>Modal footer</b> — "Click to begin early • Esc to go back" → split into two: a real button row + a single line of meta. Or, even better: "Tap when you're ready · Esc to cuddle instead."</li>
+          <li><b>Bonus chips</b> — "Happy Pets Bonus +3s, +10% score" → "Obi and Luna are happy today. Bonus time."</li>
+          <li><b>HUD readouts</b> — "Time: 63" → label-stack: "TIME / 1:03". "Score" → label-stack: "SCORE / 240". "Round 0" → "Round 1" (1-indexed) or hide if redundant.</li>
+          <li><b>Goal pill</b> — "Goal: Dreaming Obi (+10 coins)" → on the goal card itself: "Take a photo of Obi while he's napping." (This is what it actually means.) The "+10 coins" earn-back is fine in small print.</li>
+          <li><b>Pet status</b> — "Obi: sleepy" is fine. "Luna: aloof" is great. But "Lv.1" on the joy bar is debug. Drop it; level reveals via decoration unlocks.</li>
+          <li><b>Minigame instructions</b> — average length is 14 words. Trim to ≤ 8. "Click and drag to scrub! Click the tub to rinse! Drag to dry!" → "Drag to scrub. Tap the tub to rinse. Drag again to dry." Same content, calmer cadence.</li>
+          <li><b>"Click anywhere to begin"</b> on the dedication card — when this is the most important moment of the game's first session, "Click anywhere to begin" is corporate. "Tap to start the day." or just leave it implicit.</li>
+        </ul>
+      </div>
+
+      <div class="card full">
+        <h4>The voice you already have, that everything should sound like</h4>
+        <p>From the Decor Reactions table:</p>
+        <ul>
+          <li class="love"><b>"Luna sits on the book stack. Of course."</b> — period, with the in-character editorial.</li>
+          <li class="love"><b>"Obi grabbed a toy from the basket!"</b> — exclamation, action, pet name, no UI words.</li>
+          <li class="love"><b>"Both pets look up at the family portrait."</b> — quiet, observed.</li>
+          <li class="love"><b>"Luna relaxes by the candlelight."</b> — conditional ("nighttime only"), ambient, six words.</li>
+        </ul>
+        <p style="margin-top:14px">Apply this voice to: welcome banner rotation, minigame intros, achievement reveals, daily-gift opens, milestone scrapbook entries, level-up moments. The pattern is: <em>specific pet · specific action · period or quiet exclamation · no game-system words.</em></p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 08 MOTION / AUDIO / JUICE ============ -->
+  <section id="motion">
+    <div class="eyebrow">Section 08</div>
+    <h2>Motion, audio, juice</h2>
+    <p style="margin-top:8px;max-width:64ch">The game has a particle system, a procedural audio manager, ambient loops per scene, and a real animation foundation (breath, blink, tail, ear, hair sway). Here's where to spend the next hour of polish budget.</p>
+
+    <div class="deep">
+      <div class="card third">
+        <h4>Mode transitions</h4>
+        <ul>
+          <li>Hangout → minigame uses a crossfade. Good. The minigame → results path uses a hard cut. Match.</li>
+          <li>Backyard ↔ Hangout has no transition; the screen swaps. A 200ms fade covers a multitude of art-style differences.</li>
+          <li>The dedication card is the one transition that's genuinely well-staged (alpha + delayed-character reveal). Use that as the template.</li>
+        </ul>
+      </div>
+
+      <div class="card third">
+        <h4>Score / combo feedback</h4>
+        <ul>
+          <li>"+10 coins" floating text exists. Make it spring out, not float linearly.</li>
+          <li>Combo numbers should pulse + scale up with combo count, not stay the same size.</li>
+          <li>"Score" needs a tiny tick increment animation, not just a value swap.</li>
+          <li>Star results screen — all 3 stars should land sequentially with a small bounce (cozy, not grandiose). Today they likely all show at once.</li>
+        </ul>
+      </div>
+
+      <div class="card third">
+        <h4>Pet idle</h4>
+        <ul>
+          <li>Annie's hair sway, blink, breath are real and look great. Keep.</li>
+          <li>Obi's tail wag rate could vary by mood (waggy mood = fast, sleepy = slow swing).</li>
+          <li>Luna's ear twitch needs more idle variety — sometimes she should turn her head slowly, sometimes fast.</li>
+          <li>Both pets should occasionally <em>look at the cursor</em> when it's near. 30 minutes of work, huge personality dividend.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Audio</h4>
+        <ul>
+          <li><b>Procedural audio with mute persistence</b> — already done. Compliment.</li>
+          <li><b>Per-scene ambient loop</b> — hub vs. backyard differ. Minigames ideally each have their own (bath splash, walk neighborhood, window birds).</li>
+          <li><b>"audio.tinyChime()"</b> is everywhere — different actions deserve different chimes. Currently the tab change, panel close, and milestone reach all sound similar.</li>
+          <li><b>Pet vocals</b> — a single quiet bark/meow on pet, never on idle, would make the pets feel alive without becoming annoying.</li>
+          <li><b>Music box decoration</b> should actually <em>play</em> when activated — the name promises it, the audio system can deliver.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Particles</h4>
+        <ul>
+          <li>Heart particles on pet — confirmed in code, looks great.</li>
+          <li>Confetti on achievement unlock — should be cozier (drifting paper rather than colorful confetti).</li>
+          <li>Steam from the tub in Bath Time — the water is there, the steam isn't. Two curved rising lines, ~30% alpha, low priority but huge ambiance.</li>
+          <li>Snow / rain particles on the window during weather — already implemented? Verify with a snow-day capture.</li>
+          <li>Sun-dust motes during golden-hour weather and Luna's Nap — "premium cozy" particles, worth the spend.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 09 A11Y / READING ============ -->
+  <section id="a11y">
+    <div class="eyebrow">Section 09</div>
+    <h2>Reading, accessibility, edge cases</h2>
+    <p style="margin-top:8px;max-width:64ch">Annie should be able to play this with one hand, on a laptop, with the volume off, while petting an actual cat. Some of these are real bugs; others are lightweight wins.</p>
+
+    <div class="deep">
+      <div class="card">
+        <h4>Text contrast & size</h4>
+        <ul>
+          <li><b>"Goal:" pill on the bottom-left of the hub</b> — small, brown-on-cream, often half-clipped. WCAG: questionable. Bump size, anchor to safe area.</li>
+          <li><b>"← Go Inside" pill in the backyard</b> — fails contrast badly (sage on sage). Fix is the same as F4.</li>
+          <li><b>"A Cozy Minigame Collection" tagline</b> — light grey on cream. Bump weight or color.</li>
+          <li><b>"Click to begin early • Esc to go back" footnote</b> — tiny, on a colored bonus background. Increase size; or split into a button row.</li>
+          <li><b>HUD digits (Time, Score, Combo)</b> — Fredoka One is soft as a digit. A mono replacement (IBM Plex Mono / DM Mono / Recursive Mono) reads at 50% the size and twice the clarity.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Input</h4>
+        <ul>
+          <li><b>Mouse + keyboard + touch handled</b> — instructions branch on <code>isMobile</code>. Good.</li>
+          <li><b>No keyboard nav inside panels</b> — a keyboard-only player can't browse the Decor list.</li>
+          <li><b>Esc closes the topmost panel</b> — good. But the Esc behavior cascade through dedication → menu → decor → wardrobe → scrapbook → title-out is undocumented to the player.</li>
+          <li><b>No "are you sure" on quitting a minigame</b> — Esc dumps progress immediately. Mid-run protection: a soft confirmation chip "Esc again to leave."</li>
+          <li><b>Cuddle Pile uses ← / → keys</b> — modal says "Press LEFT and RIGHT" in words; show key glyphs.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>State edge cases</h4>
+        <ul>
+          <li><b>Empty scrapbook</b> — no photos, no milestones, no goals = blank tabs. Empty state for each tab.</li>
+          <li><b>First minigame play</b> — modal lands instantly. No "Hey, here's how stars work." beat. A 1-time tutorial chip ("3 stars → bonus coins") on the first run only.</li>
+          <li><b>0-score result</b> — what does the results screen say if you scored zero? "Maybe next time!" needs to feel like Annie's pets still love her, not a fail screen.</li>
+          <li><b>Day-1 player closes the dedication, then quits without playing a minigame</b> — coming back the next day, do they get the "away story"? Verify.</li>
+          <li><b>localStorage cleared between sessions</b> — the store keys default to <code>firstVisit: true</code>, joy: 54/56, etc. The dedication will re-show. Good. But all stars and money reset; no resilience to a corrupted save.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Reduced motion / sensitivity</h4>
+        <ul>
+          <li>No <code>prefers-reduced-motion</code> branch. Annie may be photo-sensitive after a long day. A toggle in a (currently nonexistent) Settings panel: dim the heart-particle confetti, slow the camera flash.</li>
+          <li>Camera flash on photo capture is a brief full-canvas white. Add a "low flash" option.</li>
+          <li>The dedication card hearts pulse continuously. Slow the pulse on reduced-motion.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 10 DEDICATION ============ -->
+  <section id="dedication">
+    <div class="eyebrow">Section 10</div>
+    <h2>The dedication card</h2>
+    <p style="margin-top:8px;max-width:68ch">This is the heart of the project, so it gets its own section. The current state is already <em>good</em>. Below are surgical changes that take it from "a sweet thing" to "the moment Annie remembers."</p>
+
+    <div class="deep">
+      <div class="card">
+        <h4>What it currently does (verified from source)</h4>
+        <ul>
+          <li class="love"><b>Triggered on first visit (<code>store.firstVisit</code>)</b>.</li>
+          <li class="love"><b>Fades up over 1.5s, then the three characters fade in 0.5s later</b> (<code>this.dedication.phase</code>).</li>
+          <li class="love"><b>Eight pulsing pink hearts</b> drift in a sine wave above the panel.</li>
+          <li class="love"><b>Title:</b> "Made with Love" / Subtitle: "for Annie, Obi, and Luna"</li>
+          <li class="love"><b>Annie in a "cheer" pose, Obi sitting happy, Luna sitting with a tail sway and ear twitch</b>.</li>
+          <li class="love"><b>A pulsing "Click anywhere to begin" prompt</b> at the bottom.</li>
+          <li><b>Esc <em>also</em> dismisses it</b> — and <em>also</em> sets <code>firstVisit = false</code>. Should it? Esc-dismiss feels cheap for a one-time moment.</li>
+          <li><b>Dismissal writes a Scrapbook entry</b> ("Played Annie's Cozy Day for the first time!") — perfect, keep.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4>Surgical improvements</h4>
+        <ul>
+          <li><b>The text is two lines.</b> It could be three: <em>For Annie. For Obi. For Luna.</em> Three separate fades, each character lit as their name appears. (Annie at "For Annie", Obi at "For Obi", Luna at "For Luna.")</li>
+          <li><b>"Click anywhere to begin" is corporate.</b> Replace with "<em>(turn the page)</em>" in italic small caps, or just nothing — a 4-second auto-progress.</li>
+          <li><b>Hearts</b> — currently 8 evenly-spaced floats. Replace with a small heart leaving Annie's hand and rising past the title.</li>
+          <li><b>The card itself</b> — a softer cream-white, with a faint paper texture and a hand-drawn border. The current rectangle reads as a UI panel; the moment wants to read as a card-on-a-table.</li>
+          <li><b>Disable Esc-dismiss until the 1.5s phase has elapsed</b> — already gated to <code>phase &gt;= 1.5</code> for click, but Esc bypasses (line 5354). Match.</li>
+          <li><b>Audio</b> — a single soft chord on entry, not the menu chime. <code>audio.tinyChime()</code> on dismiss is fine.</li>
+          <li><b>Once a year</b> — show this card again on the anniversary of first launch. (One-line check on game boot.) Tiny detail that turns a one-time moment into a tradition.</li>
+        </ul>
+      </div>
+
+      <div class="card full">
+        <h4>The line itself</h4>
+        <p style="font-family:'Newsreader',Georgia,serif;font-size:22px;color:var(--ink);font-style:italic;line-height:1.45;margin:8px 0 12px">"Made with Love · for Annie, Obi, and Luna"</p>
+        <p>It works. If you want to push it further, the current text is the only place in the whole game that breaks the "specific pet · specific action" voice from §7. That's correct for a dedication. Don't overthink it.</p>
+        <p>If you do want to extend, consider a third line under the names that moves with the cycling-subtitle voice:</p>
+        <ul>
+          <li class="love">"<em>The important things, mostly.</em>"</li>
+          <li class="love">"<em>Obi's bark, Luna's purr, Annie's morning.</em>"</li>
+          <li class="love">"<em>For all the cozy days.</em>"</li>
+        </ul>
+        <p>One line, italic, ~70% alpha. Don't pile on.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ============ 11 FIX LIST ============ -->
+  <section id="fixes">
+    <div class="eyebrow">Section 11</div>
+    <h2>What to fix, in order</h2>
+    <p style="margin-top:8px;max-width:64ch">Quick wins first — small code changes that visibly de-clunk the game. Medium = touches one system. Large = touches an art direction. <span class="sev love">heart</span> tags are emotionally significant and shouldn't be batched with the rest.</p>
+
+    <div class="fixes">
+      <div class="fix-row">
+        <div>id</div><div>effort</div><div>fix</div><div>area</div>
+      </div>
+
+      <!-- Quick wins -->
+      <div class="fix-row">
+        <div class="id">Q1</div><div class="effort s">small</div>
+        <div class="desc"><b>Stop the tab bar from clipping.</b>Reduce per-tab padding, rename "Wardrobe" → "Closet," collapse to a single accent for the active tab only. Drop Pet-red and Decor-purple.</div>
+        <div class="area">HangoutScene<br/>top tab row</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q2</div><div class="effort s">small</div>
+        <div class="desc"><b>16px safe-area gutter on every HUD widget.</b>Goal pill, Score pill, Longest counter, Cleared counter — none render outside the safe area.</div>
+        <div class="area">drawButton + HUD draws</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q3</div><div class="effort s">small</div>
+        <div class="desc"><b>Standardize top-right buttons.</b>One chip shape, same size, same padding. Sound + pause + (hub only) camera + scrapbook.</div>
+        <div class="area">drawSpeakerIcon, pauseIcon, cameraButton, scrapbookButton</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q4</div><div class="effort s">small</div>
+        <div class="desc"><b>Make "← Go Inside" visible in the backyard.</b>Cream-on-cocoa chip, top-left, anchored to safe area.</div>
+        <div class="area">BackyardScene.goInsideButton</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q5</div><div class="effort s">small</div>
+        <div class="desc"><b>Unify dim-overlay strength.</b>One scrim color (~55% cocoa) + small blur for every minigame intro.</div>
+        <div class="area">BaseMinigameScene.drawInstructions</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q6</div><div class="effort s">small</div>
+        <div class="desc"><b>Format Time as 0:42, label Score with mono caps.</b>Replace "Time: 63" with stacked label + mono digits.</div>
+        <div class="area">BaseMinigameScene HUD</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q7</div><div class="effort s">small</div>
+        <div class="desc"><b>Drop the "JavaScript" subtitle</b> from <code>TITLE_SUBTITLES</code>. Keep the rest of the rotation.</div>
+        <div class="area">TITLE_SUBTITLES (line 116)</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q8</div><div class="effort s">small</div>
+        <div class="desc"><b>Trim minigame instruction copy</b> to ≤ 8 words. "Click and drag to scrub! Click the tub to rinse! Drag to dry!" → "Drag to scrub. Tap to rinse. Drag to dry."</div>
+        <div class="area">12 BaseMinigameScene constructors</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q9</div><div class="effort s">small</div>
+        <div class="desc"><b>Bonus chip rewrite.</b>"Happy Pets Bonus +3s, +10% score" → "Obi & Luna are happy today. Bonus time."</div>
+        <div class="area">BaseMinigameScene</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q10</div><div class="effort s">small</div>
+        <div class="desc"><b>Fix "Round 0" → "Round 1"</b> (1-indexed). Same for any other 0-indexed counter the player sees.</div>
+        <div class="area">WheresLunaScene + grep</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q11</div><div class="effort s">small</div>
+        <div class="desc"><b>Drop "Lv.1" badge from the joy bar.</b>The pet level system is opaque; this badge adds noise without info.</div>
+        <div class="area">HangoutScene status pill</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q12</div><div class="effort s">small</div>
+        <div class="desc"><b>Esc-dismiss on dedication should respect the 1.5s phase gate.</b>Currently bypasses; click already gates correctly.</div>
+        <div class="area">HangoutScene.onKeyDown line 5354</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">Q13</div><div class="effort s">small</div>
+        <div class="desc"><b>Verify <code>roomPreset</code> max/labels off-by-one.</b>5 labels, max=4 — last label likely unreachable.</div>
+        <div class="area">DECOR_ITEMS roomPreset</div>
+      </div>
+
+      <!-- Medium -->
+      <div class="fix-row">
+        <div class="id">M1</div><div class="effort m">medium</div>
+        <div class="desc"><b>Rebuild the minigame intro modal.</b>Eyebrow + title + 1 body sentence + bonus chip + Start button + tiny meta line. Apply to all 12. Frame the gameplay scene <em>behind</em> the modal so no character gets sliced.</div>
+        <div class="area">BaseMinigameScene + each enter()</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M2</div><div class="effort m">medium</div>
+        <div class="desc"><b>Rebuild the hangout HUD as one widget.</b>Pill-tab row + status/coin/star pills + icon group, on a single safe-area band.</div>
+        <div class="area">HangoutScene draw</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M3</div><div class="effort m">medium</div>
+        <div class="desc"><b>Build the shared Panel component</b> (frame · tabs · card grid · close · empty state · lock chip). Refactor Game Menu, Decor, Wardrobe, Scrapbook to use it.</div>
+        <div class="area">new drawPanel() helper</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M4</div><div class="effort m">medium</div>
+        <div class="desc"><b>Surface daily tasks + weekly challenges.</b>Tiny "Today: 2/3" chip on hub HUD; full panel inside Scrapbook.</div>
+        <div class="area">HangoutScene + ScrapbookPanel</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M5</div><div class="effort m">medium</div>
+        <div class="desc"><b>Wardrobe = paper-doll.</b>Hero portrait of active character, item grid swaps live. Three painted character tabs at top.</div>
+        <div class="area">WardrobePanel</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M6</div><div class="effort m">medium</div>
+        <div class="desc"><b>Tab the Decor panel</b> (Room / Comfy Upgrades / Seasonal / Cozy Set). Add lock chips with required state.</div>
+        <div class="area">DecorPanel</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M7</div><div class="effort m">medium</div>
+        <div class="desc"><b>Repaint the floor bowls + cat-tower toy + window-watch leaf icon + Where's-Luna "?"</b>Replace iconographic placeholders with painted/atlas equivalents matching the pet sprites.</div>
+        <div class="area">drawLivingRoom + minigame props</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M8</div><div class="effort m">medium</div>
+        <div class="desc"><b>Pawstep targets become circular pet faces.</b>Replace 2×2 form buttons with Obi/Luna head circles.</div>
+        <div class="area">PawstepPatternsScene</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M9</div><div class="effort m">medium</div>
+        <div class="desc"><b>Streak surfacing.</b>Show streak count on the title screen; ribbon/celebrate at 7/14/30 day milestones.</div>
+        <div class="area">TitleScene + careStreak hook</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">M10</div><div class="effort m">medium</div>
+        <div class="desc"><b>Welcome banner rotation.</b>Replace the static "Welcome home!" with mood-aware rotation (15+ lines in the Decor-Reaction voice).</div>
+        <div class="area">HangoutScene welcome</div>
+      </div>
+
+      <!-- Heart-tagged -->
+      <div class="fix-row">
+        <div class="id">H1</div><div class="effort m">medium <span class="sev love">heart</span></div>
+        <div class="desc"><b>Polish the dedication card.</b>Three-line reveal ("For Annie. For Obi. For Luna."), heart leaving Annie's hand, soft chord on entry, paper-card frame, anniversary re-trigger. (See §10.)</div>
+        <div class="area">HangoutScene drawDedication path</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">H2</div><div class="effort s">small <span class="sev love">heart</span></div>
+        <div class="desc"><b>"Maximum Cozy" win-state hero shot.</b>2-second pause on the all-three-asleep tableau in Cuddle Pile before results.</div>
+        <div class="area">CuddlePileScene win path</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">H3</div><div class="effort s">small <span class="sev love">heart</span></div>
+        <div class="desc"><b>"Dedicated Caretaker" reveal at 30 days.</b>Full-screen ribbon, character cheer pose, single chime, scrapbook entry written as a sentence not a log line.</div>
+        <div class="area">care-streak milestone path</div>
+      </div>
+
+      <!-- Large -->
+      <div class="fix-row">
+        <div class="id">L1</div><div class="effort l">large</div>
+        <div class="desc"><b>Repaint placeholder props</b> — backyard tree, hangout bookshelf, picture frame, fence, window clouds, walk-mode neighborhood houses, bath tile, Pillow Pop pillows. Either paint up to the pet level, or choose a uniform low-fi cozy style and bring everything down to it. The system matters more than the level.</div>
+        <div class="area">drawLivingRoom · drawBackyard · ObiWalkScene · BathTimeScene · PillowPopScene</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">L2</div><div class="effort l">large</div>
+        <div class="desc"><b>Frame minigames so the backdrop isn't accidentally sliced.</b>Each minigame's instruction state gets a "behind-modal" composition (no half-Annie, no sliver-Luna, no floating asset preview).</div>
+        <div class="area">All 12 minigame enter()</div>
+      </div>
+      <div class="fix-row">
+        <div class="id">L3</div><div class="effort l">large</div>
+        <div class="desc"><b>Shared HUD type system.</b>Add a humanist sans for body and a mono for digits. Keep Fredoka for display only. Touches every scene.</div>
+        <div class="area">font loader + draw helpers</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- close -->
+  <section>
+    <div class="eyebrow">Section 12</div>
+    <h2>One last note</h2>
+    <div class="next">
+      <p>The thing I want to say in plain English, with all the audit jargon turned off:</p>
+      <p style="font-family:'Newsreader',Georgia,serif;font-size:19px;color:var(--ink);line-height:1.55;margin:14px 0">This game already has the part that's hardest to fake. The pets are alive. The dedication is real. The streak system <em>knows what it's for</em>. Most of the fixes above are about getting the chrome out of the way of what's already there — they're not "make the game better," they're "stop the UI from talking over the game."</p>
+      <p style="font-family:'Newsreader',Georgia,serif;font-size:19px;color:var(--ink);line-height:1.55;margin:14px 0">If you do nothing else, do <b>Q1, Q4, Q5, Q6, Q7, Q9, Q11, Q12</b> in an evening. That's eight one-line edits and it cleans up 70% of what makes this look unfinished. Then keep going on M1, M2, M3 over a weekend. Save L1 for when you have a free Saturday and a coffee.</p>
+      <p style="font-family:'Newsreader',Georgia,serif;font-size:19px;color:var(--ink);line-height:1.55;margin:14px 0">And whatever you do, keep the dedication card. That's the whole reason this exists.</p>
+      <ul>
+        <li><b>A.</b> Take Q1–Q13 as a single source patch — I'll write the diffs against <code>annies-cozy-day-test.html</code>.</li>
+        <li><b>B.</b> Build a clickable HTML mock of the new HUD + minigame intro modal first, before touching the canvas code, so you can feel the new system.</li>
+        <li><b>C.</b> Build the shared Panel component (M3) and refactor one panel (Decor or Wardrobe) as a proof-of-concept.</li>
+        <li><b>D.</b> Polish only the dedication / win-state / streak-milestone moments (H1–H3) — the heart tier first.</li>
+        <li><b>E.</b> Repaint pass on the placeholder props (L1) — single biggest art-direction win, but the slowest.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

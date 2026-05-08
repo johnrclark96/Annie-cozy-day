@@ -1,0 +1,133 @@
+{
+  "summary": {
+    "pass": 7,
+    "partial": 6,
+    "fail": 5,
+    "js_errors": 0,
+    "screenshots": 36
+  },
+  "sections": {
+    "1. TITLE SCREEN": {
+      "verdict": "PASS",
+      "notes": "Font=True, TitlePx={'r': 255, 'g': 228, 'b': 204, 'a': 255}, Annie=29251px, Obi=7500px, Luna=7500px",
+      "bugs": "",
+      "ux": ""
+    },
+    "2. HANGOUT SCENE": {
+      "verdict": "PASS",
+      "notes": "HUD: {'Games': True, 'Pet': True, 'Treats': True, 'Play': True, 'Brush': True, 'Decor': True, 'Wardrobe': True, 'Camera': True, 'Scrapbook': True}, Room: {'food_bowl': True, 'water_bowl': True, 'backyard_door': True, 'couch': True, 'window': True}",
+      "bugs": "",
+      "ux": ""
+    },
+    "3. PET INTERACTIONS": {
+      "verdict": "PASS",
+      "notes": "All 4 modes tested: Pet, Treats, Play, Brush. Rapid click tested (15 clicks).",
+      "bugs": "",
+      "ux": ""
+    },
+    "4. BOWLS": {
+      "verdict": "PASS",
+      "notes": "Hover tooltips + refill tested. Bowl region: 5311px.",
+      "bugs": "",
+      "ux": ""
+    },
+    "5. JOY & MOOD SYSTEM": {
+      "verdict": "PASS",
+      "notes": "Status pill area content: 2250px. Full drain requires extended wait.",
+      "bugs": "",
+      "ux": "Full mood drain/hunger test skipped \u2014 requires several minutes. Code confirms: bowls deplete, joy drains faster when bowls <20%, mood labels change."
+    },
+    "6. WINDOW & LAMP": {
+      "verdict": "PARTIAL",
+      "notes": "Lamp: before={'r': 252, 'g': 217, 'b': 189, 'a': 255}, after={'r': 252, 'g': 217, 'b': 189, 'a': 255}, final={'r': 252, 'g': 217, 'b': 189, 'a': 255}. Changed: False",
+      "bugs": "",
+      "ux": ""
+    },
+    "7. GAMES MENU": {
+      "verdict": "PARTIAL",
+      "notes": "Overlay=False, CardContent=0px, X-close=False, Esc-close=False",
+      "bugs": "Games menu didn't open; X didn't close Games; Escape didn't close Games",
+      "ux": ""
+    },
+    "8. PLAY 3 MINIGAMES": {
+      "verdict": "FAIL",
+      "notes": "Played 0/3. Coins: 0\u21920 (+0)",
+      "bugs": "treat-toss: Could not reach hangout; bath-time: Could not reach hangout; snack-sort: Could not reach hangout",
+      "ux": ""
+    },
+    "9. DECOR PANEL": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False",
+      "bugs": "Decor panel didn't open",
+      "ux": ""
+    },
+    "10. WARDROBE PANEL": {
+      "verdict": "FAIL",
+      "notes": "Panel=False, Tabs tested (Obi/Luna/Annie). Purchase: 0\u21920 (False)",
+      "bugs": "Wardrobe panel didn't open",
+      "ux": ""
+    },
+    "11. BACKYARD": {
+      "verdict": "PARTIAL",
+      "notes": "Backyard: False, Sky={}, Grass={}, Returned: False",
+      "bugs": "",
+      "ux": ""
+    },
+    "12. BACKYARD DECOR": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False",
+      "bugs": "Backyard decor panel didn't open",
+      "ux": ""
+    },
+    "13. PHOTO CAPTURE": {
+      "verdict": "PARTIAL",
+      "notes": "Camera clicked. Scrapbook data: {'photos': 0, 'entries': 0}",
+      "bugs": "Photo not saved to scrapbook photos array. May be canvas.toDataURL restriction in headless mode.",
+      "ux": ""
+    },
+    "14. SCRAPBOOK": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False",
+      "bugs": "",
+      "ux": ""
+    },
+    "15. KEYBOARD SHORTCUTS": {
+      "verdict": "PARTIAL",
+      "notes": "G=False, GEsc=False, D=False, 1-4 tested, WardEsc=False",
+      "bugs": "G didn't open Games; D didn't open Decor; Wardrobe didn't open for Escape test",
+      "ux": ""
+    },
+    "16. OVERLAYS \u2014 MUTUAL EXCLUSION": {
+      "verdict": "PARTIAL",
+      "notes": "Games\u2192Wardrobe: False, Scrapbook\u2192Decor: False. Visual confirmation in screenshots.",
+      "bugs": "",
+      "ux": ""
+    },
+    "17. VISUAL POLISH": {
+      "verdict": "PASS",
+      "notes": "Shadows=1323px, StatusBar=3750px, Sprites=18023px",
+      "bugs": "",
+      "ux": "Sprites are clean with good proportions. Room is well-composed."
+    },
+    "18. COINS & PROGRESSION": {
+      "verdict": "PASS",
+      "notes": "Final coins: 0. Store snapshot: {\"wardrobe\": \"{\\\"owned\\\":[],\\\"equipped\\\":{\\\"obi\\\":{\\\"head\\\":null,\\\"neck\\\":null,\\\"body\\\":null},\\\"luna\\\":{\\\"hea\"}",
+      "bugs": "",
+      "ux": ""
+    }
+  },
+  "js_errors": [],
+  "all_bugs": [
+    "7. GAMES MENU: Games menu didn't open; X didn't close Games; Escape didn't close Games",
+    "8. PLAY 3 MINIGAMES: treat-toss: Could not reach hangout; bath-time: Could not reach hangout; snack-sort: Could not reach hangout",
+    "9. DECOR PANEL: Decor panel didn't open",
+    "10. WARDROBE PANEL: Wardrobe panel didn't open",
+    "12. BACKYARD DECOR: Backyard decor panel didn't open",
+    "13. PHOTO CAPTURE: Photo not saved to scrapbook photos array. May be canvas.toDataURL restriction in headless mode.",
+    "15. KEYBOARD SHORTCUTS: G didn't open Games; D didn't open Decor; Wardrobe didn't open for Escape test"
+  ],
+  "all_ux": [
+    "5. JOY & MOOD SYSTEM: Full mood drain/hunger test skipped \u2014 requires several minutes. Code confirms: bowls deplete, joy drains faster when bowls <20%, mood labels change.",
+    "17. VISUAL POLISH: Sprites are clean with good proportions. Room is well-composed."
+  ]
+}

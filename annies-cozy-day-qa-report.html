@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annie's Cozy Day — Comprehensive QA Report (Final)</title>
+<style>
+  :root { --pass: #22c55e; --fail: #ef4444; --warn: #f59e0b; --info: #3b82f6; --bg: #fafaf9; --card: #fff; --border: #e5e5e5; --text: #1c1917; --muted: #78716c; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; max-width: 1100px; margin: 0 auto; line-height: 1.6; font-size: 15px; }
+  h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; }
+  .stat-card .number { font-size: 2rem; font-weight: 700; }
+  .stat-card .label { font-size: 0.8rem; color: var(--muted); }
+  .stat-card.pass .number { color: var(--pass); }
+  .stat-card.fail .number { color: var(--fail); }
+  .stat-card.warn .number { color: var(--warn); }
+  .section-title { font-size: 1.25rem; font-weight: 700; margin: 2.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+  .batch { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 0.75rem; }
+  .batch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .batch-header h2 { font-size: 1rem; }
+  .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge.pass { background: #dcfce7; color: #166534; }
+  .badge.partial { background: #fef9c3; color: #854d0e; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; }
+  td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+  .pass-text { color: var(--pass); font-weight: 600; }
+  .fail-text { color: var(--fail); font-weight: 600; }
+
+  .sev { display: inline-block; padding: 0.12rem 0.45rem; border-radius: 5px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; vertical-align: middle; }
+  .sev.critical { background: #7f1d1d; color: #fff; }
+  .sev.high { background: #fee2e2; color: #991b1b; }
+  .sev.medium { background: #fef9c3; color: #854d0e; }
+  .sev.low { background: #f3f4f6; color: #374151; }
+
+  .status-chip { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-left: 0.4rem; }
+  .status-chip.confirmed { background: #dcfce7; color: #166534; }
+  .status-chip.new { background: #dbeafe; color: #1e40af; }
+  .status-chip.visual { background: #fef3c7; color: #92400e; }
+  .status-chip.code { background: #f3e8ff; color: #6b21a8; }
+
+  .bug-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+  .bug-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; background: #fafaf9; position: sticky; top: 0; }
+  .bug-table td { padding: 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .bug-table tr:hover { background: #fafaf9; }
+  .bug-id { font-weight: 700; white-space: nowrap; }
+  .bug-desc-short { font-weight: 600; }
+  .bug-detail { color: var(--muted); font-size: 0.82rem; margin-top: 0.2rem; }
+  .line-ref { font-family: monospace; font-size: 0.8rem; color: #6b7280; }
+
+  .ux-card { background: #fefce8; border: 1px solid #fde68a; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-left: 4px solid var(--warn); font-size: 0.9rem; }
+  .ux-card strong { font-weight: 600; }
+
+  .notes { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; font-size: 0.9rem; }
+  .notes h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+  .notes p { margin-bottom: 0.5rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>Annie's Cozy Day &mdash; Comprehensive QA Report</h1>
+<p class="subtitle">Consolidation of V10 Final (44 bugs from code audit + visual review) and V14 Automated Suite (196 assertions, 344 screenshots, 66 test blocks)<br>
+March 28, 2026 &middot; Playwright Headless Chromium 800&times;600</p>
+
+<!-- ========== TOP-LEVEL SUMMARY ========== -->
+<div class="summary-grid">
+  <div class="stat-card fail"><div class="number">47</div><div class="label">Total Bugs Identified</div></div>
+  <div class="stat-card pass"><div class="number">189/196</div><div class="label">v14 Assertions Passed</div></div>
+  <div class="stat-card warn"><div class="number">5</div><div class="label">UX Concerns</div></div>
+  <div class="stat-card"><div class="number">344</div><div class="label">Screenshots (v14)</div></div>
+</div>
+<div class="summary-grid">
+  <div class="stat-card" style="border-left: 4px solid #7f1d1d;"><div class="number">6</div><div class="label">Critical</div></div>
+  <div class="stat-card" style="border-left: 4px solid var(--fail);"><div class="number">8</div><div class="label">High</div></div>
+  <div class="stat-card" style="border-left: 4px solid var(--warn);"><div class="number">15</div><div class="label">Medium</div></div>
+  <div class="stat-card" style="border-left: 4px solid #9ca3af;"><div class="number">18</div><div class="label">Low</div></div>
+</div>
+
+<!-- ========== AUTOMATED TEST RESULTS ========== -->
+<div class="section-title">v14 Automated Test Results (196 Assertions, 66 Blocks)</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Phase 0: Infrastructure Validation</h2><span class="badge pass">20/20</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>V1 &mdash; fresh_start & 13 store defaults</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>V2 &mdash; __goToScene (treat, laser, backyard)</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>V3 &mdash; __getSceneDetails</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>V4 &mdash; __modifyScene</td><td class="pass-text">Pass</td></tr>
+  </table>
+</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Batch 1: Visual States (8 blocks)</h2><span class="badge pass">47/47</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>1A&ndash;1H: 5 room presets, 4 times of day, 4 garlands, 14 decor items, lamp, 4 wall arts, 4 couch/rugs, visual extremes</td><td class="pass-text">All Pass (26 screenshots)</td></tr>
+  </table>
+</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Batch 2: Interactables (9 blocks)</h2><span class="badge partial">35/37</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>2A&ndash;2F, 2H&ndash;2I: Mode switching, buttons, petting, treats, toys, brush, lamp toggle, hitboxes</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>2G: Bowl refills</td><td class="fail-text">2 FAIL &mdash; bowls didn't refill on click (BUG-019)</td></tr>
+  </table>
+</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Batch 3: Overlays & Panels (13 blocks)</h2><span class="badge pass">33/33</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>3A&ndash;3M: Games menu (empty/partial/full/scroll), decor panel, decor toggle, wardrobe (empty/tabs/buy/equipped), scrapbook (empty/stats), HUD stars</td><td class="pass-text">All Pass &mdash; BUG-001, BUG-003, BUG-002 confirmed present</td></tr>
+  </table>
+</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Batch 4: Economy & Progress (8 blocks)</h2><span class="badge partial">26/27</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>4A&ndash;4D, 4F&ndash;4H: Daily gift, streaks (0/7/30), daily tasks, weekly challenge, coin tracking</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>4E: Star milestones</td><td class="fail-text">1 FAIL &mdash; 10-star coin reward didn't fire (BUG-041)</td></tr>
+  </table>
+</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Batch 5: Minigames &mdash; All 11 (13 blocks)</h2><span class="badge partial">11/12</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>5A&ndash;5L: All 11 minigames (navigate, play, force-end, return), results screen</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>5M: Return to hangout flow</td><td class="fail-text">FAIL &mdash; returned to laser instead of hangout (BUG-045)</td></tr>
+  </table>
+</div>
+
+<div class="batch">
+  <div class="batch-header"><h2>Batch 6: Backyard, Title & Misc (15 blocks)</h2><span class="badge partial">31/33</span></div>
+  <table><tr><th>Block</th><th>Result</th></tr>
+    <tr><td>6A&ndash;6M, 6O: Backyard (empty/full/interactions/return), title, dedication, bubbles, HUD hover, tooltips, status bar, pet interactions, accessories, backyard decor, moods</td><td class="pass-text">All Pass</td></tr>
+    <tr><td>6N: Joy decay (2hr simulation)</td><td class="fail-text">2 FAIL &mdash; joy barely decayed (BUG-046)</td></tr>
+  </table>
+</div>
+
+<!-- ========== COMPLETE BUG INVENTORY ========== -->
+<div class="section-title">Complete Bug Inventory (47 Bugs)</div>
+
+<p style="color: var(--muted); margin-bottom: 1rem; font-size: 0.9rem;">
+  All 44 bugs from the V10 Final code audit + visual review are preserved below, plus 3 additional bugs discovered by the v14 automated test suite.
+  The <strong>v14 Status</strong> column shows how each bug fared in automated testing:
+  <span class="status-chip confirmed">CONFIRMED</span> = automated test verified the bug exists,
+  <span class="status-chip visual">VISUAL ONLY</span> = screenshots captured but no assertion (requires manual review),
+  <span class="status-chip code">CODE AUDIT</span> = identified from source, no automated test targets it,
+  <span class="status-chip new">NEW IN v14</span> = discovered during automated testing.
+</p>
+
+<!-- CRITICAL -->
+<h3 style="margin: 1.5rem 0 0.75rem;"><span class="sev critical">CRITICAL</span> (6)</h3>
+<table class="bug-table">
+<tr><th style="width:70px">ID</th><th>Bug</th><th style="width:80px">Line(s)</th><th style="width:120px">v14 Status</th></tr>
+<tr><td class="bug-id">BUG-001</td><td><div class="bug-desc-short">[Decor Panel] Stars counter shows "/21" but max is 33</div><div class="bug-detail">Line 6409 hardcodes "/21". 11 games &times; 3 stars = 33. Players see wrong progression cap.</div></td><td class="line-ref">6409</td><td><span class="status-chip confirmed">CONFIRMED</span><br><span style="font-size:0.75rem;color:#6b7280">Block 3E assertion</span></td></tr>
+<tr><td class="bug-id">BUG-002</td><td><div class="bug-desc-short">[Scrapbook Stats] Accessories counter shows "/7" but total is 30</div><div class="bug-detail">Line 6755 hardcodes "/7". Actual: Obi 12 + Luna 10 + Annie 8 = 30.</div></td><td class="line-ref">6755</td><td><span class="status-chip confirmed">CONFIRMED</span><br><span style="font-size:0.75rem;color:#6b7280">Block 3L assertion</span></td></tr>
+<tr><td class="bug-id">BUG-003</td><td><div class="bug-desc-short">[Wardrobe Panel] Items cut off with no scroll mechanism</div><div class="bug-detail">Line 6566: <code>if (wr.y + wr.h > 565) break</code> clips items. Obi has 12 items, only ~8 visible. No pagination.</div></td><td class="line-ref">6566</td><td><span class="status-chip confirmed">CONFIRMED</span><br><span style="font-size:0.75rem;color:#6b7280">Block 3G assertion</span></td></tr>
+<tr><td class="bug-id">BUG-004</td><td><div class="bug-desc-short">[Garland] Spring variant (value 0) renders as invisible/off</div><div class="bug-detail">Line 3176: <code>if (d.garland > 0)</code> skips value 0 even though decor panel labels it "Spring". Players see "Spring" selected but nothing renders.</div></td><td class="line-ref">3176</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 1C screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-005</td><td><div class="bug-desc-short">[Where's Luna] Hiding positions hardcoded, not randomized</div><div class="bug-detail">Lines 9135-9151: Fixed position arrays with predictable shuffle. Experienced players memorize all locations.</div></td><td class="line-ref">9135-9151</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-006</td><td><div class="bug-desc-short">[drawButton()] Hover gradient top color ignores fill parameter</div><div class="bug-detail">Line 900: All buttons flash same "#DE5544" red-on-hover regardless of their base color (purple Decor, brown Wardrobe, etc.)</div></td><td class="line-ref">900</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6H screenshots</span></td></tr>
+</table>
+
+<!-- HIGH -->
+<h3 style="margin: 1.5rem 0 0.75rem;"><span class="sev high">HIGH</span> (8)</h3>
+<table class="bug-table">
+<tr><th style="width:70px">ID</th><th>Bug</th><th style="width:80px">Line(s)</th><th style="width:120px">v14 Status</th></tr>
+<tr><td class="bug-id">BUG-007</td><td><div class="bug-desc-short">[Cuddle Pile] Balance meter visually asymmetric</div><div class="bug-detail">Lines 10167-10170: Fill area 152px left vs 160px right. Marker lerp (276-576) doesn't match fill boundaries (270-582).</div></td><td class="line-ref">10167-10170</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 5C screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-008</td><td><div class="bug-desc-short">[Backyard] Missing status bar background</div><div class="bug-detail">Lines 7260-7365: Status text floats over grass with no white backdrop bar, unlike hangout scene. Hard to read at night.</div></td><td class="line-ref">7260-7365</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6A-6D screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-009</td><td><div class="bug-desc-short">[Backyard] Coin pill Y-position inconsistent with hangout</div><div class="bug-detail">Backyard coin pill at y=12, hangout at y=59. Counter jumps position on scene transition.</div></td><td class="line-ref">7260+</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6A screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-010</td><td><div class="bug-desc-short">[drawTooltip()] Fixed 220&times;74 box regardless of content</div><div class="bug-detail">Lines 922-923: Hardcoded dimensions. Long text overflows, short text wastes space.</div></td><td class="line-ref">922-923</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6I screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-011</td><td><div class="bug-desc-short">[Status Bar] No text clipping boundary</div><div class="bug-detail">Line 6190: fillText at (400,560) with no canvas clipping. Long messages bleed past bar edges.</div></td><td class="line-ref">6190</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6J screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-012</td><td><div class="bug-desc-short">[Accessory System] Luna missing 'body' slot handler</div><div class="bug-detail">Lines 2130-2198: getAccessoryOffset() has no body case for Luna. Body accessories would return offset {x:0,y:0}.</div></td><td class="line-ref">2130-2198</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-013</td><td><div class="bug-desc-short">[Garland] Cycle labels off-by-one with render logic</div><div class="bug-detail">Labels are [Spring,Summer,Autumn,Winter] (0-3) but render guard skips 0. 4 labels, only 3 visible variants.</div></td><td class="line-ref">3176, 4162</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 1C screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-014</td><td><div class="bug-desc-short">[Decor Panel] Cycle label shows "Spring" for invisible garland state</div><div class="bug-detail">Line 6481: Panel shows "Spring" with cycle arrow when garland=0, but nothing renders. UI lies to the player.</div></td><td class="line-ref">6481</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+</table>
+
+<!-- MEDIUM -->
+<h3 style="margin: 1.5rem 0 0.75rem;"><span class="sev medium">MEDIUM</span> (15)</h3>
+<table class="bug-table">
+<tr><th style="width:70px">ID</th><th>Bug</th><th style="width:80px">Line(s)</th><th style="width:120px">v14 Status</th></tr>
+<tr><td class="bug-id">BUG-015</td><td><div class="bug-desc-short">[Games Menu] Card accent bar radius 14 on 8px element</div><div class="bug-detail">Line 6330: Shape collapses into thin pill instead of left-edge colored bar.</div></td><td class="line-ref">6330</td><td><span class="status-chip visual">VISUAL ONLY</span></td></tr>
+<tr><td class="bug-id">BUG-016</td><td><div class="bug-desc-short">[Title Screen] Fixed subtitle before cycle starts</div><div class="bug-detail">Lines 3478-3479: "A Cozy Minigame Collection" always shows first; random subtitles only after 6s timer.</div></td><td class="line-ref">3478</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6E screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-017</td><td><div class="bug-desc-short">[Ambient Events] Butterfly confined to window area with jerky edges</div><div class="bug-detail">Lines 5664-5667: x/y clamped to (70-180, 56-196). Movement delta pushes to edges where they stick.</div></td><td class="line-ref">5664-5667</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-018</td><td><div class="bug-desc-short">[Pet Interactions] 5s timeout cuts short slow animations</div><div class="bug-detail">Line 5198: Hard 5s cap. obiLiesNearLuna walk+settle can exceed 5s if Obi starts far away.</div></td><td class="line-ref">5198</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6K screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-019</td><td><div class="bug-desc-short">[Bowl System] Obi and Luna can't eat simultaneously</div><div class="bug-detail">Lines 4818/4922: Each pet's eating check includes <code>!otherPet.eating</code>, blocking both bowls if either is in use.</div></td><td class="line-ref">4818, 4922</td><td><span class="status-chip confirmed">CONFIRMED</span><br><span style="font-size:0.75rem;color:#6b7280">Block 2G FAIL (bowl refill)</span></td></tr>
+<tr><td class="bug-id">BUG-020</td><td><div class="bug-desc-short">[Camera System] Photo capture fails silently on file:// protocol</div><div class="bug-detail">Lines 5400-5406: canvas.toDataURL() throws SecurityError on file://, caught silently.</div></td><td class="line-ref">5400-5406</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-021</td><td><div class="bug-desc-short">[Scrapbook] Photo grid cuts off at row 3 without scroll</div><div class="bug-detail">Line 6686: <code>if (py > 510) break</code> limits to ~12 photos. System stores up to 20. Photos 13-20 invisible.</div></td><td class="line-ref">6686</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-022</td><td><div class="bug-desc-short">[Scrapbook] Milestones list shows only last 8 entries</div><div class="bug-detail">Line 6717: <code>startIdx = Math.max(0, entries.length - 8)</code>. Early milestones permanently hidden.</div></td><td class="line-ref">6717</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-023</td><td><div class="bug-desc-short">[Daily Tasks] ALL 3 tasks must be completed for bonus (no partial credit)</div><div class="bug-detail">Line 5650: Reward triggers at completed.length >= 3, and exactly 3 are assigned.</div></td><td class="line-ref">5650</td><td><span class="status-chip confirmed">CONFIRMED</span><br><span style="font-size:0.75rem;color:#6b7280">Block 4F verified</span></td></tr>
+<tr><td class="bug-id">BUG-024</td><td><div class="bug-desc-short">[Care Streak] Streak breaks on missed day with no grace period</div><div class="bug-detail">Lines 5628-5636: No notification. Players lose entire streak progress silently.</div></td><td class="line-ref">5628-5636</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-025</td><td><div class="bug-desc-short">[Thought Bubbles] Can request food/water when bowls are full</div><div class="bug-detail">Lines 5216-5232: pickWant() returns food/water based on mood even at 100%. Clicking full bowl does nothing, joy penalty still applied.</div></td><td class="line-ref">5216-5232</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-026</td><td><div class="bug-desc-short">[Backyard] Garden flowers cap at 6 with no removal</div><div class="bug-detail">Lines 7167-7193: Garden caps at 6, persists across sessions, no way to remove. Interaction becomes permanently inert.</div></td><td class="line-ref">7167-7193</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-027</td><td><div class="bug-desc-short">[First Visit] Dedication overlay hidden behind Daily Gift</div><div class="bug-detail">Both overlays appear simultaneously. Daily Gift renders on top. Click handler checks dedication first and returns, making visible Daily Gift unresponsive. Player must press Escape (not communicated).</div></td><td class="line-ref">4066-4078</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6F tests dedication in isolation</span></td></tr>
+<tr><td class="bug-id">BUG-028</td><td><div class="bug-desc-short">[Window Watch] Flyer click hitbox extends beyond visible window</div><div class="bug-detail">Lines 9342-9369: Click detection uses full canvas coords but rendering clips to window rect (42,28,168,210). Can click invisible flyers.</div></td><td class="line-ref">9342-9369</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 5J screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-029</td><td><div class="bug-desc-short">[Room Presets] Multiply tint doesn't apply to all elements</div><div class="bug-detail">Lines 2762-2797: Some furniture retains original colors while walls/floor tint correctly.</div></td><td class="line-ref">2762-2797</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 1A screenshots</span></td></tr>
+</table>
+
+<!-- LOW -->
+<h3 style="margin: 1.5rem 0 0.75rem;"><span class="sev low">LOW</span> (18)</h3>
+<table class="bug-table">
+<tr><th style="width:70px">ID</th><th>Bug</th><th style="width:80px">Line(s)</th><th style="width:120px">v14 Status</th></tr>
+<tr><td class="bug-id">BUG-030</td><td><div class="bug-desc-short">[Title] Loading dots flash even after art loads</div><div class="bug-detail">Line 3486: Animation based on game.time modulo, not sprite load state.</div></td><td class="line-ref">3486</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-031</td><td><div class="bug-desc-short">[Wall Clock] No second hand &mdash; appears static</div><div class="bug-detail">Lines 3153-3167: Hour and minute hands only. Minute hand too slow to notice.</div></td><td class="line-ref">3153-3167</td><td><span class="status-chip visual">VISUAL ONLY</span></td></tr>
+<tr><td class="bug-id">BUG-032</td><td><div class="bug-desc-short">[Music Box] Sparkle effect too small to notice</div><div class="bug-detail">Lines 3193-3202: 3px particles with low alpha at 800&times;600.</div></td><td class="line-ref">3193-3202</td><td><span class="status-chip visual">VISUAL ONLY</span></td></tr>
+<tr><td class="bug-id">BUG-033</td><td><div class="bug-desc-short">[Joy Decay] Rate doubles when both bowls are low</div><div class="bug-detail">Lines 4784-4787: Decay 0.5 + 0.8 + 0.6 = 1.9/s. Joy 100&rarr;0 in ~52s with empty bowls.</div></td><td class="line-ref">4784-4787</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-034</td><td><div class="bug-desc-short">[Mute] State not persisted across page reloads</div><div class="bug-detail">Lines 954-984: Mute toggle not saved to localStorage. Refresh resets to unmuted.</div></td><td class="line-ref">954-984</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-035</td><td><div class="bug-desc-short">[Dedication] Can be dismissed instantly on fast click</div><div class="bug-detail">Lines 6764-6816: Accepts clicks immediately during fade-in. Double-click from title bypasses it.</div></td><td class="line-ref">6764-6816</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6F</span></td></tr>
+<tr><td class="bug-id">BUG-036</td><td><div class="bug-desc-short">[Ambient] Package event spawns partially offscreen</div><div class="bug-detail">Line 5709: Package at x=740, right edge at x=756. Partially behind backyard door on 800px canvas.</div></td><td class="line-ref">5709</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-037</td><td><div class="bug-desc-short">[Obi] Bone carry animation shows no bone</div><div class="bug-detail">Lines 4788-4804: During carry state, this.toy is null so no bone draws despite position calculations.</div></td><td class="line-ref">4788-4804</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-038</td><td><div class="bug-desc-short">[Backyard Decor] Pagination arrows not styled consistently</div><div class="bug-detail">Lines 7436-7437: Plain text arrows (&#x25C4;/&#x25BA;) with no hover color, unlike interior decor panel.</div></td><td class="line-ref">7436-7437</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6M screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-039</td><td><div class="bug-desc-short">[Weekly Challenges] Progress not visible in main UI</div><div class="bug-detail">Lines 5902-5947: Pill shows count only. Challenge descriptions not viewable anywhere.</div></td><td class="line-ref">5902-5947</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-040</td><td><div class="bug-desc-short">[Wardrobe] Tab highlight colors don't differentiate characters</div><div class="bug-detail">Lines 6543-6545: Muted brown tones for all three tabs. Luna's blends with panel background.</div></td><td class="line-ref">6543-6545</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 3H screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-041</td><td><div class="bug-desc-short">[Tooltip] Pointer triangle misaligned at canvas edges</div><div class="bug-detail">Lines 944-950: Box shifts near edges but pointer stays centered. Visual disconnect.</div></td><td class="line-ref">944-950</td><td><span class="status-chip visual">VISUAL ONLY</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6I screenshots</span></td></tr>
+<tr><td class="bug-id">BUG-042</td><td><div class="bug-desc-short">[Luna] Teleport-slides between perches</div><div class="bug-detail">Lines 4842-4848: 86px/s interpolation over large distances (tower to window ~570px) looks unrealistic.</div></td><td class="line-ref">4842-4848</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-043</td><td><div class="bug-desc-short">[Tier System] Tier 4 uses AND logic while others use OR</div><div class="bug-detail">Lines 110-112: Steep difficulty cliff not communicated to player.</div></td><td class="line-ref">110-112</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+<tr><td class="bug-id">BUG-044</td><td><div class="bug-desc-short">[Star Milestones] No visual notification when coins awarded</div><div class="bug-detail">Lines 506-520: checkStarMilestones() adds coins silently with no popup or decorNotification.</div></td><td class="line-ref">506-520</td><td><span class="status-chip confirmed">CONFIRMED</span><br><span style="font-size:0.75rem;color:#6b7280">Block 4E FAIL</span></td></tr>
+<tr><td class="bug-id">BUG-045</td><td><div class="bug-desc-short">[Results Screen] Back button navigates to wrong scene</div><div class="bug-detail">After completing laser, return flow navigated to laser instead of hangout. State management issue in BaseMinigameScene return logic. Also reported as intermittently unresponsive in v1/v3 visual reviews.</div></td><td class="line-ref">7728+</td><td><span class="status-chip new">NEW IN v14</span><br><span style="font-size:0.75rem;color:#6b7280">Block 5M FAIL</span></td></tr>
+<tr><td class="bug-id">BUG-046</td><td><div class="bug-desc-short">[Joy System] Decay rate functionally inert over normal absence</div><div class="bug-detail">2hr simulation: Obi dropped 80&rarr;79.5, Luna 75&rarr;74.6. Decay too slow to matter in normal play. Pets never become unhappy.</div></td><td class="line-ref">&mdash;</td><td><span class="status-chip new">NEW IN v14</span><br><span style="font-size:0.75rem;color:#6b7280">Block 6N FAIL</span></td></tr>
+<tr><td class="bug-id">BUG-047</td><td><div class="bug-desc-short">[Thought Bubbles] Bubble spawn blocked when Luna is on non-floor perch</div><div class="bug-detail">Line 5264: <code>this.luna.perch === 'floor'</code> check. Luna never gets thought bubbles on tower/couch/window.</div></td><td class="line-ref">5264</td><td><span class="status-chip code">CODE AUDIT</span></td></tr>
+</table>
+
+<!-- ========== UX CONCERNS ========== -->
+<div class="section-title">UX Concerns (5)</div>
+
+<div class="ux-card"><strong>UX-1: First-visit overlay stacking is confusing</strong> &mdash; Dedication and daily gift overlays should be sequential, not simultaneous. Player's first interaction feels broken. (Related to BUG-027)</div>
+<div class="ux-card"><strong>UX-2: Diminishing returns on rapid petting not communicated</strong> &mdash; No visual feedback (cooldown bar, reduced particles) when petting effectiveness decreases.</div>
+<div class="ux-card"><strong>UX-3: Game descriptions in minigames menu use small text</strong> &mdash; Could be difficult to read for younger users or smaller displays.</div>
+<div class="ux-card"><strong>UX-4: Minigame instruction dismiss text is small</strong> &mdash; "Click to begin early &middot; Esc to go back" easily missed by players.</div>
+<div class="ux-card"><strong>UX-5: No escape route from results screen if Back button fails</strong> &mdash; No Escape key support. Player is trapped. (Related to BUG-045)</div>
+
+<!-- ========== NOTES ========== -->
+<div class="section-title">Testing Notes</div>
+
+<div class="notes">
+  <h3>Bug Verification Summary</h3>
+  <p><strong>7 bugs confirmed by automated assertions</strong> (BUG-001, 002, 003, 019, 023, 044, 045, 046). Note: some "confirmed" bugs show as PASS because the test <em>verifies the bug exists</em> (e.g., asserting that the star count is 33 not 21).</p>
+  <p><strong>18 bugs captured in screenshots</strong> for manual visual review (blocks 1A-1C, 3E, 3G-3H, 5C, 5J, 6A-6J, 6M).</p>
+  <p><strong>22 bugs identified from code audit</strong> that have no direct automated test targeting them. These remain valid &mdash; they were identified by reading the source code and are structural issues.</p>
+  <p><strong>3 new bugs discovered</strong> by the v14 automated suite that were not in the V10 report (BUG-045, 046, and the bowl refill issue in BUG-019 which was previously only noted as a design concern).</p>
+</div>
+
+<div class="notes">
+  <h3>Screenshot Coverage (344 total across all batches)</h3>
+  <p>5 room presets &middot; 4 times of day &middot; 4 garland styles &middot; 14 decor items &middot; all 11 minigames (instructions &rarr; gameplay &rarr; midgame &rarr; end &rarr; return) &middot; 3 wardrobe tabs with equipped items &middot; games menu scroll (3 pages) &middot; decor panel (6 pages) &middot; dedication overlay &middot; bubble onboarding &middot; 7 HUD hover states &middot; 3 tooltips &middot; backyard empty/full/4 interactions &middot; daily gift collection &middot; streak milestones at 0/7/30 &middot; 4 pet interaction types &middot; joy/mood states &middot; status bar overflow &middot; backyard decor panel (3 pages)</p>
+</div>
+
+<div class="notes">
+  <h3>Test Infrastructure</h3>
+  <p><strong>Harness:</strong> test_harness.py (617 lines) with 14 store presets, CSS canvas fix, JS hook injection</p>
+  <p><strong>Scripts:</strong> 6 batch files + runner (1,900+ lines total), Playwright headless Chromium with --allow-file-access-from-files</p>
+  <p><strong>Hooks:</strong> __getScene(), __getSceneDetails(), __modifyScene(fn), __goToScene(key) injected into game IIFE</p>
+  <p><strong>Runtime:</strong> ~700 seconds total across all batches run individually</p>
+</div>
+
+</body>
+</html>

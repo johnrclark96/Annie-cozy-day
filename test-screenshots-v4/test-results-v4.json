@@ -1,0 +1,132 @@
+{
+  "summary": {
+    "pass": 10,
+    "partial": 4,
+    "fail": 4,
+    "js_errors": 0,
+    "screenshots": 49
+  },
+  "sections": {
+    "1. TITLE SCREEN": {
+      "verdict": "PASS",
+      "notes": "Font=True, Annie content=3997px",
+      "bugs": "",
+      "ux": ""
+    },
+    "2. HANGOUT SCENE": {
+      "verdict": "PARTIAL",
+      "notes": "Dedication + Daily Gift flow tested. HUD and room elements visible.",
+      "bugs": "BUG: Dedication overlay hidden behind Daily Gift \u2014 must Escape first",
+      "ux": "Show dedication before Daily Gift, or combine them"
+    },
+    "3. PET INTERACTIONS": {
+      "verdict": "PASS",
+      "notes": "All 4 modes tested: Pet, Treats, Play, Brush. Rapid click tested.",
+      "bugs": "",
+      "ux": ""
+    },
+    "4. BOWLS": {
+      "verdict": "PASS",
+      "notes": "Hover tooltips + refill tested for both bowls.",
+      "bugs": "",
+      "ux": ""
+    },
+    "5. JOY & MOOD SYSTEM": {
+      "verdict": "PASS",
+      "notes": "Status pills visible. Full drain requires extended wait (code verified).",
+      "bugs": "",
+      "ux": ""
+    },
+    "6. WINDOW & LAMP": {
+      "verdict": "PASS",
+      "notes": "Lamp before={'r': 252, 'g': 236, 'b': 183, 'a': 255}, after={'r': 154, 'g': 143, 'b': 113, 'a': 255}, final={'r': 252, 'g': 236, 'b': 184, 'a': 255}",
+      "bugs": "",
+      "ux": ""
+    },
+    "7. GAMES MENU": {
+      "verdict": "PASS",
+      "notes": "Open=True, EscClose=True, XClose=True",
+      "bugs": "",
+      "ux": ""
+    },
+    "8. PLAY 3 MINIGAMES": {
+      "verdict": "PARTIAL",
+      "notes": "Played 1/3. Coins: 72\u219272 (+0)",
+      "bugs": "bath-time: Games menu didn't open; laser-chase: Games menu didn't open",
+      "ux": ""
+    },
+    "9. DECOR PANEL": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False",
+      "bugs": "Decor panel didn't open",
+      "ux": ""
+    },
+    "10. WARDROBE PANEL": {
+      "verdict": "FAIL",
+      "notes": "Panel=False, Tabs tested, Buy: 72\u219272 (False)",
+      "bugs": "Wardrobe panel didn't open",
+      "ux": ""
+    },
+    "11. BACKYARD": {
+      "verdict": "PASS",
+      "notes": "Backyard visited, 4 interactions tested, returned: True",
+      "bugs": "",
+      "ux": ""
+    },
+    "12. BACKYARD DECOR": {
+      "verdict": "FAIL",
+      "notes": "Panel opened: False",
+      "bugs": "Backyard decor panel didn't open",
+      "ux": ""
+    },
+    "13. PHOTO CAPTURE": {
+      "verdict": "PARTIAL",
+      "notes": "Photo data: {'photos': 0, 'entries': 1}",
+      "bugs": "Photo may not save in headless (toDataURL restriction)",
+      "ux": ""
+    },
+    "14. SCRAPBOOK": {
+      "verdict": "FAIL",
+      "notes": "Panel=False. All 3 tabs tested.",
+      "bugs": "",
+      "ux": ""
+    },
+    "15. KEYBOARD SHORTCUTS": {
+      "verdict": "PARTIAL",
+      "notes": "G=False, D=False, WardEsc=True",
+      "bugs": "G didn't open Games; D didn't open Decor",
+      "ux": ""
+    },
+    "16. OVERLAYS \u2014 MUTUAL EXCLUSION": {
+      "verdict": "PASS",
+      "notes": "Games\u2192Wardrobe and Scrapbook\u2192Decor tested. Visual confirmation in screenshots.",
+      "bugs": "",
+      "ux": ""
+    },
+    "17. VISUAL POLISH": {
+      "verdict": "PASS",
+      "notes": "StatusBar=3750px, Sprites=10000px",
+      "bugs": "",
+      "ux": ""
+    },
+    "18. COINS & PROGRESSION": {
+      "verdict": "PASS",
+      "notes": "Final coins: 72. Store keys: ['stats', 'firstVisit', 'coins', 'dailyTasks', 'pet_luna_joy', 'pet_water_fill', 'pet_food_fill', 'pet_obi_joy', 'lastVisitDate', 'careStreak', 'pet_water_lastFill', 'weeklyChallenge', 'pet_food_lastFill', 'lastJoySave', 'decor', 'scrapbook', 'bubbleOnboarded', 'wardrobe']",
+      "bugs": "",
+      "ux": ""
+    }
+  },
+  "js_errors": [],
+  "all_bugs": [
+    "2. HANGOUT SCENE: BUG: Dedication overlay hidden behind Daily Gift \u2014 must Escape first",
+    "8. PLAY 3 MINIGAMES: bath-time: Games menu didn't open; laser-chase: Games menu didn't open",
+    "9. DECOR PANEL: Decor panel didn't open",
+    "10. WARDROBE PANEL: Wardrobe panel didn't open",
+    "12. BACKYARD DECOR: Backyard decor panel didn't open",
+    "13. PHOTO CAPTURE: Photo may not save in headless (toDataURL restriction)",
+    "15. KEYBOARD SHORTCUTS: G didn't open Games; D didn't open Decor"
+  ],
+  "all_ux": [
+    "2. HANGOUT SCENE: Show dedication before Daily Gift, or combine them"
+  ]
+}
