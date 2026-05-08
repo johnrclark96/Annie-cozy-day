@@ -1631,6 +1631,84 @@
       return { cx: cx, cy: cy, r: r };
     }
 
+    /* drawKeyGlyph (Phase A.5) — small rounded "key cap" used inside intro modal meta lines
+       (e.g. ← / → for Cuddle Pile, "Esc" for the universal back-out hint). */
+    function drawKeyGlyph(c, x, y, char, w, h) {
+      if (w == null) w = 22;
+      if (h == null) h = 20;
+      c.save();
+      rr(c, x - w / 2, y - h / 2, w, h, 4);
+      c.fillStyle = "rgba(255,248,240,0.95)";
+      c.fill();
+      c.strokeStyle = "rgba(92,68,52,0.45)";
+      c.lineWidth = 1.5;
+      c.stroke();
+      c.fillStyle = "#5C4434";
+      c.textAlign = "center";
+      c.textBaseline = "middle";
+      c.font = 'bold 13px ' + HUD_MONO;
+      c.fillText(char, x, y + 1);
+      c.restore();
+    }
+
+    /* drawIntroModal (Phase A.5) — unified minigame intro modal.
+       opts: { eyebrow?, title, body, iconFn?(c,x,y), challengeText?, bonusText?, metaText? }
+       Drop-in replacement for BaseMinigameScene.drawInstructionCard once G.1 wires
+       the canary (Bath Time) and then the batch. Card position (145,150,510,260)
+       and INTRO_SCRIM match the existing drawInstructionCard so visual diff is 0
+       for the title + body region. */
+    function drawIntroModal(c, opts) {
+      c.save();
+      c.fillStyle = INTRO_SCRIM;
+      c.fillRect(0, 0, W, H);
+      rr(c, 145, 150, 510, 260, 24);
+      c.fillStyle = "rgba(255,248,240,0.97)";
+      c.fill();
+      c.strokeStyle = "rgba(92,68,52,0.18)";
+      c.lineWidth = 2;
+      c.stroke();
+      // eyebrow: small grey caps with letter-spacing (e.g. "TIER 2  ·  60s")
+      if (opts.eyebrow) {
+        c.fillStyle = "#A89684";
+        c.textAlign = "center";
+        c.textBaseline = "alphabetic";
+        if ("letterSpacing" in c) c.letterSpacing = "0.18em";
+        c.font = '11px ' + HUD_MONO;
+        c.fillText(String(opts.eyebrow).toUpperCase(), W / 2, 178);
+        if ("letterSpacing" in c) c.letterSpacing = "0px";
+      }
+      // title (display)
+      c.fillStyle = "#7A4E36";
+      c.textAlign = "center";
+      c.textBaseline = "alphabetic";
+      c.font = '32px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      c.fillText(opts.title || "", W / 2, opts.eyebrow ? 214 : 198);
+      // body (one sentence — wrap allowed but copy should be ≤ 8 words)
+      c.font = '20px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      wrapText(c, opts.body || "", W / 2, 252, 410, 30);
+      // icon callback (same signature as drawInstructionCard)
+      if (opts.iconFn) opts.iconFn(c, W / 2, 320);
+      var nextY = 350;
+      if (opts.challengeText) {
+        c.fillStyle = "#FFA500";
+        c.font = '16px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText("★ CHALLENGE: " + opts.challengeText + " ★", W / 2, nextY);
+        nextY += 20;
+      }
+      if (opts.bonusText) {
+        c.fillStyle = "#7DB36C";
+        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText(opts.bonusText, W / 2, nextY);
+        nextY += 18;
+      }
+      // meta line (single thin sentence bottom)
+      var meta = (opts.metaText != null) ? opts.metaText : "Tap to start  ·  Esc to cuddle instead";
+      c.fillStyle = "#A06B4F";
+      c.font = '15px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+      c.fillText(meta, W / 2, nextY + 8);
+      c.restore();
+    }
+
     function drawTooltip(c, x, y, title, body, alpha = 1) {
       c.save();
       c.globalAlpha = alpha;

@@ -7,6 +7,7 @@
 - A.2: Migrated `BaseMinigameScene.drawTopHud`, `CuddlePileScene.drawTopHud`, `WildWandScene.drawTopHud` to `placePill`. Score pill now clears the right-edge chip column (sound/camera/scrapbook) with 6px gutter — fixes F6 chip-collision audit finding. Time/Score pills sit at y=16 (was y=12) for grid alignment.
 - A.3: Added `drawPanelFrame(c, {x,y,w,h,title?,radius?})` and `drawPanelClose(c, panel, hovered)` helpers. Additive — panels still use their hand-coded frames; migration happens in B.3 / D.1 / D.3 / D.5.
 - A.4: Added `drawPanelTabs(c, panel, tabs, activeKey)` segmented-pill row helper anchored to panel.x+24, panel.y+60, with companion `panelTabHit(panel, tabs, x, y)` for click handlers. Synthetic `__panelTabsTest` hook validates hit geometry. Additive — tabs migrate to this helper in 2.4 (Decor) / 3.3 (Wardrobe) / 3.5 (Scrapbook).
+- A.5: Added `drawIntroModal(c, {eyebrow?, title, body, iconFn?, challengeText?, bonusText?, metaText?})` and `drawKeyGlyph(c, x, y, char, w?, h?)` helpers. Drop-in superset of `drawInstructionCard` with eyebrow + structured args + single thin meta line. Existing `drawInstructionCard` unchanged. Wired in G.1.a (Bath Time canary) and G.1.b (batch).
 
 ## 2026-05-07
 
