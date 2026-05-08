@@ -6462,11 +6462,20 @@
         const interacting = this.petInteraction.active;
         if (!busy && !interacting) {
           if (this.idleTime > 8 && this.luna.joy > 48 && !this.luna.grooming && !this.luna.bellyUp) {
-            /* retreat to tower after long idle */
+            /* retreat to perch after long idle */
             if (this.luna.perch === "floor") {
-              this.luna.perch = "tower";
-              const perchMsgs = ["Luna hopped up to her favorite perch.", "Luna retreats to the high ground.", "Luna surveys her kingdom from above.", "Luna claims the best seat in the house."];
-              this.statusText = perchMsgs[Math.floor(Math.random() * perchMsgs.length)];
+              /* F.NEW.3 — in snow, Luna prefers the windowsill (watching the
+                 flakes fall). Default behavior otherwise: tower. */
+              var _snowing = (store.weather && store.weather.current === "snow");
+              if (_snowing && Math.random() < 0.7) {
+                this.luna.perch = "window";
+                const perchMsgsSnow = ["Luna is watching the snow fall.", "Luna takes the window seat.", "Luna picked the snowy view today."];
+                this.statusText = perchMsgsSnow[Math.floor(Math.random() * perchMsgsSnow.length)];
+              } else {
+                this.luna.perch = "tower";
+                const perchMsgs = ["Luna hopped up to her favorite perch.", "Luna retreats to the high ground.", "Luna surveys her kingdom from above.", "Luna claims the best seat in the house."];
+                this.statusText = perchMsgs[Math.floor(Math.random() * perchMsgs.length)];
+              }
             }
             this.luna.targetX = LUNA_PERCHES[this.luna.perch].x;
             this.luna.targetY = LUNA_PERCHES[this.luna.perch].y;
