@@ -9599,6 +9599,14 @@
       }
       onKeyDown(key) {
         if (key === "Escape") {
+          /* C.NEW.2 — close byDecor panel first; otherwise return to
+             hangout (already correct, hangout.enter sets lastVisitTimestamp). */
+          if (this.byDecorOpen) {
+            audio.menu();
+            this.byDecorOpen = false;
+            this.byDecorHover = null;
+            return;
+          }
           audio.menu();
           this.saveJoy();
           transitionTo(SceneRegistry.create("hangout"));
