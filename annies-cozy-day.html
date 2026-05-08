@@ -12276,7 +12276,8 @@
           this.resultTimer += dt;
           if (this.resultTimer >= 1.2) {
             if (this.resultType === "correct") {
-              this.round++;
+              /* C.B16 — sequence caps at 5; cap round to match. */
+              this.round = Math.min(5, this.round + 1);
               this.addToSequence();
               this.beginShowPhase();
             } else {
@@ -12322,7 +12323,8 @@
               screenShake(3, 0.15);
               /* if all steps attempted (right or wrong), start new round */
               if (this.inputIndex >= this.sequence.length) {
-                this.round++;
+                /* C.B16 — sequence caps at 5; cap round to match. */
+                this.round = Math.min(5, this.round + 1);
                 this.addToSequence();
                 this.beginShowPhase();
               }
