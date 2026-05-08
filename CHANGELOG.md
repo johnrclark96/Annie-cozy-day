@@ -6,6 +6,7 @@
 - A.1: Added `HUD_GRID` constants (row1, row2, pillH, pillGap, primaryH, chipCol, bottomY) and `placePill(side, slot, w, h?)` helper as single source of truth for HUD pill anchor points across hub, backyard, and minigames
 - A.2: Migrated `BaseMinigameScene.drawTopHud`, `CuddlePileScene.drawTopHud`, `WildWandScene.drawTopHud` to `placePill`. Score pill now clears the right-edge chip column (sound/camera/scrapbook) with 6px gutter — fixes F6 chip-collision audit finding. Time/Score pills sit at y=16 (was y=12) for grid alignment.
 - A.3: Added `drawPanelFrame(c, {x,y,w,h,title?,radius?})` and `drawPanelClose(c, panel, hovered)` helpers. Additive — panels still use their hand-coded frames; migration happens in B.3 / D.1 / D.3 / D.5.
+- A.4: Added `drawPanelTabs(c, panel, tabs, activeKey)` segmented-pill row helper anchored to panel.x+24, panel.y+60, with companion `panelTabHit(panel, tabs, x, y)` for click handlers. Synthetic `__panelTabsTest` hook validates hit geometry. Additive — tabs migrate to this helper in 2.4 (Decor) / 3.3 (Wardrobe) / 3.5 (Scrapbook).
 
 ## 2026-05-07
 

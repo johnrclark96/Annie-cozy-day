@@ -1560,6 +1560,58 @@
       c.restore();
     }
 
+    /* drawPanelTabs (Phase A.4) — segmented pill row anchored to panel.x+24, panel.y+60.
+       tabs: [{key, label?}] — equal-width tabs filling (panel.w - 48) with 6px gaps.
+       Returns [{key, rect}] for hit-testing; pair with panelTabHit() in click handlers. */
+    function drawPanelTabs(c, panel, tabs, activeKey) {
+      var rects = [];
+      if (!tabs || !tabs.length) return rects;
+      var startX = panel.x + 24;
+      var y = panel.y + 60;
+      var h = 26;
+      var gap = 6;
+      var avail = panel.w - 48;
+      var w = Math.floor((avail - gap * (tabs.length - 1)) / tabs.length);
+      c.save();
+      for (var i = 0; i < tabs.length; i++) {
+        var t = tabs[i];
+        var rect = { x: startX + i * (w + gap), y: y, w: w, h: h };
+        var active = (t.key === activeKey);
+        rr(c, rect.x, rect.y, rect.w, rect.h, 10);
+        c.fillStyle = active ? "#A05A3C" : "rgba(122,78,54,0.08)";
+        c.fill();
+        if (!active) {
+          c.strokeStyle = "rgba(146,104,72,0.18)";
+          c.lineWidth = 1;
+          c.stroke();
+        }
+        c.fillStyle = active ? "#FFF8F0" : "#7A4E36";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+        c.fillText(t.label || t.key, rect.x + rect.w / 2, rect.y + rect.h / 2 + 1);
+        rects.push({ key: t.key, rect: rect });
+      }
+      c.restore();
+      return rects;
+    }
+
+    function panelTabHit(panel, tabs, x, y) {
+      if (!tabs || !tabs.length) return null;
+      var startX = panel.x + 24;
+      var ty = panel.y + 60;
+      var h = 26;
+      var gap = 6;
+      var avail = panel.w - 48;
+      var w = Math.floor((avail - gap * (tabs.length - 1)) / tabs.length);
+      if (y < ty || y > ty + h) return null;
+      for (var i = 0; i < tabs.length; i++) {
+        var rx = startX + i * (w + gap);
+        if (x >= rx && x <= rx + w) return tabs[i].key;
+      }
+      return null;
+    }
+
     /* drawPanelClose (Phase A.3) — unified close-button circle anchored to a panel.
        Center at (panel.x + panel.w - 22, panel.y + 22). Reads hovered to swell + tint.
        Returns the hit circle {cx, cy, r} so the click handler can read the same source. */
@@ -14027,6 +14079,17 @@
     /* Direct scene transition hook for testing */
     window.__goToScene = (key) => {
       try { transitionTo(SceneRegistry.create(key)); return true; } catch(e) { return e.message; }
+    };
+    /* Phase A.4 synthetic test hook for drawPanelTabs / panelTabHit geometry */
+    window.__panelTabsTest = () => {
+      var panel = { x: 100, y: 70, w: 600, h: 480 };
+      var tabs = [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }];
+      return {
+        hitTabA: panelTabHit(panel, tabs, 200, 140),
+        hitTabC: panelTabHit(panel, tabs, 410, 140),
+        hitMissY: panelTabHit(panel, tabs, 200, 200),
+        hitMissX: panelTabHit(panel, tabs, 90, 140)
+      };
     };
 
     requestAnimationFrame(loop);
