@@ -5046,6 +5046,17 @@
         }
         return dm.label || "content";
       }
+      /* F.2 — return a "x1.5 for Obi today" suffix when one or both pets
+         have a >1 multiplier on the given action source. Returns "" if
+         neither pet's mood boosts this action. */
+      _moodMultHint(source) {
+        var oM = ((getMoodData("obi") || {}).joyMult || {})[source] || 1;
+        var lM = ((getMoodData("luna") || {}).joyMult || {})[source] || 1;
+        var parts = [];
+        if (oM > 1) parts.push("×" + oM.toFixed(1) + " Obi");
+        if (lM > 1) parts.push("×" + lM.toFixed(1) + " Luna");
+        return parts.length ? "  " + parts.join(", ") + " today" : "";
+      }
       petSpriteState(key) {
         if (key === "obi") {
           let pose = "sit";
@@ -6575,10 +6586,10 @@
         else if (this.hoverKey === "backyardDoor") this.tooltip = { x: 740, y: 290, title: "Backyard", body: "Go outside to the backyard!" };
         else if (this.hoverKey === "camera") this.tooltip = { x: W - 74, y: 100, title: "Camera", body: "Take a screenshot!" };
         else if (this.hoverKey === "scrapbook") this.tooltip = { x: W - 74, y: 144, title: "Scrapbook", body: "View photos, milestones, and stats!" };
-        else if (this.hoverKey === "pet") this.tooltip = { x: 198, y: 66, title: "Pet Mode", body: "Stroke directly over Obi or Luna for happy reactions." };
-        else if (this.hoverKey === "treat") this.tooltip = { x: 310, y: 66, title: "Treat Mode", body: "Click to toss snacks from Annie toward either pet." };
-        else if (this.hoverKey === "toy") this.tooltip = { x: 422, y: 66, title: "Play Mode", body: "Obi chases a ball; Luna stalks a yarn ball." };
-        else if (this.hoverKey === "brush") this.tooltip = { x: 534, y: 66, title: "Brush Mode", body: "Brush Obi or Luna until they sparkle!" };
+        else if (this.hoverKey === "pet") this.tooltip = { x: 198, y: 66, title: "Pet Mode", body: "Stroke directly over Obi or Luna for happy reactions." + this._moodMultHint("pet") };
+        else if (this.hoverKey === "treat") this.tooltip = { x: 310, y: 66, title: "Treat Mode", body: "Click to toss snacks from Annie toward either pet." + this._moodMultHint("treat") };
+        else if (this.hoverKey === "toy") this.tooltip = { x: 422, y: 66, title: "Play Mode", body: "Obi chases a ball; Luna stalks a yarn ball." + this._moodMultHint("toy") };
+        else if (this.hoverKey === "brush") this.tooltip = { x: 534, y: 66, title: "Brush Mode", body: "Brush Obi or Luna until they sparkle!" + this._moodMultHint("brush") };
         else if (this.hoverKey === "foodBowl") this.tooltip = { x: this.foodBowl.x, y: this.foodBowl.y - 36, title: "Food Bowl", body: "Fill: " + Math.round(this.foodBowl.fill) + "%. Click to refill!" };
         else if (this.hoverKey === "waterBowl") this.tooltip = { x: this.waterBowl.x, y: this.waterBowl.y - 36, title: "Water Bowl", body: "Fill: " + Math.round(this.waterBowl.fill) + "%. Click to refill!" };
         else if (this.hoverKey === "lamp") this.tooltip = { x: 216, y: 122, title: "Lamp", body: "Click to toggle the lamp." };

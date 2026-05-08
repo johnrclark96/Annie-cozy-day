@@ -3,6 +3,7 @@
 ## 2026-05-08
 
 ### Phase F · Living-systems surfacing
+- F.2: Mode-button tooltips (Pet / Treats / Play / Brush) now suffix the existing copy with an inline "×1.5 Obi today" hint when one or both pets have a mood-driven multiplier > 1 for that action. New `_moodMultHint(source)` method on HangoutScene reads `getMoodData(pet).joyMult[source]` for both pets and concatenates only the pets whose multiplier is greater than 1. Surfaces an otherwise-invisible system that was already powering joy gains — players can now see "now is a good time to brush Luna" before the action.
 - F.1 + F.NEW.1: Joy bars on hub HUD pet pills now show a thin tick at 50% and 80% to teach the milestone thresholds. Hovering the pill renders a numeric "X / 100" to the right of the bar (so the player can read the exact joy without learning bar widths). New `_joyHistory` rolling 5-second sample buffer (sampled every 0.25s) drives a small ▼ direction arrow that appears when joy is dropping at faster than -0.1/sec — surfaces mood-driven decay rates that were previously invisible. The two pet pills factored into a shared `_drawJoyPill` helper for consistency. No layout changes; ticks and arrow are additive.
 
 ### Phase E · Heart tier
