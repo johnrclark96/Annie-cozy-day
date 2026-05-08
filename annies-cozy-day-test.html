@@ -528,6 +528,9 @@
       /* F.NEW.2 — set true when a meaningful (>= 3-day) streak breaks; the
          next title→hangout transition shows a one-time welcome line then clears. */
       streakBreakPending: loadBool("streakBreakPending", false),
+      /* F.6 — visitor.key list of visitors the player has seen at least once;
+         seasonal visitors get a "first-appearance" banner only the first time. */
+      visitorsSeen: loadJSON("visitorsSeen", []),
       /* E.4 — anniversary re-trigger of dedication.
          firstVisitDate: ISO yyyy-mm-dd of when the dedication first showed.
            null for existing players (migration backfill — they don't get an
@@ -6763,6 +6766,11 @@
           this._dedicatedReveal.timer -= dt;
           if (this._dedicatedReveal.timer <= 0) this._dedicatedReveal = null;
         }
+        /* F.6 — visitor banner tick */
+        if (this._visitorBanner) {
+          this._visitorBanner.timer -= dt;
+          if (this._visitorBanner.timer <= 0) this._visitorBanner = null;
+        }
         /* F.NEW.1 — sample joy every 0.25s, trim to 5s window. */
         this._joySampleTimer = (this._joySampleTimer || 0) - dt;
         if (this._joySampleTimer <= 0) {
@@ -7709,6 +7717,14 @@
         this.ambientEvent = { type: "visitor", timer: visitor.stayTime, data: { visitor: visitor, interacted: false, fadeIn: 0 } };
         this.statusText = visitor.message;
         audio.tinyChime();
+        /* F.6 — banner with countdown ring; longer "first appearance" beat for
+           seasonal visitors the player has never seen. */
+        var _isFirst = !!visitor.season && store.visitorsSeen.indexOf(visitor.key) < 0;
+        this._visitorBanner = { text: visitor.message, timer: _isFirst ? 3 : 2, total: _isFirst ? 3 : 2, isFirst: _isFirst, key: visitor.key };
+        if (store.visitorsSeen.indexOf(visitor.key) < 0) {
+          store.visitorsSeen.push(visitor.key);
+          saveJSON("visitorsSeen", store.visitorsSeen);
+        }
         /* auto-apply joy effects for non-clickable visitors. Mark
            interacted so a later click can't grant joy again (C.B5). */
         if (visitor.joyEffect && !visitor.coinReward) {
@@ -8308,6 +8324,49 @@
           c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           var lvlName = BOND_LEVEL_NAMES[blu.level] || "";
           c.fillText("\u2764 " + (blu.pet === "obi" ? "Obi" : "Luna") + " Bond Lv." + blu.level + (lvlName ? " — " + lvlName : "") + " \u2764", 400, 170);
+          c.restore();
+        }
+
+        /* F.6 — visitor banner with countdown ring. Renders at top-center
+           for 2s (3s on first-appearance for seasonal visitors). */
+        if (this._visitorBanner) {
+          var _vb = this._visitorBanner;
+          var _vbFade = clamp(_vb.timer / 0.4, 0, 1) * clamp((_vb.total - _vb.timer) / 0.3, 0, 1);
+          c.save();
+          c.globalAlpha = _vbFade;
+          var _vbW = 380, _vbH = 36;
+          var _vbX = (W - _vbW) / 2, _vbY = 78;
+          rr(c, _vbX, _vbY, _vbW, _vbH, 18);
+          c.fillStyle = _vb.isFirst ? "rgba(82,58,42,0.94)" : "rgba(122,78,54,0.92)";
+          c.fill();
+          c.strokeStyle = "rgba(255,255,255,0.3)";
+          c.lineWidth = 1.5;
+          c.stroke();
+          /* countdown ring on the right */
+          var _vbRingCx = _vbX + _vbW - 22, _vbRingCy = _vbY + _vbH / 2;
+          var _vbRingP = clamp(_vb.timer / _vb.total, 0, 1);
+          c.strokeStyle = "rgba(255,255,255,0.25)";
+          c.lineWidth = 2;
+          c.beginPath(); c.arc(_vbRingCx, _vbRingCy, 9, 0, Math.PI * 2); c.stroke();
+          c.strokeStyle = "rgba(255,215,0,0.9)";
+          c.lineWidth = 2;
+          c.beginPath();
+          c.arc(_vbRingCx, _vbRingCy, 9, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * _vbRingP);
+          c.stroke();
+          /* text */
+          c.fillStyle = "#FFF8F0";
+          c.textAlign = "left";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          if (_vb.isFirst) {
+            c.fillStyle = "rgba(255,215,0,0.95)";
+            c.font = '10px "Fredoka One", sans-serif';
+            c.fillText("FIRST APPEARANCE", _vbX + 14, _vbY + 12);
+            c.fillStyle = "#FFF8F0";
+            c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+            c.fillText(_vb.text, _vbX + 14, _vbY + 28);
+          } else {
+            c.fillText(_vb.text, _vbX + 14, _vbY + 22);
+          }
           c.restore();
         }
 
