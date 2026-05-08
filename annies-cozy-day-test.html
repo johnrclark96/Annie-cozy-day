@@ -607,6 +607,23 @@
       var season = getCurrentSeason();
       return DECOR_ITEMS.filter(function(item) { return !item.season || item.season === season; });
     }
+    /* Decor panel tabs (Phase B.4) */
+    const DECOR_GOLDEN_KEYS = ["goldenCurtains", "chandelier", "silkPillows", "antiqueMusicBox", "royalThrone"];
+    const DECOR_TABS = [
+      { key: "room",     label: "Room" },
+      { key: "upgrades", label: "Upgrades" },
+      { key: "seasonal", label: "Seasonal" },
+      { key: "golden",   label: "Cozy Set" }
+    ];
+    function filterDecorByTab(items, tab) {
+      return items.filter(function(item) {
+        if (tab === "upgrades") return item.isUpgrade === true;
+        if (tab === "seasonal") return item.season != null;
+        if (tab === "golden")   return DECOR_GOLDEN_KEYS.indexOf(item.key) >= 0;
+        // "room" — default catch-all (everything not classified above)
+        return !item.isUpgrade && !item.season && DECOR_GOLDEN_KEYS.indexOf(item.key) < 0;
+      });
+    }
     function getVisibleAccessories(who) {
       var season = getCurrentSeason();
       return (ACCESSORIES[who] || []).filter(function(item) { return !item.season || item.season === season; });
@@ -4598,8 +4615,9 @@
         /* ambient events */
         this.ambientEvent = null;
         this.ambientEventCooldown = rand(60, 180);
-        /* decor pagination */
+        /* decor pagination + tab (Phase B.4) */
         this.decorPage = 0;
+        this.decorTab = "room";
         /* coin popup */
         this.coinPopup = null;
         /* camera flash */
@@ -5073,14 +5091,18 @@
         return { x: 90, y: 126 + displayIndex * 72, w: 620, h: 62 };
       }
       getDecorItemRect(i) {
-        return { x: 130, y: 150 + i * 88, w: 540, h: 78 };
+        // y shifted from 150 to 170 in Phase B.4 to make room for the tab row at y=130-156
+        return { x: 130, y: 170 + i * 88, w: 540, h: 78 };
+      }
+      getDecorTabItems() {
+        return filterDecorByTab(getVisibleDecorItems(), this.decorTab || "room");
       }
       getDecorPageItems() {
-        var visible = getVisibleDecorItems();
-        return visible.slice(this.decorPage * 4, this.decorPage * 4 + 4);
+        var items = this.getDecorTabItems();
+        return items.slice(this.decorPage * 4, this.decorPage * 4 + 4);
       }
       decorPageCount() {
-        return Math.ceil(getVisibleDecorItems().length / 4);
+        return Math.max(1, Math.ceil(this.getDecorTabItems().length / 4));
       }
       onMouseMove(x, y) {
         this.updateHover(x, y);
@@ -5229,6 +5251,14 @@
         }
         if (this.decorOpen) {
           if (pointInRect(x, y, panelClose("decor"))) { audio.menu(); this.decorOpen = false; this.hoverKey = null; return; }
+          /* tab click (Phase B.4) */
+          var decorTabKey = panelTabHit(PANEL_STD, DECOR_TABS, x, y);
+          if (decorTabKey && decorTabKey !== this.decorTab) {
+            this.decorTab = decorTabKey;
+            this.decorPage = 0;
+            audio.tinyChime();
+            return;
+          }
           /* page navigation */
           if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 }) && this.decorPage > 0) {
             this.decorPage--; audio.menu(); return;
@@ -8164,17 +8194,18 @@
           c.restore();
         }
 
-        /* ── Decoration panel overlay (Phase B.3 — uses drawPanelFrame + drawPanelClose) ── */
+        /* ── Decoration panel overlay (Phase B.3 — uses drawPanelFrame + drawPanelClose;
+              B.4 — adds four-tab row: Room / Upgrades / Seasonal / Cozy Set) ── */
         if (this.decorFade > 0.01) {
           c.save();
           c.globalAlpha = this.decorFade;
           drawPanelFrame(c, { x: PANEL_STD.x, y: PANEL_STD.y, w: PANEL_STD.w, h: PANEL_STD.h, title: "Decorate" });
 
+          /* tabs row at y=130; "Stars earned" subtitle dropped — same info lives
+             in the HUD pills, lock chips (B.5) communicate per-item gating */
+          drawPanelTabs(c, PANEL_STD, DECOR_TABS, this.decorTab || "room");
+
           const stars = totalStarsEarned();
-          c.fillStyle = "rgba(92,61,46,0.5)";
-          c.textAlign = "center";
-          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Stars earned: " + stars + " / 33  •  Unlock items by earning stars in minigames!", W / 2, 130);
 
           /* close button */
           drawPanelClose(c, PANEL_STD, this.decorHover === "close");
