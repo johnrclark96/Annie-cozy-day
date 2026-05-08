@@ -638,6 +638,17 @@
       if (b.level >= 10) return 1;
       return clamp((b.xp - curThresh) / (nextThresh - curThresh), 0, 1);
     }
+    /* C.B3 — raw XP grant that runs the level-up loop. Used by the
+       awardBondXP daily-action path AND by gift/event grants that
+       previously did `b.xp += amount; saveBond()` and skipped levels. */
+    function applyBondXPRaw(pet, amount) {
+      var b = store.bond[pet]; if (!b || b.level >= 10) return 0;
+      b.xp += amount;
+      var leveled = false;
+      while (b.level < 10 && b.xp >= getBondXPForLevel(b.level + 1)) { b.level++; leveled = true; }
+      saveBond();
+      return leveled ? b.level : 0;
+    }
     function awardBondXP(pet, actionType) {
       var b = store.bond[pet]; if (!b || b.level >= 10) return 0;
       var rate = BOND_XP_RATES[actionType]; if (!rate) return 0;
@@ -646,11 +657,7 @@
       var count = b.dailyActions[actionType] || 0;
       if (count >= rate.cap) return 0;
       b.dailyActions[actionType] = count + 1;
-      b.xp += rate.xp;
-      var leveled = false;
-      while (b.level < 10 && b.xp >= getBondXPForLevel(b.level + 1)) { b.level++; leveled = true; }
-      saveBond();
-      return leveled ? b.level : 0;
+      return applyBondXPRaw(pet, rate.xp);
     }
     var BOND_LEVEL_NAMES = ["", "", "Familiar", "Friendly", "Companion", "Trusted", "Devoted", "Bonded", "Inseparable", "Soulmates", "Best Friends Forever"];
     function setBest(gameId, value) {
@@ -5278,12 +5285,28 @@
           var coinReward = Math.round((reward.coins || 0) * streakMult);
           var rewardText = "";
           if (coinReward > 0) { addCoins(coinReward); rewardText = "+" + coinReward + " coins"; }
-          if (reward.bondXP) { awardBondXP("obi", "visit"); awardBondXP("luna", "visit"); store.bond.obi.xp += reward.bondXP; store.bond.luna.xp += reward.bondXP; saveBond(); rewardText = "+25 Bond XP for both pets!"; }
+          /* C.B3 — bond XP grants now flow through applyBondXPRaw so the
+             level-up loop runs (was: raw `+= amount; saveBond()` path
+             skipped levels even when crossing thresholds). */
+          if (reward.bondXP) {
+            awardBondXP("obi", "visit"); awardBondXP("luna", "visit");
+            var _bluObi = applyBondXPRaw("obi", reward.bondXP);
+            var _bluLuna = applyBondXPRaw("luna", reward.bondXP);
+            if (_bluObi > 0) this._bondLevelUp = { pet: "obi", level: _bluObi, timer: 4 };
+            else if (_bluLuna > 0) this._bondLevelUp = { pet: "luna", level: _bluLuna, timer: 4 };
+            rewardText = "+25 Bond XP for both pets!";
+          }
           if (reward.mystery) {
+            var self = this;
             var mysteries = [
               { text: " + 25 bonus coins!", effect: function() { addCoins(25); } },
               { text: " + bowls refilled & +15 joy!", effect: function() { this.obi.joy = clamp(this.obi.joy + 15, 0, 100); this.luna.joy = clamp(this.luna.joy + 15, 0, 100); this.foodBowl.fill = 100; this.waterBowl.fill = 100; }.bind(this) },
-              { text: " + 50 Bond XP!", effect: function() { store.bond.obi.xp += 50; store.bond.luna.xp += 50; saveBond(); } }
+              { text: " + 50 Bond XP!", effect: function() {
+                  var lo = applyBondXPRaw("obi", 50);
+                  var ll = applyBondXPRaw("luna", 50);
+                  if (lo > 0) self._bondLevelUp = { pet: "obi", level: lo, timer: 4 };
+                  else if (ll > 0) self._bondLevelUp = { pet: "luna", level: ll, timer: 4 };
+                } }
             ];
             var mystery = mysteries[Math.floor(Math.random() * mysteries.length)];
             mystery.effect();
