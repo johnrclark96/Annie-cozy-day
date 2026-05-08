@@ -4788,6 +4788,8 @@
         /* camera + scrapbook buttons — positioned below mute icon */
         this.cameraButton = { x: W - SAFE - 28, y: SAFE + 34, w: 28, h: 28 };
         this.scrapbookButton = { x: W - SAFE - 28, y: SAFE + 68, w: 28, h: 28 };
+        /* F.3 — weather chip in chip stack slot 3 */
+        this.weatherButton = { x: W - SAFE - 28, y: SAFE + 102, w: 28, h: 28 };
         this.scrapbookOpen = false;
         this.scrapbookHover = null;
         this.scrapbookFade = 0;
@@ -5265,6 +5267,7 @@
           else if (pointInRect(x, y, this.backyardDoor)) this.hoverKey = "backyardDoor";
           else if (pointInRect(x, y, this.cameraButton)) this.hoverKey = "camera";
           else if (pointInRect(x, y, this.scrapbookButton)) this.hoverKey = "scrapbook";
+          else if (pointInRect(x, y, this.weatherButton)) this.hoverKey = "weather";
           else if (store.decor.petBed && pointInRect(x, y, this.petBedHitbox)) this.hoverKey = "petBed";
           else if (pointInRect(x, y, this.getPetRect("obi"))) this.hoverKey = "obi";
           else if (pointInRect(x, y, this.getPetRect("luna"))) this.hoverKey = "luna";
@@ -5328,6 +5331,7 @@
         if (pointInRect(x, y, this.backyardDoor)) return true;
         if (pointInRect(x, y, this.cameraButton)) return true;
         if (pointInRect(x, y, this.scrapbookButton)) return true;
+        if (pointInRect(x, y, this.weatherButton)) return true;
         if (this.modeButtons.some((btn) => pointInRect(x, y, btn))) return true;
         if (pointInRect(x, y, this.foodBowlHitbox)) return true;
         if (pointInRect(x, y, this.waterBowlHitbox)) return true;
@@ -5703,6 +5707,16 @@
           this.menuOpen = false; this.decorOpen = false; this.wardrobeOpen = false;
           this.scrapbookOpen = true;
           this.scrapbookFade = 0;
+          return;
+        }
+        /* F.3 — weather chip → opens scrapbook Goals tab (where the
+           weather-driven scrapbook goals like "Rainy Day" live). */
+        if (pointInRect(x, y, this.weatherButton)) {
+          audio.menu();
+          this.menuOpen = false; this.decorOpen = false; this.wardrobeOpen = false;
+          this.scrapbookOpen = true;
+          this.scrapbookFade = 0;
+          this.scrapbookTab = "goals";
           return;
         }
         /* clickable ambient events */
@@ -6586,6 +6600,11 @@
         else if (this.hoverKey === "backyardDoor") this.tooltip = { x: 740, y: 290, title: "Backyard", body: "Go outside to the backyard!" };
         else if (this.hoverKey === "camera") this.tooltip = { x: W - 74, y: 100, title: "Camera", body: "Take a screenshot!" };
         else if (this.hoverKey === "scrapbook") this.tooltip = { x: W - 74, y: 144, title: "Scrapbook", body: "View photos, milestones, and stats!" };
+        else if (this.hoverKey === "weather") {
+          var _wKey = store.weather.current || "sunny";
+          var _wLabel = { sunny: "Sunny", cloudy: "Cloudy", rain: "Raining", snow: "Snowing", golden: "Golden hour" }[_wKey] || _wKey;
+          this.tooltip = { x: W - 74, y: 178, title: _wLabel, body: "Tap to check today's photo goals." };
+        }
         else if (this.hoverKey === "pet") this.tooltip = { x: 198, y: 66, title: "Pet Mode", body: "Stroke directly over Obi or Luna for happy reactions." + this._moodMultHint("pet") };
         else if (this.hoverKey === "treat") this.tooltip = { x: 310, y: 66, title: "Treat Mode", body: "Click to toss snacks from Annie toward either pet." + this._moodMultHint("treat") };
         else if (this.hoverKey === "toy") this.tooltip = { x: 422, y: 66, title: "Play Mode", body: "Obi chases a ball; Luna stalks a yarn ball." + this._moodMultHint("toy") };
@@ -8349,6 +8368,56 @@
         c.moveTo(this.scrapbookButton.x + 14, this.scrapbookButton.y + 6);
         c.lineTo(this.scrapbookButton.x + 14, this.scrapbookButton.y + 22);
         c.stroke();
+        c.restore();
+
+        /* F.3 — weather chip */
+        c.save();
+        var weatherHover = this.hoverKey === "weather";
+        drawHudChip(c, this.weatherButton.x, this.weatherButton.y, weatherHover);
+        var _wbCx = this.weatherButton.x + 14, _wbCy = this.weatherButton.y + 14;
+        var _wbKey = store.weather.current || "sunny";
+        if (_wbKey === "sunny" || _wbKey === "golden") {
+          /* sun: yellow circle with rays */
+          c.fillStyle = _wbKey === "golden" ? "#FFB347" : "#F4C430";
+          c.beginPath(); c.arc(_wbCx, _wbCy, 5, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = _wbKey === "golden" ? "#FFB347" : "#F4C430";
+          c.lineWidth = 1.2;
+          for (var _wr = 0; _wr < 8; _wr++) {
+            var _wrA = _wr * Math.PI / 4;
+            c.beginPath();
+            c.moveTo(_wbCx + Math.cos(_wrA) * 7, _wbCy + Math.sin(_wrA) * 7);
+            c.lineTo(_wbCx + Math.cos(_wrA) * 10, _wbCy + Math.sin(_wrA) * 10);
+            c.stroke();
+          }
+        } else if (_wbKey === "cloudy") {
+          c.fillStyle = "#9DA9B5";
+          c.beginPath(); c.arc(_wbCx - 4, _wbCy + 1, 4, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(_wbCx + 1, _wbCy - 2, 5, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(_wbCx + 5, _wbCy + 1, 4, 0, Math.PI * 2); c.fill();
+          c.fillRect(_wbCx - 7, _wbCy + 1, 14, 5);
+        } else if (_wbKey === "rain") {
+          c.fillStyle = "#7E8DA3";
+          c.beginPath(); c.arc(_wbCx - 3, _wbCy - 3, 4, 0, Math.PI * 2); c.fill();
+          c.beginPath(); c.arc(_wbCx + 3, _wbCy - 3, 4, 0, Math.PI * 2); c.fill();
+          c.fillRect(_wbCx - 6, _wbCy - 3, 12, 4);
+          c.fillStyle = "#5B8AA8";
+          for (var _rd = 0; _rd < 3; _rd++) {
+            c.beginPath();
+            c.arc(_wbCx - 4 + _rd * 4, _wbCy + 5, 1.4, 0, Math.PI * 2); c.fill();
+          }
+        } else if (_wbKey === "snow") {
+          c.fillStyle = "#FFF8F0";
+          c.beginPath(); c.arc(_wbCx, _wbCy, 6, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = "#A8B8C8";
+          c.lineWidth = 1;
+          for (var _sa = 0; _sa < 6; _sa++) {
+            var _saA = _sa * Math.PI / 3;
+            c.beginPath();
+            c.moveTo(_wbCx, _wbCy);
+            c.lineTo(_wbCx + Math.cos(_saA) * 7, _wbCy + Math.sin(_saA) * 7);
+            c.stroke();
+          }
+        }
         c.restore();
 
         /* backyard door indicator */
