@@ -12806,7 +12806,12 @@
           audio.lullaby();
           return;
         }
-        if (survived >= 30) this.queueAchievement("couchPotato");
+        if (survived >= 30 && !this._couchPotatoQueued) {
+          /* C.NEW.1 — was queued every frame past 30s. queueAchievement
+             is idempotent so harmless, but wasteful. One-shot guard. */
+          this._couchPotatoQueued = true;
+          this.queueAchievement("couchPotato");
+        }
       }
       triggerFidget(shiftMin, shiftMax, allowDouble) {
         const obiLines = ["Obi dreams of squirrels!", "Obi stretches out!", "Obi rolls over!", "Obi kicks in his sleep!"];
