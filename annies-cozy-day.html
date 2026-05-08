@@ -5498,6 +5498,24 @@
           this.scrapbookOpen = false;
           return;
         }
+        /* Phase B.6 — coin/star HUD pills are clickable nav.
+           Star pill → Game Menu (natural place to see X/33 stars).
+           Coin pill → Decor panel (where coins are spent). */
+        if (this.hubHudRects && this.hubHudRects.star && pointInRect(x, y, this.hubHudRects.star)) {
+          audio.menu();
+          this.decorOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
+          this.menuOpen = true;
+          this.menuFade = 0;
+          this.menuScroll = 0;
+          return;
+        }
+        if (this.hubHudRects && this.hubHudRects.coin && pointInRect(x, y, this.hubHudRects.coin)) {
+          audio.menu();
+          this.menuOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
+          this.decorOpen = true;
+          this.decorFade = 0;
+          return;
+        }
         if (pointInRect(x, y, this.gamesButton)) {
           audio.menu();
           this.decorOpen = false; this.wardrobeOpen = false; this.scrapbookOpen = false;
