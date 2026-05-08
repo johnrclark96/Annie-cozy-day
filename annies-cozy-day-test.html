@@ -1247,7 +1247,7 @@
         } catch(e) {}
       }
       _getMusicMoodKey() {
-        var tod = store.decor.timeOfDay || 1;
+        var tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
         if (game.scene && game.scene.name === "backyard") return "backyard";
         return ["morning", "day", "evening", "night"][tod];
       }
@@ -3754,7 +3754,7 @@
       c.drawImage(sceneCache.livingRoomBase, 0, 0);
 
       /* animated window sky — time-of-day aware */
-      const tod = store.decor.timeOfDay || 1;
+      const tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
       c.save();
       c.beginPath();
       rr(c, 66, 52, 120, 152, 5);
@@ -5742,7 +5742,7 @@
           }
           /* window click — observe outside, give small joy + hint at backyard */
           if (pointInRect(x, y, this.windowHitbox)) {
-            const tod = store.decor.timeOfDay || 1;
+            const tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
             let msg = "The pets perk up looking outside.";
             if (this.ambientEvent && this.ambientEvent.type === "butterfly") msg = "Luna is fascinated by the butterflies!";
             else if (this.ambientEvent && this.ambientEvent.type === "bird") msg = "Obi watches the birds intently!";
@@ -8935,7 +8935,7 @@
         }
         var captureCanvas = makeBufferCanvas(W, H);
         var cc = captureCanvas.getContext("2d");
-        var tod = store.decor.timeOfDay || 1;
+        var tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
         this.drawBackground(cc, tod);
         this.drawInteractiveObjects(cc);
         var obiSt = { pose: this.obi.pose, expression: "happy", tail: Math.sin(game.time * 7), bounce: this.obi.bounce, facing: this.obi.facing };
@@ -9002,7 +9002,7 @@
         if (season === "autumn" && Math.random() < 0.025) {
           spawnParticleBurst(rand(100, 700), rand(-10, 20), ["#D4763B", "#C5441B", "#E8A82E"], 1, ["star"]);
         }
-        if (season === "summer" && (store.decor.timeOfDay || 1) === 3 && Math.random() < 0.04) {
+        if (season === "summer" && ((store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay)) === 3 && Math.random() < 0.04) {
           spawnParticleBurst(rand(150, 650), rand(200, 450), ["#FFFF66", "#AAFFAA"], 1, ["star"]);
         }
         /* floating texts */
@@ -9570,7 +9570,7 @@
         }
       }
       draw(c) {
-        var tod = store.decor.timeOfDay || 1;
+        var tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
         this.drawBackground(c, tod);
         this.drawInteractiveObjects(c);
         /* draw pets */
@@ -9963,7 +9963,7 @@
         }
       }
       drawInteractiveObjects(c) {
-        var tod = store.decor.timeOfDay || 1;
+        var tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
         var byFrames = spriteArt.ready ? spriteArt.frames.backyard : null;
 
         /* bench — decorative, drawn behind other objects */
@@ -10078,7 +10078,7 @@
           c.beginPath(); c.ellipse(this.feeder.x - 37, 306, 12, 4, 0, 0, Math.PI * 2); c.fill();
         }
         if (bd.lanterns) {
-          var tod = store.decor.timeOfDay || 1;
+          var tod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
           var lanternGlow = tod >= 2 ? 0.6 : 0.2;
           c.strokeStyle = "rgba(160,140,120,0.4)"; c.lineWidth = 1;
           c.beginPath(); c.moveTo(40, 262); c.quadraticCurveTo(400, 248, 760, 262); c.stroke();
