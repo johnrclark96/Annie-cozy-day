@@ -4896,8 +4896,13 @@
           store.dailyTasks = { date: today, tasks: shuffled.slice(0, 3).map(t => t.id), completed: [] };
           saveJSON("dailyTasks", store.dailyTasks);
         }
-        /* weekly challenge — reset each Monday */
-        var weekId = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+        /* weekly challenge — reset each local Monday at 00:00 (C.B4).
+           Math.floor(Date.now()/7days) anchors to Thursday UTC because
+           the unix epoch was a Thursday — wrong day, wrong timezone. */
+        var _wcD = new Date();
+        var _wcDiff = (_wcD.getDay() + 6) % 7; /* 0=Mon, 6=Sun */
+        var _wcMonday = new Date(_wcD.getFullYear(), _wcD.getMonth(), _wcD.getDate() - _wcDiff);
+        var weekId = Math.floor(_wcMonday.getTime() / 86400000);
         if (store.weeklyChallenge.weekId !== weekId) {
           var wcSeed = weekId * 13 + 7;
           var wcIdx = wcSeed % WEEKLY_CHALLENGES.length;
