@@ -73,7 +73,6 @@ Before final commit of any session:
 ## Known Issues / Current Priorities
 
 - Obi's Walk could use more pace/variety
-- Some decorations are very subtle at 800x600 resolution
-- No settings screen (volume, reset save)
-- No first-visit tutorial arrows
-- Ambient music could rotate between variations
+- Decoration prominence pass (V6) covers 4 high-impact items; the remaining ~26 decor items still flat-on-background and could use shadows in a follow-up
+- Settings panel (V9) ships volume + reduced-motion + reset tutorial. "Reset save" was deferred from V9 as too heavy for one commit
+- First-visit tutorial overlay (V8) ships the welcome modal; the four numbered hint arrows pointing at coin pill / mode buttons / pet portraits / food bowl were deferred

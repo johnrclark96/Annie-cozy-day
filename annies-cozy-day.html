@@ -533,6 +533,8 @@
          {music:1, sfx:1, reducedMotion:false} so behavior is unchanged for
          existing players until they touch the panel. */
       settings: loadJSON("settings", { music: 1, sfx: 1, reducedMotion: false }),
+      /* V10 — per-mood variation index advancing on each mood change. */
+      musicVariation: loadJSON("musicVariation", { morning: 0, day: 0, evening: 0, night: 0, backyard: 0 }),
       /* F.NEW.2 — set true when a meaningful (>= 3-day) streak breaks; the
          next title→hangout transition shows a one-time welcome line then clears. */
       streakBreakPending: loadBool("streakBreakPending", false),
@@ -611,6 +613,11 @@
     if (typeof store.settings.music !== "number") store.settings.music = 1;
     if (typeof store.settings.sfx !== "number") store.settings.sfx = 1;
     if (typeof store.settings.reducedMotion !== "boolean") store.settings.reducedMotion = false;
+    /* V10 — musicVariation backfill */
+    if (!store.musicVariation || typeof store.musicVariation !== "object") store.musicVariation = { morning: 0, day: 0, evening: 0, night: 0, backyard: 0 };
+    ["morning","day","evening","night","backyard"].forEach(function(_mvk) {
+      if (typeof store.musicVariation[_mvk] !== "number") store.musicVariation[_mvk] = 0;
+    });
 
     /* ── Bond system migration for existing saves ── */
     if (!store.bond || !store.bond.obi || !store.bond.luna) {
@@ -1060,7 +1067,9 @@
           { bass: 196.00, pad: [392.00, 293.66], home: [13,11,14] },
           { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
           { bass: 130.81, pad: [261.63, 329.63], home: [10,12,13] }
-        ]},
+        ],
+        /* V10 — chord-progression permutations. Index into `chords`. */
+        variations: [[0,1,2,3], [3,2,1,0], [1,3,0,2]]},
       day: { bpm: 72, filter: 1400, melRange: [10,16], arpOn: true, restPct: 0.28,
         vol: { bass: 0.022, pad: 0.012, mel: 0.032, arp: 0.009 },
         chords: [
@@ -1068,7 +1077,8 @@
           { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
           { bass: 196.00, pad: [196.00, 293.66], home: [13,11,10] },
           { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] }
-        ]},
+        ],
+        variations: [[0,1,2,3], [2,0,3,1], [1,2,0,3]]},
       evening: { bpm: 64, filter: 950, melRange: [10,15], arpOn: false, restPct: 0.38,
         vol: { bass: 0.020, pad: 0.011, mel: 0.026, arp: 0 },
         chords: [
@@ -1076,7 +1086,8 @@
           { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
           { bass: 196.00, pad: [196.00, 293.66], home: [13,11,10] },
           { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] }
-        ]},
+        ],
+        variations: [[0,1,2,3], [1,0,2,3], [2,1,0,3]]},
       night: { bpm: 54, filter: 600, melRange: [10,14], arpOn: false, restPct: 0.55,
         vol: { bass: 0.016, pad: 0.009, mel: 0.018, arp: 0 },
         chords: [
@@ -1084,7 +1095,8 @@
           { bass: 110.00, pad: [220.00, 329.63], home: [14,10,12] },
           { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] },
           { bass: 110.00, pad: [220.00, 261.63], home: [14,10,12] }
-        ]},
+        ],
+        variations: [[0,1,2,3], [3,2,1,0], [2,3,0,1]]},
       backyard: { bpm: 80, filter: 2000, melRange: [10,18], arpOn: true, restPct: 0.22,
         vol: { bass: 0.020, pad: 0.013, mel: 0.034, arp: 0.011 },
         chords: [
@@ -1092,7 +1104,8 @@
           { bass: 146.83, pad: [293.66, 440.00], home: [11,13,14] },
           { bass: 196.00, pad: [392.00, 293.66], home: [13,11,10] },
           { bass: 130.81, pad: [261.63, 392.00], home: [10,12,13] }
-        ]}
+        ],
+        variations: [[0,1,2,3], [3,1,2,0], [1,2,3,0]]}
     };
 
     /* ═══ Away Stories & Daily Calendar Constants ═══ */
@@ -1345,6 +1358,14 @@
       setMusicMood(mood) {
         var key = mood || this._getMusicMoodKey();
         if (key === this._musicMood && this.ambientActive) return;
+        /* V10 — advance the variation index for this mood so the next entry
+           into the mood plays a different chord-progression permutation. */
+        if (store.musicVariation && key && store.musicVariation[key] != null) {
+          var __mcfg = MUSIC_MOODS[key];
+          var __mcount = (__mcfg && __mcfg.variations) ? __mcfg.variations.length : 1;
+          store.musicVariation[key] = ((store.musicVariation[key] | 0) + 1) % __mcount;
+          saveJSON("musicVariation", store.musicVariation);
+        }
         this.stopAmbient();
         var self = this;
         setTimeout(function() { self.startAmbient(key); }, 350);
@@ -1364,7 +1385,10 @@
           var when = this._musicNextTime;
           var sub = this._musicSubBeat;
           var chordIdx = Math.floor(sub / 16) % 4;
-          var chord = mc.chords[chordIdx];
+          /* V10 — apply variation permutation if available */
+          var __mvIdx = (store.musicVariation && store.musicVariation[this._musicMood] != null) ? store.musicVariation[this._musicMood] : 0;
+          var __mvPerm = mc.variations ? mc.variations[__mvIdx % mc.variations.length] : null;
+          var chord = mc.chords[__mvPerm ? __mvPerm[chordIdx] : chordIdx];
           var beatInChord = sub % 16;
           var isDownbeat = (sub % 2 === 0);
           /* update sustained voices on chord boundaries */
