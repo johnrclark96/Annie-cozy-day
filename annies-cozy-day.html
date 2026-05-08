@@ -1683,6 +1683,22 @@
       return { cx: cx, cy: cy, r: r };
     }
 
+    /* Phase B.3 — standard hangout/backyard panel frame. All current panels
+       (menu, decor, wardrobe, scrapbook, backyard decor) share this rect.
+       Future divergent panels can register their own frame in panelClose. */
+    const PANEL_STD = { x: 100, y: 70, w: 600, h: 480 };
+
+    /* panelClose (Phase B.3) — hit rect for the close button of a named panel.
+       Argument can be either a panel-key string (defaults to PANEL_STD) or a
+       panel rect {x,y,w,h}. Mirrors the geometry drawPanelClose uses for
+       rendering, so the click handler and renderer always agree. */
+    function panelClose(panelOrKey) {
+      var p = (typeof panelOrKey === "string" || panelOrKey == null) ? PANEL_STD : panelOrKey;
+      var cx = p.x + p.w - 22;
+      var cy = p.y + 22;
+      return { x: cx - 18, y: cy - 18, w: 36, h: 36 };
+    }
+
     /* drawKeyGlyph (Phase A.5) — small rounded "key cap" used inside intro modal meta lines
        (e.g. ← / → for Cuddle Pile, "Esc" for the universal back-out hint). */
     function drawKeyGlyph(c, x, y, char, w, h) {
@@ -4995,8 +5011,7 @@
           for (let i = 0; i < pageItems.length; i++) {
             if (pointInRect(x, y, this.getDecorItemRect(i))) { this.decorHover = i; break; }
           }
-          const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) this.decorHover = "close";
+          if (pointInRect(x, y, panelClose("decor"))) this.decorHover = "close";
           if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 })) this.decorHover = "prevPage";
           if (pointInRect(x, y, { x: 460, y: 530, w: 40, h: 30 })) this.decorHover = "nextPage";
           return;
@@ -5213,8 +5228,7 @@
           return;
         }
         if (this.decorOpen) {
-          const closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) { audio.menu(); this.decorOpen = false; this.hoverKey = null; return; }
+          if (pointInRect(x, y, panelClose("decor"))) { audio.menu(); this.decorOpen = false; this.hoverKey = null; return; }
           /* page navigation */
           if (pointInRect(x, y, { x: 300, y: 530, w: 40, h: 30 }) && this.decorPage > 0) {
             this.decorPage--; audio.menu(); return;
@@ -8150,39 +8164,20 @@
           c.restore();
         }
 
-        /* ── Decoration panel overlay ── */
+        /* ── Decoration panel overlay (Phase B.3 — uses drawPanelFrame + drawPanelClose) ── */
         if (this.decorFade > 0.01) {
           c.save();
           c.globalAlpha = this.decorFade;
-          c.fillStyle = "rgba(40,28,18,0.55)";
-          c.fillRect(0, 0, W, H);
-
-          rr(c, 100, 70, 600, 480, 28);
-          c.fillStyle = "rgba(255,248,240,0.97)";
-          c.fill();
-          c.strokeStyle = "rgba(146,104,72,0.2)";
-          c.lineWidth = 3;
-          c.stroke();
-
-          c.fillStyle = "#7A4E36";
-          c.textAlign = "center";
-          c.font = '28px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Decorate", W / 2, 110);
+          drawPanelFrame(c, { x: PANEL_STD.x, y: PANEL_STD.y, w: PANEL_STD.w, h: PANEL_STD.h, title: "Decorate" });
 
           const stars = totalStarsEarned();
           c.fillStyle = "rgba(92,61,46,0.5)";
+          c.textAlign = "center";
           c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.fillText("Stars earned: " + stars + " / 33  •  Unlock items by earning stars in minigames!", W / 2, 130);
 
           /* close button */
-          const closeHover = this.decorHover === "close";
-          const dBx = W / 2 + 218, dBy = 102;
-          if (closeHover) drawGlowCircle(c, dBx, dBy, 24, "rgba(180,80,60,ALPHA)", 0.2);
-          c.fillStyle = closeHover ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
-          c.beginPath(); c.arc(dBx, dBy, closeHover ? 18 : 16, 0, Math.PI * 2); c.fill();
-          c.strokeStyle = "#FFF8F0"; c.lineWidth = closeHover ? 3 : 2.5;
-          c.beginPath(); c.moveTo(dBx - 6, dBy - 6); c.lineTo(dBx + 6, dBy + 6); c.stroke();
-          c.beginPath(); c.moveTo(dBx + 6, dBy - 6); c.lineTo(dBx - 6, dBy + 6); c.stroke();
+          drawPanelClose(c, PANEL_STD, this.decorHover === "close");
 
           const pageItems = this.getDecorPageItems();
           for (let i = 0; i < pageItems.length; i++) {
