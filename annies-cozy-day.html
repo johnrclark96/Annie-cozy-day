@@ -1379,6 +1379,10 @@
       }
     };
 
+    /* C.B14 — persist hangout ambient event across scene re-creation
+       (visitor would otherwise be lost on every minigame round-trip). */
+    var persistedHangoutAmbient = null; /* { event, cooldown, savedAt } */
+
 
     // ═══ 07-particles.js ═══
     function spawnParticleBurst(x, y, colors = [COLORS.softPink, COLORS.gold], amount = 10, kindMix = ["heart", "star"]) {
@@ -4691,9 +4695,19 @@
         this.dailyGift = null;
         /* favorites */
         this.favDiscovered = { obi: false, luna: false };
-        /* ambient events */
+        /* ambient events — restore from module-level holder so visitors
+           don't disappear on every scene round-trip (C.B14). */
         this.ambientEvent = null;
         this.ambientEventCooldown = rand(60, 180);
+        if (persistedHangoutAmbient) {
+          var _hpaElapsed = (Date.now() - persistedHangoutAmbient.savedAt) / 1000;
+          if (persistedHangoutAmbient.event && persistedHangoutAmbient.event.timer > _hpaElapsed) {
+            this.ambientEvent = persistedHangoutAmbient.event;
+            this.ambientEvent.timer -= _hpaElapsed;
+          } else if (persistedHangoutAmbient.cooldown != null) {
+            this.ambientEventCooldown = Math.max(1, persistedHangoutAmbient.cooldown - _hpaElapsed);
+          }
+        }
         /* decor pagination + tab (Phase B.4) */
         this.decorPage = 0;
         this.decorTab = "room";
@@ -7385,6 +7399,7 @@
             var careLevel = ((this.obi.joy || 50) + (this.luna.joy || 50)) / 200;
             this.ambientEventCooldown = rand(60, 180) * (1.3 - careLevel * 0.6);
           }
+          this._persistAmbient();
           return;
         }
         this.ambientEventCooldown -= dt;
@@ -7408,6 +7423,14 @@
             this.spawnPackageEvent();
           }
         }
+        this._persistAmbient();
+      }
+      _persistAmbient() {
+        persistedHangoutAmbient = {
+          event: this.ambientEvent,
+          cooldown: this.ambientEventCooldown,
+          savedAt: Date.now()
+        };
       }
       spawnButterflyEvent() {
         const count = Math.floor(rand(1, 4));
