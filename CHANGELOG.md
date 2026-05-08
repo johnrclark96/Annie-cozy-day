@@ -2,8 +2,9 @@
 
 ## 2026-05-08
 
-### Phase A · Foundation helpers (additive only — no live wiring yet)
+### Phase A · Foundation helpers
 - A.1: Added `HUD_GRID` constants (row1, row2, pillH, pillGap, primaryH, chipCol, bottomY) and `placePill(side, slot, w, h?)` helper as single source of truth for HUD pill anchor points across hub, backyard, and minigames
+- A.2: Migrated `BaseMinigameScene.drawTopHud`, `CuddlePileScene.drawTopHud`, `WildWandScene.drawTopHud` to `placePill`. Score pill now clears the right-edge chip column (sound/camera/scrapbook) with 6px gutter — fixes F6 chip-collision audit finding. Time/Score pills sit at y=16 (was y=12) for grid alignment.
 
 ## 2026-05-07
 

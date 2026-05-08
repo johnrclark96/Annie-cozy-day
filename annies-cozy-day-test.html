@@ -1479,11 +1479,13 @@
       c.restore();
     }
 
-    /* placePill (Phase A.1) — single source of truth for HUD pill anchor points.
+    /* placePill (Phase A.1, refined A.2) — single source of truth for HUD pill anchor points.
        side: "tl" | "tr" | "bl" | "br"
        slot: 0 = primary header row (h defaults to HUD_GRID.primaryH = 46);
              1+ = small-pill rows below (h defaults to HUD_GRID.pillH = 22)
-       w: explicit width; h: optional, derived from slot if omitted. */
+       w: explicit width; h: optional, derived from slot if omitted.
+       "tr"/"br" pills are anchored to clear the right-edge chip column (sound/camera/scrapbook)
+       with a 6px gutter — fixes F6 (Score pill overlapping mute chip). */
     function placePill(side, slot, w, h) {
       if (h == null) h = (slot === 0 ? HUD_GRID.primaryH : HUD_GRID.pillH);
       var y;
@@ -1494,7 +1496,13 @@
           ? HUD_GRID.row1
           : HUD_GRID.row2 + (slot - 1) * (HUD_GRID.pillH + HUD_GRID.pillGap);
       }
-      var x = (side === "tl" || side === "bl") ? SAFE : (W - SAFE - w);
+      var x;
+      if (side === "tl" || side === "bl") {
+        x = SAFE;
+      } else {
+        // "tr"/"br": right edge clears the chip column with a 6px gutter
+        x = HUD_GRID.chipCol - HUD_GRID.pillGap - w;
+      }
       return { x: x, y: y, w: w, h: h };
     }
 
@@ -10031,10 +10039,12 @@
       }
       drawTopHud(c, showCombo = true) {
         c.save();
+        const timePill = placePill("tl", 0, 130);
+        const scorePill = placePill("tr", 0, 132, showCombo ? 72 : 46);
         c.fillStyle = "rgba(255,248,240,0.88)";
-        rr(c, SAFE, 12, 130, 46, 12);
+        rr(c, timePill.x, timePill.y, timePill.w, timePill.h, 12);
         c.fill();
-        rr(c, W - SAFE - 132, 12, 132, showCombo ? 72 : 46, 12);
+        rr(c, scorePill.x, scorePill.y, scorePill.w, scorePill.h, 12);
         c.fill();
 
         /* pause button */
@@ -10047,11 +10057,11 @@
         c.fillRect(pb.x + 13, pb.y + 10, 4, 16);
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
 
-        drawHudTime(c, SAFE + 12, 24, this.timeLeft);
+        drawHudTime(c, timePill.x + 12, timePill.y + 12, this.timeLeft);
 
         c.save();
         const scoreScale = 1 + this.scorePop * 0.2;
-        c.translate(W - SAFE - 12, 24);
+        c.translate(scorePill.x + scorePill.w - 12, scorePill.y + 12);
         c.scale(scoreScale, scoreScale);
         drawHudScore(c, 0, 0, Math.round(this.score));
         c.restore();
@@ -10060,7 +10070,7 @@
           c.fillStyle = "#A05A3C";
           c.textAlign = "center";
           c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Combo x" + this.combo, W - SAFE - 66, 76);
+          c.fillText("Combo x" + this.combo, scorePill.x + scorePill.w / 2, scorePill.y + 64);
         }
         c.restore();
       }
@@ -12393,9 +12403,12 @@
       }
       drawTopHud(c) {
         c.save();
+        const timePill = placePill("tl", 0, 140);
         c.fillStyle = "rgba(255,248,240,0.88)";
-        rr(c, SAFE, 12, 140, 46, 12);
+        rr(c, timePill.x, timePill.y, timePill.w, timePill.h, 12);
         c.fill();
+        // Balance meter intentionally keeps its hand-placed rect (200, 12, 430, 46) —
+        // it co-locates with the Time pill but is not a "tr"-anchored Score pill.
         rr(c, 200, 12, 430, 46, 12);
         c.fill();
 
@@ -12409,7 +12422,7 @@
         c.fillRect(pb.x + 13, pb.y + 10, 4, 16);
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
 
-        drawHudTime(c, SAFE + 12, 24, Math.floor(this.score));
+        drawHudTime(c, timePill.x + 12, timePill.y + 12, Math.floor(this.score));
         c.fillStyle = "#3A2A1E";
         c.font = '14px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
         c.textAlign = "center";
@@ -13303,9 +13316,11 @@
       extraInteractiveAt() { return true; }
       drawTopHud(c) {
         c.save();
+        var timePill = placePill("tl", 0, 130);
+        var scorePill = placePill("tr", 0, 132, 72);
         c.fillStyle = "rgba(255,248,240,0.88)";
-        rr(c, SAFE, 12, 130, 46, 12); c.fill();
-        rr(c, W - SAFE - 132, 12, 132, 72, 12); c.fill();
+        rr(c, timePill.x, timePill.y, timePill.w, timePill.h, 12); c.fill();
+        rr(c, scorePill.x, scorePill.y, scorePill.w, scorePill.h, 12); c.fill();
         /* pause button */
         var pb = this.pauseButtonRect();
         var pbH = pointInRect(game.mouse.x, game.mouse.y, pb);
@@ -13316,11 +13331,11 @@
         c.fillRect(pb.x + 21, pb.y + 10, 4, 16);
         /* elapsed time instead of countdown */
         var elapsed = Math.floor(this.duration - this.timeLeft);
-        drawHudTime(c, SAFE + 12, 24, elapsed);
+        drawHudTime(c, timePill.x + 12, timePill.y + 12, elapsed);
         /* score */
         c.save();
         var ss = 1 + this.scorePop * 0.2;
-        c.translate(W - SAFE - 12, 24);
+        c.translate(scorePill.x + scorePill.w - 12, scorePill.y + 12);
         c.scale(ss, ss);
         drawHudScore(c, 0, 0, Math.round(this.score));
         c.restore();
@@ -13329,7 +13344,7 @@
           c.fillStyle = "#A05A3C";
           c.textAlign = "center";
           c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Combo x" + this.combo, W - SAFE - 66, 76);
+          c.fillText("Combo x" + this.combo, scorePill.x + scorePill.w / 2, scorePill.y + 64);
         }
         c.restore();
       }
