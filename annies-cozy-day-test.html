@@ -171,6 +171,32 @@
       "Luna claims this is her couch now"
     ];
 
+    /* F.5 — welcome banner pool, drawn from on title→hangout entry. Each
+       entry can be filtered by `mood` (matches the active pet's daily mood,
+       or "any" for generic). Tone: warm, observational, never urgent. */
+    const WELCOME_LINES = [
+      { text: "Obi is curious about you today.", mood: "any" },
+      { text: "Luna is judging from the couch.", mood: "any" },
+      { text: "It's quiet here. Settle in.", mood: "any" },
+      { text: "The light through the window is gentle today.", mood: "any" },
+      { text: "Obi wagged when the door opened.", mood: "any" },
+      { text: "Luna pretends not to care that you're back.", mood: "any" },
+      { text: "Obi wants to play.", mood: "playful" },
+      { text: "Obi is bouncing — fetch me a toy.", mood: "playful" },
+      { text: "Obi is leaning into Annie's hand.", mood: "cuddly" },
+      { text: "Obi will follow you anywhere right now.", mood: "cuddly" },
+      { text: "Obi is yawning. Couch time?", mood: "lazy" },
+      { text: "Obi keeps looking at his food bowl.", mood: "hungry" },
+      { text: "Luna is watching the windowsill carefully.", mood: "curious" },
+      { text: "Luna's tail is twitching at nothing.", mood: "curious" },
+      { text: "Luna found the highest cushion. Of course.", mood: "aloof" },
+      { text: "Luna pretends she doesn't see you.", mood: "aloof" },
+      { text: "Luna walked past Annie three times. That's affection.", mood: "affectionate" },
+      { text: "Luna is purring before you've even sat down.", mood: "affectionate" },
+      { text: "Luna's tail keeps flicking. Watch your ankles.", mood: "mischievous" },
+      { text: "Luna is up to something.", mood: "mischievous" }
+    ];
+
     /* ── Living room decorations ── */
     const DECOR_ITEMS = [
       /* existing star/streak-gated items */
@@ -499,6 +525,9 @@
         sundial: false, dogHouse: false, butterflyGarden: false, fountain: false
       }),
       firstVisit: loadBool("firstVisit", true),
+      /* F.NEW.2 — set true when a meaningful (>= 3-day) streak breaks; the
+         next title→hangout transition shows a one-time welcome line then clears. */
+      streakBreakPending: loadBool("streakBreakPending", false),
       /* E.4 — anniversary re-trigger of dedication.
          firstVisitDate: ISO yyyy-mm-dd of when the dedication first showed.
            null for existing players (migration backfill — they don't get an
@@ -4893,12 +4922,21 @@
           this.statusText = "Your cozy home earned +" + this.passiveIncomeAmount + " coins overnight!";
           this.statusPulse = 0.5;
         } else if (game.transition && game.transition.from instanceof TitleScene) {
-          var moodMsgs = {
-            obi: { playful: "Obi is feeling playful today!", cuddly: "Obi wants cuddles today!", lazy: "Obi is in a lazy mood today.", hungry: "Obi seems extra snacky today!" },
-            luna: { curious: "Luna is feeling curious today!", aloof: "Luna is being extra aloof today.", affectionate: "Luna seems lovey today!", mischievous: "Luna has a mischievous look..." }
-          };
-          this.statusText = (moodMsgs.obi[obiMoodToday] || "") + " " + (moodMsgs.luna[lunaMoodToday] || "");
-          this.statusPulse = 0.3;
+          /* F.NEW.2 — one-time welcome-back line if a meaningful streak broke. */
+          if (store.streakBreakPending) {
+            var _sbLines = ["Obi looked for you yesterday.", "Luna sat by the door for a while.", "The pets missed your visit yesterday."];
+            this.statusText = _sbLines[Math.floor(Math.random() * _sbLines.length)];
+            this.statusPulse = 0.5;
+            store.streakBreakPending = false;
+            saveBool("streakBreakPending", false);
+          } else {
+            /* F.5 — pick from WELCOME_LINES filtered to today's pet moods. */
+            var _wMoods = [obiMoodToday, lunaMoodToday];
+            var _wPool = WELCOME_LINES.filter(function(w) { return w.mood === "any" || _wMoods.indexOf(w.mood) >= 0; });
+            if (_wPool.length === 0) _wPool = WELCOME_LINES;
+            this.statusText = _wPool[Math.floor(Math.random() * _wPool.length)].text;
+            this.statusPulse = 0.3;
+          }
         }
         /* check for newly unlocked decorations */
         const stars = totalStarsEarned();
@@ -7554,6 +7592,11 @@
               this.statusPulse = 1;
             }
           } else {
+            /* F.NEW.2 — meaningful streak broke; queue welcome-back line. */
+            if (streak.count >= 3 && !store.streakBreakPending) {
+              store.streakBreakPending = true;
+              saveBool("streakBreakPending", true);
+            }
             streak.count = 1;
           }
           streak.lastCareDate = today;
