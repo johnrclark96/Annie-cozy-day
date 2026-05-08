@@ -740,26 +740,31 @@
       return true;
     }
 
+    /* Phase D.2 — single source of truth for the per-minigame star thresholds.
+       Used by totalStarsEarned and the Game Menu card render's "next" hint. */
+    const STAR_THRESHOLDS = {
+      treat:    [300, 700, 1400],
+      laser:    [200, 500, 1000],
+      cuddle:   [30, 60, 90],
+      walk:     [200, 450, 800],
+      nap:      [250, 550, 1000],
+      bath:     [120, 280, 500],
+      sort:     [120, 280, 550],
+      pillow:   [150, 350, 650],
+      findluna: [100, 250, 500],
+      window:   [150, 400, 750],
+      pawstep:  [80, 200, 400],
+      wildwand: [100, 250, 500]
+    };
+
     function totalStarsEarned() {
-      const games = [
-        { best: store.best_treat, thresholds: [300, 700, 1400] },
-        { best: store.best_laser, thresholds: [200, 500, 1000] },
-        { best: store.best_cuddle, thresholds: [30, 60, 90] },
-        { best: store.best_walk, thresholds: [200, 450, 800] },
-        { best: store.best_nap, thresholds: [250, 550, 1000] },
-        { best: store.best_bath, thresholds: [120, 280, 500] },
-        { best: store.best_sort, thresholds: [120, 280, 550] },
-        { best: store.best_pillow, thresholds: [150, 350, 650] },
-        { best: store.best_findluna, thresholds: [100, 250, 500] },
-        { best: store.best_window, thresholds: [150, 400, 750] },
-        { best: store.best_pawstep, thresholds: [80, 200, 400] },
-        { best: store.best_wildwand, thresholds: [100, 250, 500] }
-      ];
       let total = 0;
-      for (const g of games) {
-        if (g.best >= g.thresholds[0]) total++;
-        if (g.best >= g.thresholds[1]) total++;
-        if (g.best >= g.thresholds[2]) total++;
+      for (const key in STAR_THRESHOLDS) {
+        const best = store["best_" + key] || 0;
+        const t = STAR_THRESHOLDS[key];
+        if (best >= t[0]) total++;
+        if (best >= t[1]) total++;
+        if (best >= t[2]) total++;
       }
       return total;
     }
@@ -8296,6 +8301,21 @@
             c.fillStyle = "rgba(92,61,46,0.5)";
             c.font = '11px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
             c.fillText(card.best(), cr.x + 88, cr.y + 62);
+
+            /* Phase D.2 — "NEXT: N" hint when stars < 3 */
+            var _stThr = STAR_THRESHOLDS[card.key];
+            if (_stThr) {
+              var _stBest = store["best_" + card.key] || 0;
+              var _stCur = (_stBest >= _stThr[2]) ? 3 : (_stBest >= _stThr[1]) ? 2 : (_stBest >= _stThr[0]) ? 1 : 0;
+              if (_stCur < 3) {
+                c.save();
+                c.fillStyle = "rgba(92,61,46,0.42)";
+                c.font = '10px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+                c.textAlign = "right";
+                c.fillText("NEXT: " + _stThr[_stCur], cr.x + cr.w - 50, cr.y + 56);
+                c.restore();
+              }
+            }
 
             /* play arrow */
             c.fillStyle = hover ? card.color : "rgba(92,61,46,0.4)";
