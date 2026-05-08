@@ -4743,7 +4743,11 @@
       enter() {
         this.hoverKey = null;
         this.tooltip = null;
-        audio.startAmbient();
+        /* C.B25 — explicit mood swap so returning from backyard switches
+           music back to the time-of-day mood (startAmbient was a no-op
+           when ambient was already running, so backyard mood persisted). */
+        var _hsTod = (store.decor.timeOfDay == null ? 1 : store.decor.timeOfDay);
+        audio.setMusicMood(["morning", "day", "evening", "night"][_hsTod]);
         /* record returning from a minigame as a "game" care action */
         if (game.transition && game.transition.from instanceof BaseMinigameScene) {
           this.recordCareAction("game");
@@ -8928,7 +8932,10 @@
       enter() {
         this.obi.joy = store.pet_obi_joy;
         this.luna.joy = store.pet_luna_joy;
-        audio.startAmbient("backyard");
+        /* C.B25 — `startAmbient` is a no-op once ambient is already
+           running, so entering backyard from hangout left the day/night
+           music playing. setMusicMood swaps mood (or starts cold). */
+        audio.setMusicMood("backyard");
         if (!this.checkedFirstVisit) {
           this.checkedFirstVisit = true;
           var entries = store.scrapbook.entries;
