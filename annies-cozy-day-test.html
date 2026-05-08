@@ -4718,6 +4718,10 @@
         /* joy milestone tracking */
         this.obiMilestone = this.joyTier(this.obi.joy);
         this.lunaMilestone = this.joyTier(this.luna.joy);
+        /* F.NEW.1 — rolling joy history per pet for the decay-direction arrow.
+           Samples are {t, joy}; compute delta over last 5s. */
+        this._joyHistory = { obi: [], luna: [] };
+        this._joySampleTimer = 0;
         /* stroke trail for pet/brush mode */
         this.strokeTrail = [];
         /* food & water bowls — apply real-time depletion */
@@ -6678,6 +6682,16 @@
           this._dedicatedReveal.timer -= dt;
           if (this._dedicatedReveal.timer <= 0) this._dedicatedReveal = null;
         }
+        /* F.NEW.1 — sample joy every 0.25s, trim to 5s window. */
+        this._joySampleTimer = (this._joySampleTimer || 0) - dt;
+        if (this._joySampleTimer <= 0) {
+          this._joySampleTimer = 0.25;
+          var _jhT = game.time;
+          this._joyHistory.obi.push({ t: _jhT, j: this.obi.joy });
+          this._joyHistory.luna.push({ t: _jhT, j: this.luna.joy });
+          while (this._joyHistory.obi.length && this._joyHistory.obi[0].t < _jhT - 5) this._joyHistory.obi.shift();
+          while (this._joyHistory.luna.length && this._joyHistory.luna[0].t < _jhT - 5) this._joyHistory.luna.shift();
+        }
         /* stroke trail tick */
         for (let i = this.strokeTrail.length - 1; i >= 0; i--) {
           this.strokeTrail[i].life -= dt;
@@ -7926,58 +7940,71 @@
           c.restore();
         }
 
-        /* compact pet status - small pills */
-        c.save();
-        rr(c, 14, 62, 140, 38, 12);
-        c.fillStyle = "rgba(255,255,255,0.78)";
-        c.fill();
-        c.strokeStyle = "rgba(146,104,72,0.12)";
-        c.lineWidth = 1;
-        c.stroke();
-        c.fillStyle = "#5A3E2B";
-        c.textAlign = "left";
-        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Obi: " + this.moodLabel("obi"), 24, 78);
-        drawMoodIcon(c, this.petMood("obi"), 142, 76);
-        rr(c, 24, 84, 120, 12, 6);
-        c.fillStyle = "rgba(0,0,0,0.08)";
-        c.fill();
-        const obiBarW = 120 * clamp(this.obi.joy / 100, 0, 1);
-        if (obiBarW > 1) {
-          rr(c, 24, 84, obiBarW, 12, 6);
-          c.fillStyle = "#4A90D9";
+        /* compact pet status - small pills (F.1 — ticks at 50/80, hover
+           numeric, F.NEW.1 — joy-decay direction arrow) */
+        var _obiPillRect = { x: 14, y: 62, w: 140, h: 38 };
+        var _lunaPillRect = { x: 646, y: 62, w: 140, h: 38 };
+        var _obiHov = pointInRect(game.mouse.x, game.mouse.y, _obiPillRect);
+        var _lunaHov = pointInRect(game.mouse.x, game.mouse.y, _lunaPillRect);
+        var _that = this;
+        var _drawJoyPill = function(rect, label, mood, joy, fillColor, hist, hov) {
+          c.save();
+          rr(c, rect.x, rect.y, rect.w, rect.h, 12);
+          c.fillStyle = "rgba(255,255,255,0.78)";
           c.fill();
-          c.fillStyle = "rgba(255,255,255,0.25)";
-          rr(c, 24, 84, obiBarW, 5, 6);
+          c.strokeStyle = "rgba(146,104,72,0.12)";
+          c.lineWidth = 1;
+          c.stroke();
+          c.fillStyle = "#5A3E2B";
+          c.textAlign = "left";
+          c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
+          c.fillText(label + ": " + _that.moodLabel(label.toLowerCase()), rect.x + 10, rect.y + 16);
+          drawMoodIcon(c, mood, rect.x + 128, rect.y + 14);
+          /* bar */
+          var barX = rect.x + 10, barY = rect.y + 22, barW = 120, barH = 12;
+          rr(c, barX, barY, barW, barH, 6);
+          c.fillStyle = "rgba(0,0,0,0.08)";
           c.fill();
-        }
-        c.restore();
-
-        c.save();
-        rr(c, 646, 62, 140, 38, 12);
-        c.fillStyle = "rgba(255,255,255,0.78)";
-        c.fill();
-        c.strokeStyle = "rgba(146,104,72,0.12)";
-        c.lineWidth = 1;
-        c.stroke();
-        c.fillStyle = "#5A3E2B";
-        c.textAlign = "left";
-        c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-        c.fillText("Luna: " + this.moodLabel("luna"), 656, 78);
-        drawMoodIcon(c, this.petMood("luna"), 774, 76);
-        rr(c, 656, 84, 120, 12, 6);
-        c.fillStyle = "rgba(0,0,0,0.08)";
-        c.fill();
-        const lunaBarW = 120 * clamp(this.luna.joy / 100, 0, 1);
-        if (lunaBarW > 1) {
-          rr(c, 656, 84, lunaBarW, 12, 6);
-          c.fillStyle = "#A8C686";
-          c.fill();
-          c.fillStyle = "rgba(255,255,255,0.25)";
-          rr(c, 656, 84, lunaBarW, 5, 6);
-          c.fill();
-        }
-        c.restore();
+          var fillW = barW * clamp(joy / 100, 0, 1);
+          if (fillW > 1) {
+            rr(c, barX, barY, fillW, barH, 6);
+            c.fillStyle = fillColor;
+            c.fill();
+            c.fillStyle = "rgba(255,255,255,0.25)";
+            rr(c, barX, barY, fillW, 5, 6);
+            c.fill();
+          }
+          /* F.1 — milestone ticks at 50% and 80% */
+          c.fillStyle = "rgba(0,0,0,0.35)";
+          c.fillRect(barX + barW * 0.5, barY, 1, barH);
+          c.fillRect(barX + barW * 0.8, barY, 1, barH);
+          /* F.NEW.1 — decay direction arrow when joy is dropping */
+          if (hist && hist.length >= 2) {
+            var first = hist[0], last = hist[hist.length - 1];
+            var dt = last.t - first.t;
+            if (dt > 1.5) {
+              var rate = (last.j - first.j) / dt; /* joy per second */
+              if (rate < -0.1) {
+                c.save();
+                c.fillStyle = "rgba(180,80,60,0.85)";
+                c.font = '7px "Fredoka One", sans-serif';
+                c.textAlign = "left";
+                c.fillText("▼", barX + barW + 3, barY + 9);
+                c.restore();
+              }
+            }
+          }
+          /* F.1 — hover shows numeric to right of bar */
+          if (hov) {
+            c.fillStyle = "rgba(92,61,46,0.7)";
+            c.font = '10px "Fredoka One", sans-serif';
+            c.textAlign = "left";
+            c.fillText(Math.round(joy) + " / 100", barX + barW + 12, barY + 9);
+          }
+          c.restore();
+        };
+        _drawJoyPill(_obiPillRect, "Obi", this.petMood("obi"), this.obi.joy, "#4A90D9", this._joyHistory.obi, _obiHov);
+        _drawJoyPill(_lunaPillRect, "Luna", this.petMood("luna"), this.luna.joy, "#A8C686", this._joyHistory.luna, _lunaHov);
 
         /* warm scene glow */
         drawGlowCircle(c, 400, 380, 200, "rgba(255,240,210,ALPHA)", 0.06);
