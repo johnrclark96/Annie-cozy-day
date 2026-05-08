@@ -2,6 +2,9 @@
 
 ## 2026-05-08
 
+### Phase C · Save-touching bug fixes
+- C.B2: Bond migration (~line 560) now triggers on missing `luna` as well as missing `obi`. Previously a partial save with only `obi` would crash on first `awardBondXP("luna", ...)` because `store.bond.luna` was undefined. The migration writes the full default shape for both pets if either is missing. Pure migration fix; no impact on healthy saves.
+
 ### Phase B · Hub HUD + Decor migration
 - B.1: Refined `HUD_GRID` (row2=34, bottomY=510) and added `placePillStack` helper. Migrated 5 hub HUD pills (streak, dailyTasks, weekly, coin, star) to a single right-anchored stack on slot 1 (y=34) — fixes F1 audit finding (HUD has no grid). Goal pill migrated to `placePill("bl", 0, w)`. Folded in N5: coin popup y now relative to coin pill y. Pill order right→left: star, coin, weekly, dailyTasks, streak. Visual changes: coin/star shift up 25px and right ~150px to right-anchor; streak/dailyTasks/weekly shift right ~25px and h grows from 20 to 22; vertical gap to Luna pet pill is 6px; horizontal gap to chip column is 6px. Backyard scene's coin pill not migrated in this chunk (out of scope).
 - B.2: Verified HangoutScene.draw button-fill scope: 0 matches for `warmRed` or `#9B59B6` (Q-tier 2026-05-07 already collapsed all hub buttons to `#C7A37B` neutral / `#A05A3C` active). No-op skip per refined plan. Backyard Decor button purple `#9B7DBD` (line 9631) is out of B.2 scope.

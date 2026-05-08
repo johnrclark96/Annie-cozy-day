@@ -557,7 +557,7 @@
     if (store.stats.petInteractionsSeen === undefined) store.stats.petInteractionsSeen = 0;
 
     /* ── Bond system migration for existing saves ── */
-    if (!store.bond || !store.bond.obi) {
+    if (!store.bond || !store.bond.obi || !store.bond.luna) {
       store.bond = { obi: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null }, luna: { xp: 0, level: 1, dailyActions: {}, lastActionDate: null } };
     }
     /* retroactive bond XP for veteran players based on stats */
