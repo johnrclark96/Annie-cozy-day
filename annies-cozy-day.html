@@ -1744,6 +1744,13 @@
     const PANEL_STD = { x: 100, y: 70, w: 600, h: 480 };
     /* Phase D.1 — Game Menu uses a wider/taller frame to fit 6 cards × 720 wide. */
     const MENU_PANEL = { x: 40, y: 60, w: 720, h: 540 };
+    /* Phase D.3 — Wardrobe panel matches Game Menu width but is shorter. */
+    const WARDROBE_PANEL = { x: 40, y: 60, w: 720, h: 520 };
+    const WARDROBE_TABS = [
+      { key: "obi", label: "Obi" },
+      { key: "luna", label: "Luna" },
+      { key: "annie", label: "Annie" }
+    ];
 
     /* drawLockChip (Phase B.5) — small chip top-right of a card rect indicating
        why a card is gated. kind ∈ {"stars","coins","achievement","season","streak"}.
@@ -5150,11 +5157,8 @@
         }
         if (this.wardrobeOpen) {
           this.wardrobeHover = null;
-          var closeBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, closeBtn)) { this.wardrobeHover = "close"; return; }
-          if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabObi"; return; }
-          if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabLuna"; return; }
-          if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeHover = "tabAnnie"; return; }
+          if (pointInRect(x, y, panelClose(WARDROBE_PANEL))) { this.wardrobeHover = "close"; return; }
+          /* tabs flat per drawPanelTabs convention (no hover state) */
           var wMaxScroll = this.wardrobeMaxScroll();
           if (wMaxScroll > 0 && this.wardrobeScrollOffset > 0 && pointInRect(x, y, { x: 380, y: 160, w: 40, h: 20 })) { this.wardrobeHover = "scrollUp"; return; }
           if (wMaxScroll > 0 && this.wardrobeScrollOffset < wMaxScroll && pointInRect(x, y, { x: 380, y: 563, w: 40, h: 20 })) { this.wardrobeHover = "scrollDown"; return; }
@@ -5245,10 +5249,8 @@
           for (var ai = 0; ai < tabItems.length; ai++) {
             if (pointInRect(x, y, this.getWardrobeItemRect(ai))) return true;
           }
-          return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 }) ||
-            pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 }) ||
-            pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 }) ||
-            pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 });
+          if (pointInRect(x, y, panelClose(WARDROBE_PANEL))) return true;
+          return panelTabHit(WARDROBE_PANEL, WARDROBE_TABS, x, y) != null;
         }
         if (this.scrapbookOpen) {
           return pointInRect(x, y, { x: W / 2 + 200, y: 84, w: 36, h: 36 }) ||
@@ -5457,12 +5459,15 @@
           return;
         }
         if (this.wardrobeOpen) {
-          var wCloseBtn = { x: W / 2 + 200, y: 84, w: 36, h: 36 };
-          if (pointInRect(x, y, wCloseBtn)) { audio.menu(); this.wardrobeOpen = false; this.hoverKey = null; return; }
+          if (pointInRect(x, y, panelClose(WARDROBE_PANEL))) { audio.menu(); this.wardrobeOpen = false; this.hoverKey = null; return; }
           /* tab clicks */
-          if (pointInRect(x, y, { x: 80, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "obi"; this.wardrobeScrollOffset = 0; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 170, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "luna"; this.wardrobeScrollOffset = 0; audio.tinyChime(); return; }
-          if (pointInRect(x, y, { x: 260, y: 130, w: 80, h: 26 })) { this.wardrobeTab = "annie"; this.wardrobeScrollOffset = 0; audio.tinyChime(); return; }
+          var wTabKey = panelTabHit(WARDROBE_PANEL, WARDROBE_TABS, x, y);
+          if (wTabKey && wTabKey !== this.wardrobeTab) {
+            this.wardrobeTab = wTabKey;
+            this.wardrobeScrollOffset = 0;
+            audio.tinyChime();
+            return;
+          }
           /* scroll arrow clicks */
           var wMaxScroll = this.wardrobeMaxScroll();
           if (wMaxScroll > 0) {
@@ -8467,51 +8472,16 @@
         if (this.wardrobeFade > 0.01) {
           c.save();
           c.globalAlpha = this.wardrobeFade;
-          c.fillStyle = "rgba(40,28,18,0.55)";
-          c.fillRect(0, 0, W, H);
-          rr(c, 40, 60, 720, 520, 28);
-          c.fillStyle = "rgba(255,248,240,0.97)";
-          c.fill();
-          c.strokeStyle = "rgba(146,104,72,0.2)";
-          c.lineWidth = 3;
-          c.stroke();
-          c.fillStyle = "#7A4E36";
+          /* Phase D.3 — unified frame + tabs + close. Drops "Coins:" subtitle
+             (HUD pill duplicates it); "X / Y owned" moves to a single line
+             below the tab row. */
+          drawPanelFrame(c, { x: WARDROBE_PANEL.x, y: WARDROBE_PANEL.y, w: WARDROBE_PANEL.w, h: WARDROBE_PANEL.h, title: "Closet" });
+          drawPanelTabs(c, WARDROBE_PANEL, WARDROBE_TABS, this.wardrobeTab);
+          drawPanelClose(c, WARDROBE_PANEL, this.wardrobeHover === "close");
+          c.fillStyle = "rgba(92,61,46,0.5)";
+          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
           c.textAlign = "center";
-          c.font = '26px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Closet", W / 2, 98);
-          c.fillStyle = "rgba(92,61,46,0.5)";
-          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillText("Coins: " + store.coins, W / 2, 116);
-          c.font = '12px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-          c.fillStyle = "rgba(92,61,46,0.5)";
-          c.fillText(store.wardrobe.owned.length + " / " + Object.values(ACCESSORIES).reduce(function(s, a) { return s + a.length; }, 0) + " owned", W / 2, 128);
-          /* close button */
-          var wchov = this.wardrobeHover === "close";
-          var wcx = W / 2 + 218, wcy = 102;
-          if (wchov) drawGlowCircle(c, wcx, wcy, 24, "rgba(180,80,60,ALPHA)", 0.2);
-          c.fillStyle = wchov ? "rgba(200,70,50,0.95)" : "rgba(140,100,70,0.55)";
-          c.beginPath(); c.arc(wcx, wcy, wchov ? 18 : 16, 0, Math.PI * 2); c.fill();
-          c.strokeStyle = "#FFF8F0"; c.lineWidth = wchov ? 3 : 2.5;
-          c.beginPath(); c.moveTo(wcx - 6, wcy - 6); c.lineTo(wcx + 6, wcy + 6); c.stroke();
-          c.beginPath(); c.moveTo(wcx + 6, wcy - 6); c.lineTo(wcx - 6, wcy + 6); c.stroke();
-          /* character tabs */
-          var wtabs = [
-            { key: "obi", label: "Obi", x: 80, color: "#4A90D9" },
-            { key: "luna", label: "Luna", x: 170, color: "#7DB36C" },
-            { key: "annie", label: "Annie", x: 260, color: "#E8A84C" }
-          ];
-          for (var wti = 0; wti < wtabs.length; wti++) {
-            var wt = wtabs[wti];
-            var wtActive = this.wardrobeTab === wt.key;
-            var wtHov = this.wardrobeHover === "tab" + wt.key.charAt(0).toUpperCase() + wt.key.slice(1);
-            rr(c, wt.x, 130, 80, 26, 8);
-            c.fillStyle = wtActive ? wt.color : wtHov ? "rgba(122,78,54,0.2)" : "rgba(122,78,54,0.08)";
-            c.fill();
-            c.fillStyle = wtActive ? "#FFF8F0" : "#7A4E36";
-            c.font = '13px "Fredoka One", "Comic Sans MS", cursive, sans-serif';
-            c.textAlign = "center";
-            c.fillText(wt.label, wt.x + 40, 147);
-          }
+          c.fillText(store.wardrobe.owned.length + " / " + Object.values(ACCESSORIES).reduce(function(s, a) { return s + a.length; }, 0) + " owned", W / 2, 165);
           /* items for current tab (with scroll) */
           var tabItems = this.getWardrobeTabItems();
           var pet = this.wardrobeTab;
